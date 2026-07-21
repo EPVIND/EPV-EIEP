@@ -22,6 +22,9 @@ All notable controlled changes to the EIEP program definition and implementation
 - Approved only the pinned Linux x64 and Windows x64 embedded-PostgreSQL install
   scripts (plus the pinned frontend compiler) so clean hosted CI and the supported
   local verification platform apply the same explicit supply-chain policy.
+- Moved the pinned Chromium installation before the renderer-bearing verification
+  suite and updated the three GitHub-owned workflow actions to their current
+  full-commit-pinned Node 24-compatible releases.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 
