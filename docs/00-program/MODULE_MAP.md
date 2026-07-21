@@ -59,3 +59,10 @@
 
 Only the shared foundation and the first operational vertical slice are implementation commitments for the MVP. Other modules influence identifiers, extensibility, and interfaces but are deferred until the vertical slice meets its acceptance criteria.
 
+## Active post-MVP expansion priority
+
+Task-owner direction on 2026-07-21 activates advanced estimating/proposals first,
+then project controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed
+Bluebeam collaboration. These are separate controlled releases under
+`../01-requirements/EXPANSION_REQUIREMENTS.md`; activation does not enlarge the MVP
+acceptance claim or authorize production use.

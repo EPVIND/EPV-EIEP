@@ -40,7 +40,7 @@ optionally set `CONTAINER_BUILD_EVIDENCE`, then run `pnpm run containers:build`.
 command builds all four targets, confirms their unprivileged user and revision label,
 starts API/web/portal smoke containers, and exercises the compiled worker graph. The
 hosted workflow records the result as `artifacts/container-build.json`.
-Clean hosted run `29865776583` executed this path for commit `82aa645` and retained
+Clean hosted run `29872313909` executed this path for commit `0ca748f` and retained
 the four runner-local image IDs with the 150-component SBOM.
 
 For a release, retag and push those same images to the approved ACR, run the approved

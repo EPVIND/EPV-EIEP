@@ -38,6 +38,9 @@ owners named in each record:
 8. `0008-search-and-reporting.md`.
 9. `0009-azure-environments-and-recovery.md`.
 10. `0010-turnover-pdf-and-preservation.md`.
+11. `0011-estimating-project-controls-and-procurement.md`.
+12. `0012-bluebeam-document-collaboration.md`.
+13. `0013-welding-nde-pwht-and-testing.md`.
 
 Do not implement a proposal as though it were production-approved. The first
 scaffold may exercise these proposals for review; production promotion remains

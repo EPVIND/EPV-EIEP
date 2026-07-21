@@ -4,6 +4,15 @@ All notable controlled changes to the EIEP program definition and implementation
 
 ## 0.9.0 - Guided activation setup and complete PMI/NCR execution detail
 
+- Activated the task owner's immediate enterprise-expansion priority under a
+  controlled change record: advanced estimating/proposal first, followed by project
+  controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed Bluebeam
+  collaboration. Added proposed requirements, acceptance criteria, and ADR-0011
+  through ADR-0013 without enlarging the MVP or production-readiness claim.
+- Clean hosted verification run `29872313909` passed the guarded initial application
+  identity path, PostgreSQL restart, 79 source tests, five tablet/axe workflows, four
+  production container builds/smokes, dependency audit, and retained a sealed
+  evidence artifact at commit `0ca748f`.
 - Closed the circular first-application-identity gap with a separate guarded
   operator command that creates exactly two independently authorized, time-bounded
   identity/access administrators and no project or business authority. Exact retry

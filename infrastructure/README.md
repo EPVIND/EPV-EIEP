@@ -16,7 +16,7 @@ Status: Compiled review implementation; ADR-0009 remains Proposed and no cloud d
 - Every environment requires API, web, portal, and job-worker images addressed by `@sha256:` digest. A mutable tag disables the proposed deployment.
 - `containers/Dockerfile` supplies the four corresponding rootless build targets
   from one Node 24 base pinned by digest; definition and compiled-runtime checks run
-  locally, and clean hosted run `29865776583` built/smoked all four. Its runner-local
+  locally, and clean hosted run `29872313909` built/smoked all four. Its runner-local
   image IDs do not replace approved ACR digests, scans, or signatures.
 - No template accepts a PostgreSQL administrator or runtime password. Separate API
   and worker URLs are constructed from their deployed identity names and the managed

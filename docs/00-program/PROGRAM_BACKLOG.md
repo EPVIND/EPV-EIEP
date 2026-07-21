@@ -19,17 +19,23 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 
 ## Next - multidisciplinary execution
 
-- Welding/WPS/PQR/WPQ and NDE workflows.
+- Advanced estimating, assemblies/productivity, quote comparison, proposal, and
+  immutable award handoff.
+- Project cost/quantity controls, change, procurement/expediting, schedule baselines,
+  updates, look-aheads, and P6/Project exchange.
+- Welding/WPS/PQR/WPQ, NDE, PWHT, pressure/leak testing, and test-package workflows.
+- Governed Bluebeam collaboration import followed by a separately approved live
+  adapter.
 - Structural member and assembly tracking.
 - Civil, earthwork, concrete placement, testing, and foundation release.
 - Work packages, travelers, daily reports, quantities, look-aheads, and progress.
 - Focused subcontractor portal, mobilization, and deliverables.
 - Pressure/leak testing, coating, alignment, grouting, and commissioning packages.
 
-## Later - enterprise expansion
+## Later - remaining enterprise expansion
 
-- Estimating, commercial, cost, billing, and finance integration.
-- Full scheduling and resource controls.
+- CRM, contract lifecycle, billing, payroll, cash flow, and general-ledger authority.
+- Automated estimating/optimization and advanced resource leveling/claims analytics.
 - Equipment/fleet and maintenance.
 - Electrical/instrumentation execution and loop packages.
 - Advanced model, CNC, instrument, laser scan, and ERP integrations.
@@ -39,4 +45,3 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 ## Backlog entry definition
 
 Each implementation item must include user outcome, scope, exclusions, requirement IDs, data impacts, authorization, audit events, acceptance tests, migration/rollback, deployment impact, training impact, and product-owner priority.
-
