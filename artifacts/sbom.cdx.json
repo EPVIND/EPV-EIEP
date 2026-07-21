@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:9d084758-1f00-453e-8391-a96b8bd34019",
+  "serialNumber": "urn:uuid:329b529d-b8b5-4f28-89c2-8fe3c02a5c23",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-07-21T20:15:51.151Z",
+    "timestamp": "2026-07-21T20:24:54.415Z",
     "tools": {
       "components": [
         {
@@ -23,7 +23,7 @@
     "properties": [
       {
         "name": "eiep:pnpm-lock-sha256",
-        "value": "b48a82a3719c43e4da7d6354d420103365e0a02504bba22bd09166bd4721c533"
+        "value": "be69886f900668489837e10fa536b40150bdcbebfab9722fb1d24e23ef724892"
       }
     ]
   },
@@ -1294,7 +1294,8 @@
         "@eiep/document-processing@0.1.0",
         "@eiep/integration@0.1.0",
         "@eiep/shared-types@0.1.0",
-        "@eiep/turnover-renderer@0.1.0"
+        "@eiep/turnover-renderer@0.1.0",
+        "playwright@1.61.1"
       ]
     },
     {

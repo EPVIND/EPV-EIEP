@@ -30,6 +30,7 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(workflow, /permissions:\s+contents: read/u);
   assert.match(workflow, /pnpm install --frozen-lockfile/u);
   assert.match(workflow, /pnpm audit --prod --audit-level high/u);
+  assert.match(workflow, /SOURCE_REVISION: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/u);
   assert.match(workflow, /sha256sum --check/u);
   const actionReferences = [...workflow.matchAll(/uses:\s+[^@\s]+@([^\s#]+)/gu)]
     .map((match) => match[1])
@@ -40,6 +41,7 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(toolchain.windowsX64Sha256, /^[0-9a-f]{64}$/u);
   assert.match(toolchain.linuxX64Sha256, /^[0-9a-f]{64}$/u);
   assert.equal(jobWorkerPackage.scripts.start, "node dist/main.js");
+  assert.equal(jobWorkerPackage.dependencies.playwright, "1.61.1");
   assert.equal(apiPackage.exports["."].default, "./dist/index.js");
   assert.equal(jobWorkerPackage.exports["."].default, "./dist/index.js");
   assert.match(packageJson.scripts.verify, /runtime:verify/u);

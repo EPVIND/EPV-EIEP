@@ -21,7 +21,8 @@
     "@eiep/document-processing": "workspace:*",
     "@eiep/integration": "workspace:*",
     "@eiep/shared-types": "workspace:*",
-    "@eiep/turnover-renderer": "workspace:*"
+    "@eiep/turnover-renderer": "workspace:*",
+    "playwright": "1.61.1"
   },
   "devDependencies": {
     "typescript": "~5.9.0"

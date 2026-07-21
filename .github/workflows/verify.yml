@@ -43,7 +43,7 @@ jobs:
         run: pnpm run build
       - name: Build and smoke production containers
         env:
-          SOURCE_REVISION: ${{ github.sha }}
+          SOURCE_REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
           CONTAINER_BUILD_EVIDENCE: artifacts/container-build.json
         run: pnpm run containers:build
       - name: Verify PostgreSQL 18 migrations and repository

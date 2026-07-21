@@ -8,6 +8,9 @@ const staticServer = await readFile("containers/static-server.mjs", "utf8");
 const webVite = await readFile("apps/web/vite.config.ts", "utf8");
 const portalVite = await readFile("apps/portal/vite.config.ts", "utf8");
 
+if (!dockerfile.startsWith("# syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e\n")) {
+  throw new Error("The Dockerfile frontend must be pinned by digest.");
+}
 if (!/^ARG NODE_IMAGE=node:24\.14\.0-bookworm-slim@sha256:[0-9a-f]{64}$/mu.test(dockerfile)) {
   throw new Error("The container build must pin the approved Node 24 base image by digest.");
 }
