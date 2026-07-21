@@ -37,6 +37,33 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 - `MaterialCertification` links MTR/certificate revisions to represented lots/items and approval status.
 - `MaterialHold` prevents issue/use/release and links reason, NCR, affected quantity, and authorized resolution.
 
+## Commercial estimating and award handoff
+
+- `Estimate` is an organization-scoped opportunity identity with customer/facility,
+  inquiry, scope, due date/time zone, currency, owner, basis, and lifecycle state.
+- `EstimateRevision` is the immutable submitted/approved commercial baseline. A
+  successor retains the exact parent and reason; stable line keys support an exact
+  added/removed/changed delta without rewriting the parent.
+- `EstimateLine` maps hierarchical cost code, bid item, alternate, WBS, and work
+  package context to exact quantity/unit and a versioned calculation snapshot.
+- `EstimateAssemblyRevision` freezes controlled labor, material, equipment, and
+  subcontract components; `ProductivityFactorRevision` freezes source,
+  justification, discipline/condition, effective interval, and independent approval.
+- `EstimateAuthorityPolicyRevision` freezes currency-specific standard limits and
+  the separately managed elevated qualifications required above each estimate,
+  quote-selection, and proposal-approval limit. A proposed revision cannot activate
+  without an independent approval and supersedes the prior active policy.
+- `EstimateQuote` links an integrity-matched released organization-scoped
+  `FileObject` to normalized bid-scope lines, validity, currency, inclusions,
+  exclusions, qualifications, freight/tax, gaps, and independent selection.
+- `EstimateProposal` freezes an approved revision, commercial terms, validity,
+  exact source hash, price, artifact filename/media type/content hash, and
+  artifact-manifest hash. Approval, issue, and integrity-checked download are
+  distinct attributable actions.
+- `EstimateHandoff` maps the issued proposal snapshot into a same-organization
+  project by direct/contingency/escalation/markup/tax categories and requires an
+  exact zero-difference reconciliation. The source estimate is never rewritten.
+
 ## Inspection and equipment
 
 - `InspectionPlan` and `InspectionPlanRevision` define versioned stages, required fields, hold/witness/review points, acceptance references, and roles.
@@ -93,6 +120,11 @@ Do not force discipline-specific attributes into one wide nullable table. Use st
 - Only one current released revision for a defined document/use context.
 - No release when a required hold, inspection, calibration, MTR, or disposition is open.
 - No turnover item pointing to a rejected, superseded, unauthorized, or mutable file.
+- No quote referencing a project-scoped, unreleased, cross-organization, or
+  hash-mismatched file; no submitted estimate-line mutation; no award handoff with a
+  nonzero reconciliation difference; no above-limit estimating decision without the
+  active policy's exact elevated qualification; no proposal download after artifact
+  content/hash divergence.
 
 The physical review schema currently advances through reversible migration
 `0014_pmi_ncr_execution_detail`, which makes PMI component location/notes and NCR

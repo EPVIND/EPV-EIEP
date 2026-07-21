@@ -1,5 +1,9 @@
 # Enterprise Module Map
 
+The task-owner dashboard capability expectation is controlled in
+`PRODUCT_VISION_CAPABILITY_BASELINE.md`. This map describes the corresponding domain
+scope; it does not treat illustrative dashboard values as implemented records.
+
 ## Shared foundation
 
 - Organizations, facilities, projects, systems, areas, WBS, work packages, and responsibilities.
@@ -66,3 +70,9 @@ then project controls/procurement/scheduling, welding/NDE/PWHT/testing, and gove
 Bluebeam collaboration. These are separate controlled releases under
 `../01-requirements/EXPANSION_REQUIREMENTS.md`; activation does not enlarge the MVP
 acceptance claim or authorize production use.
+
+The preserved vision also includes the adjacent engineering database, fabrication,
+spool generation, CNC/waterjet/profiling, customer portal, unified task/activity,
+reports/analytics, offline, and system-status surfaces. Their sequencing follows the
+dependency order in the product-vision baseline; none is silently represented as
+available before executable acceptance evidence exists.

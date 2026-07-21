@@ -70,7 +70,11 @@ function schemaFor(type: ts.Type, stack = new Set<ts.Type>()): JsonSchema {
     if (variants.length === 1) return { ...variants[0], ...(nullable ? { nullable: true } : {}) };
     return { oneOf: variants, ...(nullable ? { nullable: true } : {}) };
   }
-  if (type.isIntersection()) return { allOf: type.types.map((member) => schemaFor(member, new Set(stack))) };
+  // Intersections used by route bodies (for example `Omit<T, "date"> &
+  // { date: string }`) are a single closed JSON object at runtime. Emitting each
+  // member as an `allOf` object with `additionalProperties: false` makes every
+  // member reject the other member's fields. Let the object branch below ask the
+  // TypeScript checker for the intersection's combined property set instead.
 
   const symbolName = type.aliasSymbol?.getName() ?? type.getSymbol()?.getName();
   if (symbolName === "Date") return { type: "string", format: "date-time" };

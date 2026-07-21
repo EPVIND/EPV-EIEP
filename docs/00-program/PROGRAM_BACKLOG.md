@@ -19,8 +19,9 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 
 ## Next - multidisciplinary execution
 
-- Advanced estimating, assemblies/productivity, quote comparison, proposal, and
-  immutable award handoff.
+- Advanced estimating, assemblies/productivity, monetary authority, quote
+  comparison, printable proposal, and immutable award handoff: locally implemented
+  controlled pilot; production migration/configuration/deployment acceptance remains.
 - Project cost/quantity controls, change, procurement/expediting, schedule baselines,
   updates, look-aheads, and P6/Project exchange.
 - Welding/WPS/PQR/WPQ, NDE, PWHT, pressure/leak testing, and test-package workflows.
@@ -31,6 +32,8 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 - Work packages, travelers, daily reports, quantities, look-aheads, and progress.
 - Focused subcontractor portal, mobilization, and deliverables.
 - Pressure/leak testing, coating, alignment, grouting, and commissioning packages.
+- Dashboard-derived engineering register, fabrication, spool, unified task/activity,
+  and customer/reports projections needed by the controlled product-vision baseline.
 
 ## Later - remaining enterprise expansion
 
@@ -38,7 +41,8 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 - Automated estimating/optimization and advanced resource leveling/claims analytics.
 - Equipment/fleet and maintenance.
 - Electrical/instrumentation execution and loop packages.
-- Advanced model, CNC, instrument, laser scan, and ERP integrations.
+- Advanced model, CNC/waterjet/profiling, instrument, laser scan, and ERP
+  integrations; machine execution requires a separately authorized boundary.
 - Owner asset history, digital twin, governed analytics, and AI assistance.
 - Commercial multi-tenant product capabilities if approved.
 

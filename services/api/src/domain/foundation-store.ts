@@ -9,6 +9,15 @@ import type {
   ImportedRecord,
   ExternalIdentifierRecord,
   ExportJobRecord,
+  EstimateHandoffRecord,
+  EstimateAuthorityPolicyRevisionRecord,
+  EstimateAssemblyRevisionRecord,
+  EstimateLineRecord,
+  EstimateProductivityFactorRevisionRecord,
+  EstimateProposalRecord,
+  EstimateQuoteRecord,
+  EstimateRecord,
+  EstimateRevisionRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -74,6 +83,54 @@ export interface FoundationTransaction {
   delegationsForUser(userId: string): readonly DelegationRecord[];
   insertDelegation(delegation: DelegationRecord): void;
   updateDelegation(delegation: DelegationRecord, expectedVersion: number): void;
+  estimateAssemblyById(id: string): EstimateAssemblyRevisionRecord | null;
+  estimateAssemblyByRevision(organizationId: string, code: string, revision: string): EstimateAssemblyRevisionRecord | null;
+  estimateAssemblies(organizationId: string, code?: string): readonly EstimateAssemblyRevisionRecord[];
+  insertEstimateAssembly(assembly: EstimateAssemblyRevisionRecord): void;
+  updateEstimateAssembly(assembly: EstimateAssemblyRevisionRecord, expectedVersion: number): void;
+  estimateProductivityFactorById(id: string): EstimateProductivityFactorRevisionRecord | null;
+  estimateProductivityFactorByRevision(
+    organizationId: string, code: string, revision: string,
+  ): EstimateProductivityFactorRevisionRecord | null;
+  estimateProductivityFactors(organizationId: string, code?: string): readonly EstimateProductivityFactorRevisionRecord[];
+  insertEstimateProductivityFactor(factor: EstimateProductivityFactorRevisionRecord): void;
+  updateEstimateProductivityFactor(factor: EstimateProductivityFactorRevisionRecord, expectedVersion: number): void;
+  estimateAuthorityPolicyById(id: string): EstimateAuthorityPolicyRevisionRecord | null;
+  estimateAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): EstimateAuthorityPolicyRevisionRecord | null;
+  estimateAuthorityPolicies(organizationId: string, currency?: string): readonly EstimateAuthorityPolicyRevisionRecord[];
+  insertEstimateAuthorityPolicy(policy: EstimateAuthorityPolicyRevisionRecord): void;
+  updateEstimateAuthorityPolicy(policy: EstimateAuthorityPolicyRevisionRecord, expectedVersion: number): void;
+  estimateById(id: string): EstimateRecord | null;
+  estimateByNumber(organizationId: string, number: string): EstimateRecord | null;
+  estimatesForOrganization(organizationId: string): readonly EstimateRecord[];
+  insertEstimate(estimate: EstimateRecord): void;
+  updateEstimate(estimate: EstimateRecord, expectedVersion: number): void;
+  estimateRevisionById(id: string): EstimateRevisionRecord | null;
+  estimateRevisionByName(estimateId: string, revision: string): EstimateRevisionRecord | null;
+  estimateRevisions(estimateId: string): readonly EstimateRevisionRecord[];
+  insertEstimateRevision(revision: EstimateRevisionRecord): void;
+  updateEstimateRevision(revision: EstimateRevisionRecord, expectedVersion: number): void;
+  estimateLineById(id: string): EstimateLineRecord | null;
+  estimateLineByKey(revisionId: string, lineKey: string): EstimateLineRecord | null;
+  estimateLines(revisionId: string): readonly EstimateLineRecord[];
+  insertEstimateLine(line: EstimateLineRecord): void;
+  updateEstimateLine(line: EstimateLineRecord, expectedVersion: number): void;
+  estimateQuoteById(id: string): EstimateQuoteRecord | null;
+  estimateQuoteByNumber(revisionId: string, vendorOrganizationId: string, quoteNumber: string): EstimateQuoteRecord | null;
+  estimateQuotes(revisionId: string): readonly EstimateQuoteRecord[];
+  insertEstimateQuote(quote: EstimateQuoteRecord): void;
+  updateEstimateQuote(quote: EstimateQuoteRecord, expectedVersion: number): void;
+  estimateProposalById(id: string): EstimateProposalRecord | null;
+  estimateProposalByNumber(estimateId: string, proposalNumber: string): EstimateProposalRecord | null;
+  estimateProposals(estimateId: string): readonly EstimateProposalRecord[];
+  insertEstimateProposal(proposal: EstimateProposalRecord): void;
+  updateEstimateProposal(proposal: EstimateProposalRecord, expectedVersion: number): void;
+  estimateHandoffById(id: string): EstimateHandoffRecord | null;
+  estimateHandoffByProposal(proposalId: string): EstimateHandoffRecord | null;
+  estimateHandoffs(estimateId: string): readonly EstimateHandoffRecord[];
+  insertEstimateHandoff(handoff: EstimateHandoffRecord): void;
   projectById(id: string): ProjectRecord | null;
   projectByNumber(businessScopeOrganizationId: string, number: string): ProjectRecord | null;
   projects(): readonly ProjectRecord[];

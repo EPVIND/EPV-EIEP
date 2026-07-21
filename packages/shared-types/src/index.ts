@@ -716,6 +716,282 @@ export interface DelegationRecord {
   readonly createdAt: Date;
 }
 
+export type EstimateState = "draft" | "under_review" | "approved" | "proposal_issued" | "awarded" | "closed";
+export type EstimateRevisionState = "draft" | "under_review" | "approved" | "rejected" | "superseded";
+
+export interface EstimateAssemblyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly code: string;
+  readonly revision: string;
+  readonly description: string;
+  readonly costCode: string;
+  readonly unitCode: string;
+  readonly baseLaborHoursPerUnit: string;
+  readonly laborRatePerHour: string;
+  readonly materialUnitCost: string;
+  readonly equipmentUnitCost: string;
+  readonly subcontractUnitCost: string;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface EstimateProductivityFactorRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly code: string;
+  readonly revision: string;
+  readonly name: string;
+  readonly multiplier: string;
+  readonly sourceReference: string;
+  readonly justification: string;
+  readonly discipline: string;
+  readonly conditionCode: string;
+  readonly effectiveFrom: Date;
+  readonly effectiveTo: Date | null;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface EstimateAuthorityPolicyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly currency: string;
+  readonly revision: string;
+  readonly standardEstimateApprovalLimit: string;
+  readonly standardQuoteSelectionLimit: string;
+  readonly standardProposalApprovalLimit: string;
+  readonly estimateAboveThresholdQualification: string;
+  readonly quoteAboveThresholdQualification: string;
+  readonly proposalAboveThresholdQualification: string;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface EstimateRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly number: string;
+  readonly name: string;
+  readonly customerOrganizationId: string;
+  readonly facilityId: string;
+  readonly opportunityReference: string | null;
+  readonly scopeStatement: string;
+  readonly dueAt: Date;
+  readonly originatingTimeZone: string;
+  readonly currency: string;
+  readonly basisReferences: readonly string[];
+  readonly ownerUserId: string;
+  readonly state: EstimateState;
+  readonly currentRevisionId: string;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateProductivityFactorSnapshot {
+  readonly factorRevisionId: string;
+  readonly multiplier: string;
+  readonly sourceReference: string;
+  readonly justification: string;
+  readonly approvedBy: string;
+  readonly approvedAt: Date;
+}
+
+export interface EstimateLineCalculation {
+  readonly version: "estimate-v1";
+  readonly productivityMultiplier: string;
+  readonly adjustedLaborHours: string;
+  readonly laborCost: string;
+  readonly materialCost: string;
+  readonly equipmentCost: string;
+  readonly subcontractCost: string;
+  readonly allowanceCost: string;
+  readonly otherCost: string;
+  readonly totalCost: string;
+}
+
+export interface EstimateLineRecord {
+  readonly id: string;
+  readonly revisionId: string;
+  readonly lineKey: string;
+  readonly parentLineKey: string | null;
+  readonly sortOrder: number;
+  readonly costCode: string;
+  readonly bidItemCode: string | null;
+  readonly alternateCode: string | null;
+  readonly wbsCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly assemblyRevisionId: string | null;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly baseLaborHoursPerUnit: string;
+  readonly laborRatePerHour: string;
+  readonly materialUnitCost: string;
+  readonly equipmentUnitCost: string;
+  readonly subcontractUnitCost: string;
+  readonly allowanceCost: string;
+  readonly otherCost: string;
+  readonly productivityFactors: readonly EstimateProductivityFactorSnapshot[];
+  readonly calculation: EstimateLineCalculation;
+  readonly state: "active" | "removed";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateRevisionTotals {
+  readonly version: "estimate-v1";
+  readonly currency: string;
+  readonly directCost: string;
+  readonly contingencyAmount: string;
+  readonly escalationAmount: string;
+  readonly markupAmount: string;
+  readonly taxAmount: string;
+  readonly finalPrice: string;
+}
+
+export interface EstimateRevisionRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly state: EstimateRevisionState;
+  readonly assumptions: readonly string[];
+  readonly exclusions: readonly string[];
+  readonly alternates: readonly string[];
+  readonly contingencyPercent: string;
+  readonly escalationPercent: string;
+  readonly markupPercent: string;
+  readonly taxPercent: string;
+  readonly totals: EstimateRevisionTotals;
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateQuoteLine {
+  readonly id: string;
+  readonly bidScopeLineKey: string;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly amount: string;
+}
+
+export interface EstimateQuoteRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly revisionId: string;
+  readonly vendorOrganizationId: string;
+  readonly quoteNumber: string;
+  readonly sourceFileId: string;
+  readonly sourceSha256: string;
+  readonly currency: string;
+  readonly validUntil: Date;
+  readonly inclusions: readonly string[];
+  readonly exclusions: readonly string[];
+  readonly qualifications: readonly string[];
+  readonly freightAmount: string;
+  readonly taxAmount: string;
+  readonly lines: readonly EstimateQuoteLine[];
+  readonly normalizedTotal: string;
+  readonly unresolvedScopeLineKeys: readonly string[];
+  readonly state: "received" | "normalized" | "selected" | "not_selected" | "rejected";
+  readonly selectedAt: Date | null;
+  readonly selectedBy: string | null;
+  readonly selectionReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateProposalRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly revisionId: string;
+  readonly proposalNumber: string;
+  readonly customerOrganizationId: string;
+  readonly totalPrice: string;
+  readonly currency: string;
+  readonly validUntil: Date;
+  readonly commercialTermsReferences: readonly string[];
+  readonly sourceCanonicalSha256: string;
+  readonly artifactManifestSha256: string;
+  readonly artifactSha256: string;
+  readonly artifactMediaType: "text/html";
+  readonly artifactFilename: string;
+  readonly artifactContent: string;
+  readonly state: "draft" | "approved" | "issued" | "superseded";
+  readonly approvedAt: Date | null;
+  readonly approvedBy: string | null;
+  readonly issuedAt: Date | null;
+  readonly issuedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateHandoffMapping {
+  readonly estimateLineKey: string;
+  readonly category: "direct_cost" | "contingency" | "escalation" | "markup" | "tax";
+  readonly costCode: string;
+  readonly wbsCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly amount: string;
+}
+
+export interface EstimateHandoffRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly proposalId: string;
+  readonly projectId: string;
+  readonly sourceRevisionId: string;
+  readonly sourceCanonicalSha256: string;
+  readonly mappings: readonly EstimateHandoffMapping[];
+  readonly mappedTotal: string;
+  readonly sourceTotal: string;
+  readonly reconciliationDifference: string;
+  readonly authorizationReference: string;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+
 export type ProjectStructureType = "system" | "area" | "wbs" | "work_package";
 
 export interface ProjectStructureElementRecord {
@@ -858,7 +1134,8 @@ export interface RetentionDispositionRecord {
 
 export interface GovernedFileRecord {
   readonly id: string;
-  readonly projectId: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string | null;
   readonly storageKey: string;
   readonly originalFilename: string;
   readonly declaredMediaType: string;
@@ -951,7 +1228,8 @@ export interface ExportJobRecord {
 export interface IntegrationMessageRecord {
   readonly id: string;
   readonly direction: "inbox" | "outbox";
-  readonly projectId: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string | null;
   readonly interfaceCode: string;
   readonly idempotencyKey: string;
   readonly externalId: string;

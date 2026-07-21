@@ -4,6 +4,29 @@ All notable controlled changes to the EIEP program definition and implementation
 
 ## 0.9.0 - Guided activation setup and complete PMI/NCR execution detail
 
+- Recorded the task-supplied enterprise dashboard as a hash-identified controlled
+  product-vision capability baseline. Its full module surface now guides sequencing,
+  while illustrative counts/people/projects/statuses remain explicitly non-evidence.
+- Added the advanced-estimating pilot vertical slice: organization-scoped
+  opportunities, immutable revisions/deltas, independently governed assemblies and
+  productivity factors, exact versioned cost/price calculations, quote leveling and
+  selection, independently approved currency-specific monetary authority policies,
+  deterministic source/artifact/manifest-hashed printable proposals, integrity-
+  checked download, approvals, audit, and exactly reconciled same-organization award
+  handoff.
+- Added private organization-scoped quote-file staging with idempotency, hash/media/
+  malware/container validation, independent release, cross-organization denial, and
+  mandatory released-file/hash enforcement before quote normalization.
+- Added 28 estimating/file API routes to the generated contract, PostgreSQL restart
+  coverage for estimating records, authenticated API scope/denial evidence, and a
+  tablet-accessible visible estimating workspace covering opportunity, cost basis,
+  build-up, quotes, revisions, proposal, and handoff.
+- Local controlled verification now passes 84 source tests, six Chromium tablet/axe
+  workflows, 140 active `/v1` routes with 109 request bodies, PostgreSQL estimating
+  restart/concurrency evidence, production builds/runtime smokes, and the production
+  dependency audit. These results do not replace the external approvals and deployed
+  evidence recorded in the change control and traceability matrix.
+
 - Activated the task owner's immediate enterprise-expansion priority under a
   controlled change record: advanced estimating/proposal first, followed by project
   controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed Bluebeam

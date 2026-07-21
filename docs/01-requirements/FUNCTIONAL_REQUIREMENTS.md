@@ -21,6 +21,19 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-PRJ-002** A project shall contain systems, areas, WBS elements, work packages, organizations, and responsibility assignments without duplicating master organizations.
 - **FR-PRJ-003** The project shall configure inspection, material, document, subcontractor, and turnover requirements.
 
+## Advanced estimating and proposal handoff
+
+- **FR-EST-001** Authorized users shall create organization-scoped estimates with unique number, customer/facility context, inquiry, scope, due date, currency, time zone, basis references, and explicit state.
+- **FR-EST-002** Submitted estimate revisions shall be immutable; a correction creates a new parent-linked revision with reason and exact added/removed/changed line comparison.
+- **FR-EST-003** Estimate revisions shall contain hierarchical cost-code/bid-item/work-package breakdowns using exact quantities, controlled units, and independently governed versioned assemblies.
+- **FR-EST-004** Estimate calculations shall preserve exact labor hours/rates, material, equipment, subcontract, allowance, other cost, currency, rounding version, and reproducible component totals.
+- **FR-EST-005** Productivity factors shall preserve source, justification, applicability/effective interval, multiplier, proposer, and independent approval, and remain distinguishable from base quantity/hours.
+- **FR-EST-006** Vendor/subcontractor quotes shall preserve exact source identity/hash, currency/validity, normalized scope lines, inclusions, exclusions, qualifications, freight/tax, gaps, and versioned state.
+- **FR-EST-007** Quote selection and contingency, escalation, markup, tax, risk, and alternates shall remain attributable and independently approved according to configured authority.
+- **FR-EST-008** Estimate create/read/edit/submit/approve/revise, quote, proposal, export, and download actions shall enforce organization/object scope, version, assurance, qualification, separation of duty, and audit.
+- **FR-EST-009** A proposal shall freeze the exact approved revision, price, terms/references, validity, source hash, artifact manifest hash, and independent approval/issue history.
+- **FR-EST-010** Award handoff shall immutably map and reconcile the approved proposal revision into a same-organization project baseline without rewriting the estimate or proposal.
+
 ## Documents
 
 - **FR-DOC-001** The system shall register a controlled document with number, title, type, discipline, revision, status, source, and project applicability.
@@ -71,4 +84,3 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-INT-001** Imports shall validate schema, authorization, duplicates, project context, and errors before commit.
 - **FR-INT-002** Exports shall apply the requesting user's authorization and create an audit event.
 - **FR-INT-003** Integration operations shall be idempotent where practical and preserve external/source identifiers.
-

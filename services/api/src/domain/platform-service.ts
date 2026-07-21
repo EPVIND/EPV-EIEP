@@ -129,7 +129,7 @@ function csvCell(value: string | number): string {
   return /[",\r\n]/u.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-function resource(organizationId: string | null, projectId: string, objectId: string | null) {
+function resource(organizationId: string | null, projectId: string | null, objectId: string | null) {
   return { organizationId, projectId, workPackageId: null, objectId };
 }
 
@@ -217,7 +217,8 @@ export class PlatformService {
         return existing;
       }
       const file: GovernedFileRecord = {
-        id: this.idFactory(), projectId: project.id, storageKey,
+        id: this.idFactory(), businessScopeOrganizationId: project.businessScopeOrganizationId,
+        projectId: project.id, storageKey,
         originalFilename: required(input.originalFilename, "originalFilename"),
         declaredMediaType: required(input.declaredMediaType, "declaredMediaType"), detectedMediaType: null,
         sha256: input.sha256, detectedSha256: null, sizeBytes: input.sizeBytes, validationState: "staged",
@@ -229,7 +230,8 @@ export class PlatformService {
       transaction.insertGovernedFile(file);
       const processingPayload = { fileId: file.id, storageKey: file.storageKey };
       transaction.insertIntegrationMessage({
-        id: this.idFactory(), direction: "outbox", projectId: project.id,
+        id: this.idFactory(), direction: "outbox", businessScopeOrganizationId: project.businessScopeOrganizationId,
+        projectId: project.id,
         interfaceCode: "document-processing.worker", idempotencyKey: file.id, externalId: file.id,
         schemaVersion: 1, payload: processingPayload, payloadSha256: canonicalHash(processingPayload),
         correlationId: context.correlationId, state: "pending", attemptCount: 0, lastError: null,
@@ -245,6 +247,76 @@ export class PlatformService {
     });
   }
 
+  public authorizeOrganizationFileUpload(
+    context: AccessContext,
+    assignments: readonly RoleAssignment[],
+    organizationId: string,
+  ): void {
+    const normalizedOrganizationId = required(organizationId, "organizationId");
+    requireAuthorization(context, assignments, {
+      action: "file.upload", resource: resource(normalizedOrganizationId, null, null),
+      requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
+    }, this.clock());
+  }
+
+  public stageOrganizationFile(
+    context: AccessContext,
+    assignments: readonly RoleAssignment[],
+    organizationId: string,
+    input: StageFileInput,
+  ): Promise<GovernedFileRecord> {
+    const now = this.clock();
+    const normalizedOrganizationId = required(organizationId, "organizationId");
+    requireAuthorization(context, assignments, {
+      action: "file.upload", resource: resource(normalizedOrganizationId, null, null),
+      requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
+    }, now);
+    if (!sha256Pattern.test(input.sha256)) throw new ValidationError("File SHA-256 is invalid.", ["file_sha256_invalid"]);
+    if (!Number.isSafeInteger(input.sizeBytes) || input.sizeBytes < 1 || input.sizeBytes > maximumFileSizeBytes) {
+      throw new ValidationError("File size exceeds the configured staging policy.", ["file_size_invalid"]);
+    }
+    const storageKey = required(input.storageKey, "storageKey");
+    return this.store.transaction((transaction) => {
+      const existing = transaction.governedFileByStorageKey(storageKey);
+      if (existing) {
+        const exactRetry = existing.businessScopeOrganizationId === normalizedOrganizationId
+          && existing.projectId === null && existing.uploadedBy === context.userId
+          && existing.originalFilename === input.originalFilename.trim()
+          && existing.declaredMediaType === input.declaredMediaType.trim()
+          && existing.sha256 === input.sha256 && existing.sizeBytes === input.sizeBytes
+          && existing.retentionClass === input.retentionClass.trim();
+        if (!exactRetry) throw new ConflictError();
+        return existing;
+      }
+      const file: GovernedFileRecord = {
+        id: this.idFactory(), businessScopeOrganizationId: normalizedOrganizationId, projectId: null, storageKey,
+        originalFilename: required(input.originalFilename, "originalFilename"),
+        declaredMediaType: required(input.declaredMediaType, "declaredMediaType"), detectedMediaType: null,
+        sha256: input.sha256, detectedSha256: null, sizeBytes: input.sizeBytes, validationState: "staged",
+        malwareState: "pending", validatorVersion: null, retentionClass: required(input.retentionClass, "retentionClass"),
+        activeContentDetected: null, encryptedArchiveDetected: null, version: 1,
+        uploadedAt: now, uploadedBy: context.userId, validatedAt: null, validatedBy: null,
+        releasedAt: null, releasedBy: null,
+      };
+      transaction.insertGovernedFile(file);
+      const processingPayload = { fileId: file.id, storageKey: file.storageKey };
+      transaction.insertIntegrationMessage({
+        id: this.idFactory(), direction: "outbox", businessScopeOrganizationId: normalizedOrganizationId,
+        projectId: null, interfaceCode: "document-processing.worker", idempotencyKey: file.id, externalId: file.id,
+        schemaVersion: 1, payload: processingPayload, payloadSha256: canonicalHash(processingPayload),
+        correlationId: context.correlationId, state: "pending", attemptCount: 0, lastError: null,
+        createdAt: now, processedAt: null, version: 1,
+      });
+      transaction.appendAudit(audit(this.idFactory, now, context, {
+        projectId: null, action: "file.organization_upload_staged", objectType: "file_object", objectId: file.id,
+        priorState: null, newState: file.validationState, reason: file.declaredMediaType,
+        changedFields: { businessScopeOrganizationId: normalizedOrganizationId, storageKey: file.storageKey,
+          sha256: file.sha256, sizeBytes: file.sizeBytes, originalFilename: file.originalFilename },
+      }));
+      return file;
+    });
+  }
+
   public validateFile(
     context: AccessContext,
     assignments: readonly RoleAssignment[],
@@ -255,10 +327,10 @@ export class PlatformService {
     const now = this.clock();
     return this.store.transaction((transaction) => {
       const file = transaction.governedFileById(fileId);
-      const project = file ? transaction.projectById(file.projectId) : null;
-      if (!file || !project || file.validationState !== "staged") throw new NotFoundError();
+      const project = file?.projectId ? transaction.projectById(file.projectId) : null;
+      if (!file || (file.projectId !== null && !project) || file.validationState !== "staged") throw new NotFoundError();
       requireAuthorization(context, assignments, {
-        action: "file.validate", resource: resource(project.businessScopeOrganizationId, project.id, file.id),
+        action: "file.validate", resource: resource(file.businessScopeOrganizationId, file.projectId, file.id),
         requiredQualifications: ["file_validation_worker"], forbiddenActorIds: [], minimumAssurance: "mfa",
       }, now);
       if (file.version !== expectedVersion) throw new ConflictError();
@@ -277,7 +349,7 @@ export class PlatformService {
       };
       transaction.updateGovernedFile(validated, expectedVersion);
       transaction.appendAudit(audit(this.idFactory, now, context, {
-        projectId: project.id, action: validationState === "validated" ? "file.validation_passed"
+        projectId: file.projectId, action: validationState === "validated" ? "file.validation_passed"
           : validationState === "quarantined" ? "file.quarantined" : "file.validation_rejected",
         objectType: "file_object", objectId: file.id, priorState: file.validationState, newState: validationState,
         reason: [hashMismatch && "hash_mismatch", typeRejected && "type_mismatch", unsafeContainer && "unsafe_container",
@@ -296,10 +368,10 @@ export class PlatformService {
     const now = this.clock();
     return this.store.transaction((transaction) => {
       const file = transaction.governedFileById(fileId);
-      const project = file ? transaction.projectById(file.projectId) : null;
-      if (!file || !project) throw new NotFoundError();
+      const project = file?.projectId ? transaction.projectById(file.projectId) : null;
+      if (!file || (file.projectId !== null && !project)) throw new NotFoundError();
       requireAuthorization(context, assignments, {
-        action: "file.read", resource: resource(project.businessScopeOrganizationId, project.id, file.id),
+        action: "file.read", resource: resource(file.businessScopeOrganizationId, file.projectId, file.id),
         requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
       }, now);
       return file;
@@ -315,10 +387,10 @@ export class PlatformService {
     const now = this.clock();
     return this.store.transaction((transaction) => {
       const file = transaction.governedFileById(fileId);
-      const project = file ? transaction.projectById(file.projectId) : null;
-      if (!file || !project) throw new NotFoundError();
+      const project = file?.projectId ? transaction.projectById(file.projectId) : null;
+      if (!file || (file.projectId !== null && !project)) throw new NotFoundError();
       requireAuthorization(context, assignments, {
-        action: "file.release", resource: resource(project.businessScopeOrganizationId, project.id, file.id),
+        action: "file.release", resource: resource(file.businessScopeOrganizationId, file.projectId, file.id),
         requiredQualifications: ["file_release_authority"],
         forbiddenActorIds: [file.uploadedBy, file.validatedBy ?? ""], minimumAssurance: "step-up",
       }, now);
@@ -333,14 +405,15 @@ export class PlatformService {
       transaction.updateGovernedFile(released, expectedVersion);
       const releasePayload = { fileId: file.id, storageKey: file.storageKey };
       transaction.insertIntegrationMessage({
-        id: this.idFactory(), direction: "outbox", projectId: project.id,
+        id: this.idFactory(), direction: "outbox", businessScopeOrganizationId: file.businessScopeOrganizationId,
+        projectId: file.projectId,
         interfaceCode: "file-release.worker", idempotencyKey: file.id, externalId: file.id,
         schemaVersion: 1, payload: releasePayload, payloadSha256: canonicalHash(releasePayload),
         correlationId: context.correlationId, state: "pending", attemptCount: 0, lastError: null,
         createdAt: now, processedAt: null, version: 1,
       });
       transaction.appendAudit(audit(this.idFactory, now, context, {
-        projectId: project.id, action: "file.released", objectType: "file_object", objectId: file.id,
+        projectId: file.projectId, action: "file.released", objectType: "file_object", objectId: file.id,
         priorState: file.validationState, newState: released.validationState, reason: file.validatorVersion,
         changedFields: { sha256: file.sha256, detectedMediaType: file.detectedMediaType, releasedBy: context.userId },
       }));
@@ -356,14 +429,14 @@ export class PlatformService {
     const now = this.clock();
     return this.store.transaction((transaction) => {
       const file = transaction.governedFileById(fileId);
-      const project = file ? transaction.projectById(file.projectId) : null;
-      if (!file || !project || file.validationState !== "released") throw new NotFoundError();
+      const project = file?.projectId ? transaction.projectById(file.projectId) : null;
+      if (!file || (file.projectId !== null && !project) || file.validationState !== "released") throw new NotFoundError();
       requireAuthorization(context, assignments, {
-        action: "file.download", resource: resource(project.businessScopeOrganizationId, project.id, file.id),
+        action: "file.download", resource: resource(file.businessScopeOrganizationId, file.projectId, file.id),
         requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
       }, now);
       transaction.appendAudit(audit(this.idFactory, now, context, {
-        projectId: project.id, action: "file.downloaded", objectType: "file_object", objectId: file.id,
+        projectId: file.projectId, action: "file.downloaded", objectType: "file_object", objectId: file.id,
         priorState: file.validationState, newState: file.validationState, reason: null,
         changedFields: { sha256: file.sha256, storageKey: file.storageKey },
       }));
@@ -532,7 +605,8 @@ export class PlatformService {
       };
       transaction.insertExportJob(job);
       transaction.insertIntegrationMessage({
-        id: this.idFactory(), direction: "outbox", projectId: project.id, interfaceCode: "export.worker",
+        id: this.idFactory(), direction: "outbox", businessScopeOrganizationId: project.businessScopeOrganizationId,
+        projectId: project.id, interfaceCode: "export.worker",
         idempotencyKey: job.id, externalId: job.id, schemaVersion: 1, payloadSha256: canonicalHash({ exportJobId: job.id }),
         payload: { exportJobId: job.id },
         correlationId: context.correlationId, state: "pending", attemptCount: 0, lastError: null,
@@ -662,7 +736,8 @@ export class PlatformService {
         throw new ValidationError("Integration schema version is invalid.", ["integration_schema_invalid"]);
       }
       const message: IntegrationMessageRecord = {
-        id: this.idFactory(), direction: "inbox", projectId: project.id, interfaceCode, idempotencyKey,
+        id: this.idFactory(), direction: "inbox", businessScopeOrganizationId: project.businessScopeOrganizationId,
+        projectId: project.id, interfaceCode, idempotencyKey,
         externalId: required(input.externalId, "externalId"), schemaVersion: input.schemaVersion,
         payload: structuredClone(input.payload), payloadSha256, correlationId: context.correlationId, state: "received", attemptCount: 0,
         lastError: null, createdAt: now, processedAt: null, version: 1,
@@ -775,7 +850,8 @@ export class PlatformService {
           };
           transaction.insertNotification(notification);
           if (readable) transaction.insertIntegrationMessage({
-            id: this.idFactory(), direction: "outbox", projectId: project.id, interfaceCode: "notification.worker",
+            id: this.idFactory(), direction: "outbox", businessScopeOrganizationId: project.businessScopeOrganizationId,
+            projectId: project.id, interfaceCode: "notification.worker",
             idempotencyKey: notification.id, externalId: notification.id, schemaVersion: 1,
             payload: { notificationId: notification.id, templateCode, channel: subscription.channel },
             payloadSha256: canonicalHash({ notificationId: notification.id, templateCode, channel: subscription.channel }),
@@ -883,10 +959,11 @@ export class PlatformService {
     const now = this.clock();
     return this.store.transaction((transaction) => {
       const message = transaction.integrationMessageById(messageId);
-      const project = message ? transaction.projectById(message.projectId) : null;
-      if (!message || !project || !["received", "pending", "retry"].includes(message.state)) throw new NotFoundError();
+      const project = message?.projectId ? transaction.projectById(message.projectId) : null;
+      if (!message || (message.projectId !== null && !project)
+        || !["received", "pending", "retry"].includes(message.state)) throw new NotFoundError();
       requireAuthorization(context, assignments, {
-        action: "integration.process", resource: resource(project.businessScopeOrganizationId, project.id, message.id),
+        action: "integration.process", resource: resource(message.businessScopeOrganizationId, message.projectId, message.id),
         requiredQualifications: ["integration_worker"], forbiddenActorIds: [], minimumAssurance: "mfa",
       }, now);
       if (message.version !== expectedVersion) throw new ConflictError();
@@ -898,7 +975,7 @@ export class PlatformService {
       };
       transaction.updateIntegrationMessage(updated, expectedVersion);
       transaction.appendAudit(audit(this.idFactory, now, context, {
-        projectId: project.id, action: outcome === "success" ? "integration.processed"
+        projectId: message.projectId, action: outcome === "success" ? "integration.processed"
           : state === "dead_letter" ? "integration.dead_lettered" : "integration.retried",
         objectType: "integration_message", objectId: message.id, priorState: message.state, newState: state,
         reason: updated.lastError, changedFields: { attemptCount, externalId: message.externalId },
@@ -918,10 +995,10 @@ export class PlatformService {
     const now = this.clock();
     return this.store.transaction((transaction) => {
       const message = transaction.integrationMessageById(messageId);
-      const project = message ? transaction.projectById(message.projectId) : null;
-      if (!message || !project || message.state !== "dead_letter") throw new NotFoundError();
+      const project = message?.projectId ? transaction.projectById(message.projectId) : null;
+      if (!message || (message.projectId !== null && !project) || message.state !== "dead_letter") throw new NotFoundError();
       requireAuthorization(context, assignments, {
-        action: "integration.manage", resource: resource(project.businessScopeOrganizationId, project.id, message.id),
+        action: "integration.manage", resource: resource(message.businessScopeOrganizationId, message.projectId, message.id),
         requiredQualifications: ["integration_reconciliation_authority"], forbiddenActorIds: [], minimumAssurance: "step-up",
       }, now);
       if (message.version !== expectedVersion) throw new ConflictError();
@@ -932,7 +1009,7 @@ export class PlatformService {
       };
       transaction.updateIntegrationMessage(updated, expectedVersion);
       transaction.appendAudit(audit(this.idFactory, now, context, {
-        projectId: project.id, action: "integration.reconciled", objectType: "integration_message", objectId: message.id,
+        projectId: message.projectId, action: "integration.reconciled", objectType: "integration_message", objectId: message.id,
         priorState: message.state, newState: updated.state, reason: required(reason, "reason"),
         changedFields: { resolution, externalId: message.externalId },
       }));

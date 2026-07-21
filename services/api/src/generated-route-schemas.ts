@@ -28,6 +28,96 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/estimate-assemblies": {
+    "querystring": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "GET /v1/estimate-authority-policies": {
+    "querystring": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "GET /v1/estimate-productivity-factors": {
+    "querystring": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "GET /v1/estimate-proposals/:proposalId/download": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ]
+    }
+  },
+  "GET /v1/estimate-revisions/:revisionId/delta": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "GET /v1/estimate-revisions/:revisionId/quote-comparison": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "GET /v1/estimates": {},
+  "GET /v1/estimates/:estimateId": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "estimateId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "estimateId"
+      ]
+    }
+  },
   "GET /v1/exports/:exportJobId/download": {
     "params": {
       "type": "object",
@@ -336,82 +426,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/access/assignments": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "userId": {
-              "type": "string"
-            },
-            "actingOrganizationId": {
-              "type": "string"
-            },
-            "permissions": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "scope": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "organizationId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "projectId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "workPackageId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "objectId": {
-                  "type": "string",
-                  "nullable": true
-                }
-              },
-              "required": [
-                "objectId",
-                "organizationId",
-                "projectId",
-                "workPackageId"
-              ]
-            },
-            "grantReason": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "actingOrganizationId",
-            "grantReason",
-            "permissions",
-            "scope",
-            "userId"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "effectiveFrom": {
-              "type": "string"
-            },
-            "effectiveTo": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "effectiveFrom",
-            "effectiveTo"
-          ]
-        }
-      ]
-    }
+    "body": {}
   },
   "POST /v1/access/assignments/:assignmentId/review": {
     "body": {
@@ -470,82 +485,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/access/delegations": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "delegateUserId": {
-              "type": "string"
-            },
-            "actingOrganizationId": {
-              "type": "string"
-            },
-            "permissions": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "scope": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "organizationId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "projectId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "workPackageId": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "objectId": {
-                  "type": "string",
-                  "nullable": true
-                }
-              },
-              "required": [
-                "objectId",
-                "organizationId",
-                "projectId",
-                "workPackageId"
-              ]
-            },
-            "justification": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "actingOrganizationId",
-            "delegateUserId",
-            "justification",
-            "permissions",
-            "scope"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "effectiveFrom": {
-              "type": "string"
-            },
-            "effectiveTo": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "effectiveFrom",
-            "effectiveTo"
-          ]
-        }
-      ]
-    }
+    "body": {}
   },
   "POST /v1/access/delegations/:delegationId/approve": {
     "body": {
@@ -813,6 +753,643 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/estimate-assemblies": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "businessScopeOrganizationId": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "costCode": {
+          "type": "string"
+        },
+        "unitCode": {
+          "type": "string"
+        },
+        "baseLaborHoursPerUnit": {
+          "type": "string"
+        },
+        "laborRatePerHour": {
+          "type": "string"
+        },
+        "materialUnitCost": {
+          "type": "string"
+        },
+        "equipmentUnitCost": {
+          "type": "string"
+        },
+        "subcontractUnitCost": {
+          "type": "string"
+        },
+        "supersedesRevisionId": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "baseLaborHoursPerUnit",
+        "businessScopeOrganizationId",
+        "code",
+        "costCode",
+        "description",
+        "equipmentUnitCost",
+        "laborRatePerHour",
+        "materialUnitCost",
+        "revision",
+        "subcontractUnitCost",
+        "supersedesRevisionId",
+        "unitCode"
+      ]
+    }
+  },
+  "POST /v1/estimate-assemblies/:assemblyId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assemblyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assemblyId"
+      ]
+    }
+  },
+  "POST /v1/estimate-authority-policies": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "businessScopeOrganizationId": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "standardEstimateApprovalLimit": {
+          "type": "string"
+        },
+        "standardQuoteSelectionLimit": {
+          "type": "string"
+        },
+        "standardProposalApprovalLimit": {
+          "type": "string"
+        },
+        "estimateAboveThresholdQualification": {
+          "type": "string"
+        },
+        "quoteAboveThresholdQualification": {
+          "type": "string"
+        },
+        "proposalAboveThresholdQualification": {
+          "type": "string"
+        },
+        "supersedesRevisionId": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "businessScopeOrganizationId",
+        "currency",
+        "estimateAboveThresholdQualification",
+        "proposalAboveThresholdQualification",
+        "quoteAboveThresholdQualification",
+        "revision",
+        "standardEstimateApprovalLimit",
+        "standardProposalApprovalLimit",
+        "standardQuoteSelectionLimit",
+        "supersedesRevisionId"
+      ]
+    }
+  },
+  "POST /v1/estimate-authority-policies/:policyId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "policyId"
+      ]
+    }
+  },
+  "POST /v1/estimate-lines/:lineId/remove": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lineId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "lineId"
+      ]
+    }
+  },
+  "POST /v1/estimate-productivity-factors": {
+    "body": {}
+  },
+  "POST /v1/estimate-productivity-factors/:factorId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "factorId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "factorId"
+      ]
+    }
+  },
+  "POST /v1/estimate-proposals/:proposalId/handoff": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        },
+        "authorizationReference": {
+          "type": "string"
+        },
+        "adjustmentCostCodes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "contingency": {
+              "type": "string"
+            },
+            "escalation": {
+              "type": "string"
+            },
+            "markup": {
+              "type": "string"
+            },
+            "tax": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "contingency",
+            "escalation",
+            "markup",
+            "tax"
+          ]
+        }
+      },
+      "required": [
+        "adjustmentCostCodes",
+        "authorizationReference",
+        "projectId"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ]
+    }
+  },
+  "POST /v1/estimate-proposals/:proposalId/issue": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ]
+    }
+  },
+  "POST /v1/estimate-proposals/:proposalId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "proposalId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "proposalId"
+      ]
+    }
+  },
+  "POST /v1/estimate-quotes/:quoteId/select": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "quoteId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "quoteId"
+      ]
+    }
+  },
+  "POST /v1/estimate-revisions/:revisionId/lines": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lineKey": {
+          "type": "string",
+          "nullable": true
+        },
+        "parentLineKey": {
+          "type": "string",
+          "nullable": true
+        },
+        "sortOrder": {
+          "type": "number"
+        },
+        "costCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "bidItemCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "alternateCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "wbsCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "workPackageCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "assemblyRevisionId": {
+          "type": "string",
+          "nullable": true
+        },
+        "description": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "string"
+        },
+        "unitCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "baseLaborHoursPerUnit": {
+          "type": "string",
+          "nullable": true
+        },
+        "laborRatePerHour": {
+          "type": "string",
+          "nullable": true
+        },
+        "materialUnitCost": {
+          "type": "string",
+          "nullable": true
+        },
+        "equipmentUnitCost": {
+          "type": "string",
+          "nullable": true
+        },
+        "subcontractUnitCost": {
+          "type": "string",
+          "nullable": true
+        },
+        "allowanceCost": {
+          "type": "string"
+        },
+        "otherCost": {
+          "type": "string"
+        },
+        "productivityFactorRevisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "allowanceCost",
+        "alternateCode",
+        "assemblyRevisionId",
+        "baseLaborHoursPerUnit",
+        "bidItemCode",
+        "costCode",
+        "description",
+        "equipmentUnitCost",
+        "laborRatePerHour",
+        "lineKey",
+        "materialUnitCost",
+        "otherCost",
+        "parentLineKey",
+        "productivityFactorRevisionIds",
+        "quantity",
+        "sortOrder",
+        "subcontractUnitCost",
+        "unitCode",
+        "wbsCode",
+        "workPackageCode"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/estimate-revisions/:revisionId/proposals": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/estimate-revisions/:revisionId/quotes": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/estimate-revisions/:revisionId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/estimate-revisions/:revisionId/submit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/estimates": {
+    "body": {}
+  },
+  "POST /v1/estimates/:estimateId/revisions": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "estimateId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "estimateId"
+      ]
+    }
+  },
   "POST /v1/exports/:exportJobId/process": {
     "body": {
       "type": "object",
@@ -866,59 +1443,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/files/:fileId/validation": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "detectedMediaType": {
-              "type": "string"
-            },
-            "detectedSha256": {
-              "type": "string"
-            },
-            "malwareState": {
-              "type": "string",
-              "enum": [
-                "clean",
-                "malicious",
-                "error"
-              ]
-            },
-            "validatorVersion": {
-              "type": "string"
-            },
-            "activeContentDetected": {
-              "type": "boolean"
-            },
-            "encryptedArchiveDetected": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "activeContentDetected",
-            "detectedMediaType",
-            "detectedSha256",
-            "encryptedArchiveDetected",
-            "malwareState",
-            "validatorVersion"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1158,8 +1683,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "accept",
-            "reject"
+            "reject",
+            "accept"
           ]
         },
         "meaningOrReason": {
@@ -1319,38 +1844,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/materials/:materialId/move": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "toLocation": {
-              "type": "string"
-            },
-            "reason": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "reason",
-            "toLocation"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1365,61 +1859,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/materials/:materialId/mtr-reviews": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "decision": {
-              "type": "string",
-              "enum": [
-                "rejected",
-                "accepted"
-              ]
-            },
-            "heatLotVerified": {
-              "type": "boolean"
-            },
-            "gradeVerified": {
-              "type": "boolean"
-            },
-            "specificationVerified": {
-              "type": "boolean"
-            },
-            "reviewNotes": {
-              "type": "string"
-            },
-            "evidenceFileIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "decision",
-            "evidenceFileIds",
-            "gradeVerified",
-            "heatLotVerified",
-            "reviewNotes",
-            "specificationVerified"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1434,95 +1874,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/materials/:materialId/pmi": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "governingRule": {
-              "type": "string"
-            },
-            "requiredMaterial": {
-              "type": "string"
-            },
-            "observedMaterial": {
-              "type": "string"
-            },
-            "method": {
-              "type": "string"
-            },
-            "componentLocation": {
-              "type": "string"
-            },
-            "equipmentId": {
-              "type": "string"
-            },
-            "readings": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "evidenceFileIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "notes": {
-              "type": "string"
-            },
-            "result": {
-              "type": "string",
-              "enum": [
-                "pass",
-                "fail"
-              ]
-            },
-            "failedNcrNumber": {
-              "type": "string"
-            },
-            "failureDescription": {
-              "type": "string"
-            },
-            "containment": {
-              "type": "string"
-            },
-            "failureResponsibleUserId": {
-              "type": "string"
-            },
-            "turnoverRequired": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "componentLocation",
-            "equipmentId",
-            "evidenceFileIds",
-            "governingRule",
-            "method",
-            "notes",
-            "observedMaterial",
-            "readings",
-            "requiredMaterial",
-            "result"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "inspectedAt": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "inspectedAt"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1623,38 +1975,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/materials/:materialId/return": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "toLocation": {
-              "type": "string"
-            },
-            "reason": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "reason",
-            "toLocation"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1669,54 +1990,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/materials/:materialId/split": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "childIdentifier": {
-              "type": "string"
-            },
-            "relationship": {
-              "type": "string",
-              "enum": [
-                "cut_piece",
-                "remnant"
-              ]
-            },
-            "childQuantity": {
-              "type": "string"
-            },
-            "remainingParentQuantity": {
-              "type": "string"
-            },
-            "storageLocation": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "childIdentifier",
-            "childQuantity",
-            "relationship",
-            "remainingParentQuantity",
-            "storageLocation"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1741,8 +2015,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "accept",
-            "reject"
+            "reject",
+            "accept"
           ]
         },
         "reason": {
@@ -1769,40 +2043,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/mobilization-requirements/:requirementId/submission": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "qualificationId": {
-              "type": "string",
-              "nullable": true
-            },
-            "evidenceFileId": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "required": [
-            "evidenceFileId",
-            "qualificationId"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1843,38 +2084,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/ncrs/:ncrId/disposition": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedVersion": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "expectedVersion"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "disposition": {
-              "type": "string"
-            },
-            "correctiveAction": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "correctiveAction",
-            "disposition"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -1995,8 +2205,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "string",
           "enum": [
             "conflict",
-            "accept",
-            "reject"
+            "reject",
+            "accept"
           ]
         },
         "conflictReason": {
@@ -2020,6 +2230,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "draftId"
+      ]
+    }
+  },
+  "POST /v1/organizations/:organizationId/file-uploads": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "organizationId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "organizationId"
       ]
     }
   },
@@ -2295,62 +2519,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/configurations": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "configurationCode": {
-              "type": "string"
-            },
-            "revision": {
-              "type": "string"
-            },
-            "settings": {
-              "type": "object",
-              "additionalProperties": {
-                "oneOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "boolean"
-                  }
-                ]
-              }
-            },
-            "governingDocumentRevisionIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          },
-          "required": [
-            "configurationCode",
-            "governingDocumentRevisionIds",
-            "revision",
-            "settings"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "effectiveFrom": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "effectiveFrom"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -2568,61 +2737,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/inspection-equipment": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "identifier": {
-              "type": "string"
-            },
-            "serialNumber": {
-              "type": "string"
-            },
-            "methodCapabilities": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "verificationState": {
-              "type": "string",
-              "enum": [
-                "passed",
-                "failed"
-              ]
-            },
-            "evidenceFileId": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "evidenceFileId",
-            "identifier",
-            "methodCapabilities",
-            "serialNumber",
-            "verificationState"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "validFrom": {
-              "type": "string"
-            },
-            "validTo": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "validFrom",
-            "validTo"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -2711,64 +2826,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/inspections": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "planRevisionId": {
-              "type": "string"
-            },
-            "targetType": {
-              "type": "string"
-            },
-            "targetId": {
-              "type": "string"
-            },
-            "fieldValues": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "evidenceFileIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "result": {
-              "type": "string",
-              "enum": [
-                "pass",
-                "fail"
-              ]
-            }
-          },
-          "required": [
-            "evidenceFileIds",
-            "fieldValues",
-            "planRevisionId",
-            "result",
-            "targetId",
-            "targetType"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "performedAt": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "performedAt"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -3085,47 +3143,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/offline-drafts": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "operation": {
-              "type": "string"
-            },
-            "payload": {
-              "type": "object",
-              "additionalProperties": {}
-            },
-            "idempotencyKey": {
-              "type": "string"
-            },
-            "deviceId": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "deviceId",
-            "idempotencyKey",
-            "operation",
-            "payload"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "originalAt": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "originalAt"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -3178,81 +3196,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/punch-items": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "number": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
-            "priority": {
-              "type": "string",
-              "enum": [
-                "low",
-                "medium",
-                "high",
-                "critical"
-              ]
-            },
-            "systemId": {
-              "type": "string",
-              "nullable": true
-            },
-            "areaId": {
-              "type": "string",
-              "nullable": true
-            },
-            "workPackageId": {
-              "type": "string",
-              "nullable": true
-            },
-            "assetId": {
-              "type": "string",
-              "nullable": true
-            },
-            "description": {
-              "type": "string"
-            },
-            "ownerUserId": {
-              "type": "string"
-            },
-            "turnoverRequired": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "areaId",
-            "assetId",
-            "description",
-            "number",
-            "ownerUserId",
-            "priority",
-            "systemId",
-            "turnoverRequired",
-            "type",
-            "workPackageId"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "targetAt": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "required": [
-            "targetAt"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -3310,63 +3254,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/responsibilities": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "targetType": {
-              "type": "string",
-              "enum": [
-                "system",
-                "area",
-                "work_package",
-                "wbs",
-                "project"
-              ]
-            },
-            "targetId": {
-              "type": "string"
-            },
-            "responsibilityType": {
-              "type": "string"
-            },
-            "organizationId": {
-              "type": "string"
-            },
-            "personId": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "required": [
-            "organizationId",
-            "personId",
-            "responsibilityType",
-            "targetId",
-            "targetType"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "effectiveFrom": {
-              "type": "string"
-            },
-            "effectiveTo": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "required": [
-            "effectiveFrom",
-            "effectiveTo"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -3906,8 +3794,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "accept",
-            "reject"
+            "reject",
+            "accept"
           ]
         },
         "meaningOrReason": {
@@ -3974,76 +3862,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/subcontractors/:profileId/qualifications": {
-    "body": {
-      "allOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "category": {
-              "type": "string",
-              "enum": [
-                "license",
-                "insurance",
-                "bonding",
-                "safety",
-                "quality",
-                "personnel",
-                "equipment",
-                "client"
-              ]
-            },
-            "code": {
-              "type": "string"
-            },
-            "approvedScopes": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "issuer": {
-              "type": "string"
-            },
-            "evidenceFileId": {
-              "type": "string"
-            },
-            "exceptionReason": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "required": [
-            "approvedScopes",
-            "category",
-            "code",
-            "evidenceFileId",
-            "exceptionReason",
-            "issuer"
-          ]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "expectedProfileVersion": {
-              "type": "number"
-            },
-            "effectiveAt": {
-              "type": "string"
-            },
-            "expiresAt": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "effectiveAt",
-            "expectedProfileVersion",
-            "expiresAt"
-          ]
-        }
-      ]
-    },
+    "body": {},
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -4072,6 +3891,21 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       "required": [
         "packageId",
         "projectId"
+      ]
+    }
+  },
+  "PUT /v1/estimate-lines/:lineId": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lineId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "lineId"
       ]
     }
   },

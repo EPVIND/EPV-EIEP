@@ -1579,7 +1579,8 @@ export class OperationalService {
       transaction.insertTurnoverVersion(version);
       const renderPayload = { turnoverPackageVersionId: version.id };
       transaction.insertIntegrationMessage({
-        id: this.idFactory(), direction: "outbox", projectId: project.id,
+        id: this.idFactory(), direction: "outbox", businessScopeOrganizationId: project.businessScopeOrganizationId,
+        projectId: project.id,
         interfaceCode: "turnover-render.worker", idempotencyKey: version.id, externalId: version.id,
         schemaVersion: 1, payload: renderPayload, payloadSha256: canonicalHash(renderPayload),
         correlationId: context.correlationId, state: "pending", attemptCount: 0, lastError: null,

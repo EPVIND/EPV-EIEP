@@ -42,7 +42,9 @@ const mapCollections = [
   "inspections", "pmiRecords", "pmiOverrides", "ncrs", "punches", "completionBoundaries",
   "turnoverRequirements", "turnoverPackages", "turnoverVersions", "subcontractorProfiles",
   "subcontractorQualifications", "subcontractorAssignments", "mobilizationRequirements",
-  "subcontractorSubmissions", "managedAccessAssignments", "delegations",
+  "subcontractorSubmissions", "managedAccessAssignments", "delegations", "estimateAssemblies",
+  "estimateProductivityFactors", "estimateAuthorityPolicies", "estimates", "estimateRevisions",
+  "estimateLines", "estimateQuotes", "estimateProposals", "estimateHandoffs",
 ] as const satisfies readonly (keyof MemoryState)[];
 
 const arrayCollections = ["assignments", "audits"] as const satisfies readonly (keyof MemoryState)[];

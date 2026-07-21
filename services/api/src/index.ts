@@ -5,6 +5,7 @@ export * from "./auth/store-identity-resolver.js";
 export * from "./config.js";
 export * from "./domain/application-identity-bootstrap.js";
 export * from "./domain/errors.js";
+export * from "./domain/estimating-service.js";
 export * from "./domain/authoritative-project-readiness.js";
 export * from "./domain/azure-postgres-authentication.js";
 export * from "./domain/foundation-service.js";

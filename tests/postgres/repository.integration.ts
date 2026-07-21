@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   bootstrapInitialApplicationAdministrators,
   ConflictError,
+  EstimatingService,
   FoundationService,
   PlatformService,
   PostgresFoundationStore,
@@ -109,6 +110,34 @@ try {
     project.id,
     { formCode: "FORM-PRJ-001", targetId: project.id },
   );
+  const estimating = new EstimatingService(store, () => now, ids);
+  const estimator = context("postgres-estimator", "mfa");
+  const estimatingAssignments = [assignment(
+    "postgres-estimating", estimator.userId,
+    ["estimate.create", "estimate.read", "estimate.edit", "estimate.submit"], scope(),
+  )];
+  const persistentEstimate = await estimating.createEstimate(estimator, estimatingAssignments, {
+    businessScopeOrganizationId: "org-epv", number: "PG-EST-001", name: "Persistent estimate",
+    customerOrganizationId: "org-customer", facilityId: "facility-1", opportunityReference: "PG-RFQ-001",
+    scopeStatement: "Persistent PostgreSQL estimating verification.", dueAt: new Date("2026-08-31T17:00:00.000Z"),
+    originatingTimeZone: "America/Denver", currency: "USD", basisReferences: ["PG-RFQ-001-REV-0"],
+    initialRevision: "A", assumptions: ["Single shift"], exclusions: ["Owner testing"], alternates: [],
+    contingencyPercent: "5", escalationPercent: "2", markupPercent: "10", taxPercent: "8",
+  });
+  const persistentEstimateLine = await estimating.upsertLine(
+    estimator, estimatingAssignments, persistentEstimate.revisions[0]!.id, null, null,
+    {
+      lineKey: "PG-LINE-001", parentLineKey: null, sortOrder: 10, costCode: "PIPING",
+      bidItemCode: "BASE", alternateCode: null, wbsCode: "WBS-PIPING", workPackageCode: "WP-PIPING",
+      assemblyRevisionId: null, description: "PostgreSQL direct-cost line", quantity: "2", unitCode: "EA",
+      baseLaborHoursPerUnit: "4", laborRatePerHour: "50", materialUnitCost: "100",
+      equipmentUnitCost: "25", subcontractUnitCost: "0", allowanceCost: "10", otherCost: "5",
+      productivityFactorRevisionIds: [],
+    },
+  );
+  const persistentEstimateRevision = await estimating.submitRevision(
+    estimator, estimatingAssignments, persistentEstimate.revisions[0]!.id, persistentEstimate.revisions[0]!.version,
+  );
   await store.close();
 
   store = await PostgresFoundationStore.connect(connectionString);
@@ -121,6 +150,9 @@ try {
     mtrReviews: transaction.mtrReviewsForMaterial("postgres-material"),
     movements: transaction.materialMovementsForItem("postgres-material"),
     controlledReport: transaction.controlledReportById(persistentReport.id),
+    estimate: transaction.estimateById(persistentEstimate.estimate.id),
+    estimateRevision: transaction.estimateRevisionById(persistentEstimateRevision.id),
+    estimateLines: transaction.estimateLines(persistentEstimateRevision.id),
   }));
   assert.equal(persisted.applicationIdentityBootstrap.identityAccounts.length, 2);
   assert.equal(persisted.applicationIdentityBootstrap.externalIdentities.length, 2);
@@ -136,6 +168,11 @@ try {
   assert.equal(persisted.mtrReviews[0]?.decision, "accepted");
   assert.equal(persisted.movements[0]?.movementType, "received");
   assert.equal(persisted.controlledReport?.formCode, "FORM-PRJ-001");
+  assert.equal(persisted.estimate?.number, "PG-EST-001");
+  assert.equal(persisted.estimateRevision?.state, "under_review");
+  assert.equal(persisted.estimateRevision?.totals.finalPrice, "845.33");
+  assert.equal(persisted.estimateLines[0]?.id, persistentEstimateLine.id);
+  assert.equal(persisted.estimateLines[0]?.calculation.totalCost, "665.00");
 
   const claim = {
     interfaceCodes: new Set(["export.worker"]), limit: 1, now,
@@ -212,7 +249,7 @@ try {
 
   const finalHealth = await store.health();
   assert.ok(finalHealth.repositoryRevision >= 4);
-  assert.ok(finalHealth.repositoryEntityCount >= representativeRecordCount + 6);
+  assert.ok(finalHealth.repositoryEntityCount >= representativeRecordCount + 10);
   await store.close();
   store = await PostgresFoundationStore.connect(connectionString, "eiep_runtime");
   const leastPrivilegeHealth = await store.health();
@@ -225,7 +262,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, typed hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

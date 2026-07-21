@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { EnvironmentBanner } from "@eiep/ui-components";
+import { EstimatingWorkspace } from "./EstimatingWorkspace.js";
 import { OperationalChain } from "./OperationalChain.js";
 import { ProjectSetup } from "./ProjectSetup.js";
 
@@ -55,10 +56,11 @@ interface ProjectReadinessStatus {
   readonly blockers: readonly string[];
 }
 
-type ModuleKey = "overview" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
+type ModuleKey = "overview" | "estimating" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
 
 const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "overview", label: "Overview", eyebrow: "Control room" },
+  { key: "estimating", label: "Estimating", eyebrow: "Cost · quotes · proposals" },
   { key: "projects", label: "Projects", eyebrow: "Setup & structure" },
   { key: "documents", label: "Documents", eyebrow: "Current for work" },
   { key: "materials", label: "Materials", eyebrow: "Traceability" },
@@ -383,6 +385,17 @@ export function App() {
             setWorking={setWorking}
             notify={(tone, text) => setMessage({ tone, text })}
             onChanged={() => setReadinessStatus(null)}
+          /> : null}
+
+          {activeModule === "estimating" && session ? <EstimatingWorkspace
+            key={`${identity.userId}:${identity.organizationId}`}
+            organizationId={identity.organizationId}
+            projects={projects}
+            request={request}
+            download={download}
+            working={working}
+            setWorking={setWorking}
+            notify={(tone, text) => setMessage({ tone, text })}
           /> : null}
 
           {selectedProject && (activeModule === "documents" || activeModule === "materials" || activeModule === "quality" || activeModule === "turnover" || activeModule === "reports")

@@ -174,6 +174,72 @@ test("NFR-USE-003: internal workspace scopes records and requires typed confirma
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-EST-001-010, NFR-USE-001-003 / AC-02-03, AC-09-11: estimating workspace exposes the controlled pilot workflow at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "estimator");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "step-up");
+  });
+  const estimate = {
+    id: "estimate-1", number: "EST-2026-001", name: "Plant piping estimate", customerOrganizationId: "org-customer",
+    dueAt: "2026-08-31T17:00:00.000Z", currency: "USD", state: "approved", currentRevisionId: "revision-a", version: 3,
+  };
+  const revision = {
+    id: "revision-a", revision: "A", parentRevisionId: null, revisionReason: "initial", state: "approved", version: 3,
+    totals: { version: "estimate-v1", currency: "USD", directCost: "2625.00", contingencyAmount: "131.25",
+      escalationAmount: "52.50", markupAmount: "280.88", taxAmount: "247.17", finalPrice: "3336.80" },
+    reviewReason: "Scope and pricing independently verified.",
+  };
+  const detail = {
+    estimate, revisions: [revision],
+    lines: [{ id: "line-1", revisionId: "revision-a", lineKey: "PIPE-INSTALL-001", sortOrder: 10,
+      costCode: "PIPING-INSTALL", description: "Install controlled pipe assembly", quantity: "10", unitCode: "EA",
+      productivityFactors: [{ factorRevisionId: "factor-1", multiplier: "1.25" }], state: "active", version: 1,
+      calculation: { adjustedLaborHours: "25", laborCost: "1250.00", materialCost: "1000.00",
+        equipmentCost: "100.00", subcontractCost: "200.00", totalCost: "2625.00" } }],
+    quotes: [], handoffs: [],
+    proposals: [{ id: "proposal-1", proposalNumber: "PROP-2026-001", totalPrice: "3336.80", currency: "USD",
+      validUntil: "2026-08-31T23:59:59.000Z", sourceCanonicalSha256: "a".repeat(64),
+      artifactSha256: "b".repeat(64), artifactManifestSha256: "c".repeat(64),
+      artifactFilename: "prop-2026-001.html", state: "draft", version: 1 }],
+  };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname;
+    if (path === "/health") { await route.fulfill({ headers: corsHeaders, json: { status: "ok", environment: "test", training: false, productionReady: false, blockers: ["external_release_authority"] } }); return; }
+    if (path === "/v1/session") { await route.fulfill({ headers: corsHeaders, json: { userId: "estimator", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 8, environment: "test", training: false } }); return; }
+    if (path === "/v1/projects") { await route.fulfill({ headers: corsHeaders, json: [{ id: "project-1", number: "PRJ-001", name: "Award target", customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "draft", version: 1 }] }); return; }
+    if (path === "/v1/estimates") { await route.fulfill({ headers: corsHeaders, json: [estimate] }); return; }
+    if (path === "/v1/estimates/estimate-1") { await route.fulfill({ headers: corsHeaders, json: detail }); return; }
+    if (path === "/v1/estimate-assemblies") { await route.fulfill({ headers: corsHeaders, json: [{ id: "assembly-1", code: "PIPE-INSTALL", revision: "1", description: "Governed pipe installation assembly", costCode: "PIPING-INSTALL", unitCode: "EA", baseLaborHoursPerUnit: "2", state: "active", version: 2 }] }); return; }
+    if (path === "/v1/estimate-productivity-factors") { await route.fulfill({ headers: corsHeaders, json: [{ id: "factor-1", code: "CONGESTED", revision: "1", name: "Congested work area", multiplier: "1.25", discipline: "PIPING", sourceReference: "EST-BASIS-2026-01", state: "active", version: 2 }] }); return; }
+    if (path === "/v1/estimate-authority-policies") { await route.fulfill({ headers: corsHeaders, json: [{ id: "policy-1", currency: "USD", revision: "1", standardEstimateApprovalLimit: "100000.00", standardQuoteSelectionLimit: "50000.00", standardProposalApprovalLimit: "100000.00", estimateAboveThresholdQualification: "EXECUTIVE_ESTIMATE_AUTHORITY", quoteAboveThresholdQualification: "EXECUTIVE_QUOTE_AUTHORITY", proposalAboveThresholdQualification: "EXECUTIVE_COMMERCIAL_AUTHORITY", state: "active", version: 2 }] }); return; }
+    if (path === "/v1/estimate-revisions/revision-a/quote-comparison") { await route.fulfill({ headers: corsHeaders, json: [{ id: "quote-1", quoteNumber: "Q-101", vendorOrganizationId: "vendor-1", normalizedTotal: "2600.00", currency: "USD", validUntil: "2026-08-15T00:00:00.000Z", unresolvedScopeLineKeys: [], exclusions: [], qualifications: ["Schedule confirmation"], state: "normalized", version: 1 }] }); return; }
+    await route.fulfill({ status: 404, headers: corsHeaders, json: { error: "not_found" } });
+  });
+  await page.setViewportSize({ width: 900, height: 1100 });
+  await page.goto("/");
+  await page.getByRole("link", { name: /Estimating/u }).click();
+  await expect(page.getByRole("heading", { name: "Advanced estimating" })).toBeVisible();
+  await expect(page.getByText("EST-2026-001")).toBeVisible();
+  await page.getByRole("button", { name: /Cost basis/u }).click();
+  await expect(page.getByText("Governed pipe installation assembly")).toBeVisible();
+  await expect(page.getByText("CONGESTED · ×1.25")).toBeVisible();
+  await expect(page.getByText("Estimate 100000.00 · quote 50000.00 · proposal 100000.00")).toBeVisible();
+  await page.getByRole("button", { name: /Build-up/u }).click();
+  await expect(page.getByText("USD 3336.80", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("region", { name: "Estimate line calculations" })).toContainText("2625.00");
+  await page.getByRole("button").filter({ hasText: "Quotes" }).click();
+  await page.getByRole("button", { name: "Compare", exact: true }).click();
+  await expect(page.getByText("Q-101")).toBeVisible();
+  await expect(page.getByText("Complete mapped scope")).toBeVisible();
+  await page.getByRole("button").filter({ hasText: "Proposal" }).click();
+  await expect(page.getByText("PROP-2026-001")).toBeVisible();
+  await expect(page.getByText("a".repeat(64))).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001, FR-TOV-001-004 / AC-03-09: guided internal workflow reaches an immutable turnover version", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "chain-controller");

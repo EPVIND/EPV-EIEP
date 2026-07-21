@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import {
-  DevelopmentAuthenticator, FoundationService, InMemoryFoundationStore, OperationalService, buildServer,
+  DevelopmentAuthenticator, FoundationService, InMemoryFoundationStore, OperationalService, PlatformService, buildServer,
 } from "@eiep/api";
 import { LocalFilesystemObjectStorage } from "@eiep/document-processing";
 import { assignment, completeReadiness, context, scope, sequentialIds } from "../helpers/foundation-fixture.js";
@@ -44,10 +44,12 @@ test("MVP upload / NFR-SEC-005: authenticated multipart bytes enter only the pri
   );
   store.seedAssignments([
     assignment("file-upload", "file-uploader", ["file.upload"], scope(project.id)),
+    assignment("commercial-file-upload", "commercial-uploader", ["file.upload", "file.read"], scope()),
   ]);
   const stagedUpload = new LocalFilesystemObjectStorage(storageRoot);
+  const platform = new PlatformService(store, () => new Date("2026-07-21T12:00:00.000Z"), ids);
   const server = await buildServer({
-    service, operations, store, stagedUpload, authenticator: new DevelopmentAuthenticator(),
+    service, operations, platform, store, stagedUpload, authenticator: new DevelopmentAuthenticator(),
     environment: "test", trainingBanner: false,
   });
   t.after(() => server.close());
@@ -88,4 +90,50 @@ test("MVP upload / NFR-SEC-005: authenticated multipart bytes enter only the pri
   });
   assert.equal(denied.statusCode, 403, denied.body);
   assert.equal(store.snapshot().governedFiles.size, 1);
+
+  const quoteContent = Buffer.from("%PDF-1.7\ncommercial quote\n%%EOF", "utf8");
+  const organizationUpload = await server.inject({
+    method: "POST", url: "/v1/organizations/org-epv/file-uploads",
+    headers: {
+      ...headers, "x-eiep-user-id": "commercial-uploader", "x-idempotency-key": "commercial-quote-upload-0001",
+      "x-eiep-retention-class": "commercial-quote", "content-type": `multipart/form-data; boundary=${boundary}`,
+    },
+    payload: multipart(boundary, quoteContent),
+  });
+  assert.equal(organizationUpload.statusCode, 201, organizationUpload.body);
+  const organizationFile = organizationUpload.json() as {
+    id: string; businessScopeOrganizationId: string; projectId: null; storageKey: string; sha256: string; version: number;
+  };
+  assert.equal(organizationFile.businessScopeOrganizationId, "org-epv");
+  assert.equal(organizationFile.projectId, null);
+  assert.match(organizationFile.storageKey, /^organizations\/org-epv\//u);
+  assert.deepEqual(Buffer.from(await stagedUpload.readStaged(organizationFile.storageKey, 1024)), quoteContent);
+
+  const validated = await platform.validateFile(
+    context("commercial-validator", "mfa", ["file_validation_worker"]),
+    [assignment("commercial-validation", "commercial-validator", ["file.validate"], scope())],
+    organizationFile.id, organizationFile.version,
+    {
+      detectedMediaType: "application/pdf", detectedSha256: organizationFile.sha256, malwareState: "clean",
+      validatorVersion: "controlled-test-validator-1", activeContentDetected: false, encryptedArchiveDetected: false,
+    },
+  );
+  const released = await platform.releaseFile(
+    context("commercial-release-authority", "step-up", ["file_release_authority"]),
+    [assignment("commercial-release", "commercial-release-authority", ["file.release"], scope())],
+    organizationFile.id, validated.version,
+  );
+  assert.equal(released.validationState, "released");
+  assert.equal(released.projectId, null);
+  assert.equal(store.snapshot().governedFiles.size, 2);
+
+  const crossOrganizationUpload = await server.inject({
+    method: "POST", url: "/v1/organizations/org-other/file-uploads",
+    headers: {
+      ...headers, "x-eiep-user-id": "commercial-uploader", "x-idempotency-key": "commercial-quote-upload-0002",
+      "x-eiep-retention-class": "commercial-quote", "content-type": `multipart/form-data; boundary=${boundary}`,
+    },
+    payload: multipart(boundary, quoteContent),
+  });
+  assert.equal(crossOrganizationUpload.statusCode, 403, crossOrganizationUpload.body);
 });

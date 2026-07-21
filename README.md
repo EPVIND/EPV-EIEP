@@ -102,8 +102,13 @@ Implemented review surfaces include:
 - local filesystem/ClamAV boundaries plus a managed-identity Azure Blob adapter with
   private-container, immutable-write, ETag, hash, bounded-stream, quarantine, and
   crash-recovery contract evidence;
+- an advanced-estimating workspace and service covering organization-scoped
+  opportunities, immutable revisions/deltas, governed assemblies and productivity,
+  independently approved currency authority policies, exact price build-up,
+  released-file-backed quote comparison/selection, hash-verified printable proposal
+  issue/download, audit, and exact same-organization award handoff;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 112 routes/89 request bodies, drift verification, bearer security,
+  schemas for 140 routes/109 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -147,7 +152,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 traceability, OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-79 unit/integration/security/acceptance tests, and compiled runtime process smoke
+84 unit/integration/security/acceptance tests, and compiled runtime process smoke
 tests. `pnpm run build` builds the two web applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
 containers:build` additionally requires Docker with BuildKit; it builds and smokes
@@ -159,7 +164,7 @@ That PostgreSQL path also creates, exactly retries, restarts, and verifies the g
 first-application-authority bootstrap; the production operator contract is in
 `docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
 
-`pnpm run test:browser` runs five internal/portal workflow cases in a Chromium tablet
+`pnpm run test:browser` runs six internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 
 Local review servers:

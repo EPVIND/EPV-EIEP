@@ -66,7 +66,7 @@ Local review evidence currently includes PostgreSQL `SKIP LOCKED` claims, unique
 expiring lease tokens, heartbeat renewal, safe expiry reclamation, competing-worker
 exactly-once claim tests, receiver idempotency keys, and a proposed 1-5 replica worker.
 It also includes TypeScript-derived runtime request/parameter/query schemas for all
-112 active `/v1` routes, a generated OpenAPI 3.0.3 artifact with 89 request bodies,
+140 active `/v1` routes, a generated OpenAPI 3.0.3 artifact with 109 request bodies,
 shared safe errors, stable operation IDs, bearer-security declarations, boundary
 validation tests, and deterministic source/contract drift gates. This evidence does
 not accept this ADR or prove deployed crash/replay behavior or external contract

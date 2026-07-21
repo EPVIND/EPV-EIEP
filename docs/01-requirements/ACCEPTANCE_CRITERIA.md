@@ -61,7 +61,13 @@
 - The pilot restore meets approved recovery objectives and preserves files, relationships, audit history, and permissions.
 - Representative load, tablet, accessibility, intermittent-connectivity, and large-export tests meet approved budgets or have accepted remediation plans.
 
+## AC-11 Advanced estimating and proposal handoff
+
+- Governed assemblies and independently approved effective productivity factors reproduce exact labor/material/equipment/subcontract/allowance calculations and adjustment rounding.
+- Submitted revisions are immutable and independently reviewed; a successor shows exact added, removed, and changed lines.
+- Quote comparison preserves scope gaps, qualifications, source identity/hash, validity, and independently justified selection rather than implying lowest price is equivalent scope.
+- An independently approved/issued proposal freezes source and artifact hashes; award handoff reconciles exact direct and adjustment categories to a same-scope project without mutating the source.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.
-

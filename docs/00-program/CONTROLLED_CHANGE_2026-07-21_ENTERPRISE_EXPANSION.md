@@ -20,6 +20,13 @@ The task owner directed immediate expansion beyond the MVP into:
 The requested outcome is earlier operational value and avoidance of a long pause
 between the controlled MVP foundation and enterprise module delivery.
 
+The task owner subsequently identified the supplied enterprise dashboard as the
+source of their capability assumptions. Its complete interpreted surface and source
+hash are recorded in `PRODUCT_VISION_CAPABILITY_BASELINE.md`. That direction adds
+fabrication, spool generation, CNC/waterjet/profiling, engineering registers,
+customer access, unified tasks/activity, and enterprise projections to the product
+vision without turning illustrative dashboard data into implementation evidence.
+
 ## Scope and sequence
 
 The implementation sequence is dependency driven:
@@ -34,7 +41,24 @@ Shared cost codes, organizations/vendors, files, documents, requirements, work
 packages, qualifications, audit, jobs, exports, and turnover links are reused rather
 than duplicated. CRM, payroll, billing, general ledger, robotic/machine control,
 automatic engineering acceptance, and unapproved vendor-specific writes remain
-outside this change.
+outside the current implementation change even where the vision reserves a future
+integration surface.
+
+## Repository implementation status
+
+- Sequence 1 has a locally verified controlled-pilot implementation: advanced
+  estimating domain/API/tablet workflow, exact calculations, immutable revisions and
+  deltas, independently approved assembly/productivity/monetary-authority catalogs,
+  released organization-file-backed quote comparison, deterministic hash-verified
+  printable proposal issue/download, audit, and exact award handoff.
+- The implementation passes 84 source tests, six Chromium tablet/accessibility
+  workflows, 140-route contract drift verification, PostgreSQL restart/concurrency,
+  production build/runtime gates, and the production dependency audit.
+- Sequence 1 is not production authorized. Normalized physical estimating
+  migrations, owner-approved numbers/rates/productivity/authority limits and
+  qualification assignments, customer proposal/PDF acceptance, deployed security,
+  and pilot sign-off remain required.
+- Sequence 2 is the active implementation target. Sequences 3 and 4 remain pending.
 
 ## Controlled impact
 

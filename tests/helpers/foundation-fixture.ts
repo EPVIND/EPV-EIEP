@@ -142,7 +142,8 @@ export function seedGovernedFile(
   const validated = validationState === "validated" || validationState === "released";
   return store.transaction((transaction) => {
     transaction.insertGovernedFile({
-      id, projectId, storageKey: `${projectId}/${id}`, originalFilename: `${id}.pdf`, declaredMediaType: "application/pdf",
+      id, businessScopeOrganizationId: "org-epv", projectId, storageKey: `${projectId}/${id}`,
+      originalFilename: `${id}.pdf`, declaredMediaType: "application/pdf",
       detectedMediaType: validated ? "application/pdf" : null, sha256: "a".repeat(64),
       detectedSha256: validated ? "a".repeat(64) : null, sizeBytes: 128, validationState,
       malwareState: validated ? "clean" : "pending", validatorVersion: validated ? "fixture-validator-1" : null,

@@ -44,6 +44,7 @@ development, but production use requires accepted ADRs and data/security review.
 | `deficiency` | NCR, containment, disposition, approvals, corrective action, reinspection, punch | Projects, governed objects, documents/files |
 | `subcontract` | Profiles, credential requirements/evidence, lower tiers, mobilization, deliverables | Parties, projects, work packages, files |
 | `turnover` | Completion boundaries, requirements/status, packages/versions/items/manifests | Projects and exact accepted source revisions/files |
+| `estimate` | Opportunity estimates, immutable revisions/lines, assembly, productivity, and authority-policy catalogs, quote comparisons, proposal artifacts/manifests, award handoffs | Parties, facilities, files, projects, WBS/work packages, cost codes, qualifications, audit |
 | `platform` | File metadata, audit, outbox/inbox/jobs, imports/exports, retention/legal hold, code lists | Stable IDs from all modules |
 
 Modules expose application operations and events. A module must not update another
@@ -125,6 +126,30 @@ versions atomically.
 - `material_release` records evaluated rule version, prerequisites, decision, actor,
   and explanation.
 
+### Advanced estimating
+
+- `estimate` owns the organization-scoped commercial opportunity and current
+  controlled revision identity.
+- `estimate_revision` and `estimate_line` preserve exact decimal input components,
+  governed unit/currency, productivity snapshots, calculation version, rounding,
+  totals, submission/review, and immutable parent history.
+- `estimate_assembly_revision` and `estimate_productivity_factor_revision` are
+  independently approved, effective, superseding catalog records; customer rates or
+  productivity are never seeded by the platform.
+- `estimate_authority_policy_revision` is independently approved and superseding by
+  organization/currency. It stores standard monetary limits plus the exact elevated
+  qualification code required above estimate, quote-selection, and proposal limits;
+  owner-approved values and qualification assignments are controlled configuration.
+- `estimate_quote` retains the exact released organization file/hash and normalized
+  scope gaps. Provider content remains source evidence; selection is a distinct EIEP
+  decision.
+- `estimate_proposal` retains deterministic printable artifact content, filename,
+  media type, source/artifact/manifest hashes, and attributable approval/issue
+  history; download verifies the content hash before release. `estimate_handoff`
+  retains the same-organization project mapping and exact reconciliation.
+- The record-normalized PostgreSQL adapter persists these types during the pilot;
+  normalized physical migrations remain required before production promotion.
+
 ### Inspection and PMI
 
 - `inspection_plan` has versioned `inspection_plan_revision` records; assignments
@@ -164,6 +189,9 @@ versions atomically.
 | NCR | `open -> contained -> disposition_review -> disposition_approved -> reinspection -> closed`; governed reopen | Close without required approval/reinspection; silent replacement of failed evidence |
 | Punch | `open -> assigned -> work_complete -> verification -> closed`; governed transfer/defer | Closure by submitter when independent verification required |
 | Turnover package | `draft -> readiness_review -> approved_for_generation -> generated -> transmitted -> accepted`; new version for regeneration | Include nonaccepted/wrong-recipient/training record; mutate generated version |
+| Estimate revision | `draft -> under_review -> approved/rejected -> superseded`; correction creates a successor | Mutate submitted line; self-approve; approve stale parent; use unapproved assembly/factor |
+| Estimate quote | `normalized -> selected/not_selected`; immutable source file/hash | Select expired/incomplete/cross-scope source or self-select own normalization |
+| Estimate proposal | `draft -> approved -> issued`; rejected draft becomes superseded | Generate from noncurrent/nonapproved revision; self-approve; issue expired/unapproved proposal |
 
 Transitions are commands with preconditions and audit, never arbitrary state-field
 updates.
@@ -221,6 +249,11 @@ trusted without server lookup and relationship validation.
 | `file.upload` | Underlying object create/update scope | Restricted staging only |
 | `file.download` | Exact underlying record/file scope | Reauthorize at request time; released/recipient rules |
 | `export.create/download` | Underlying record set and recipient scope | Capture/revalidate authorization; audit every result/download |
+| `estimate.catalog.manage/approve` | Organization/catalog or authority-policy revision | Independent estimating authority; exact active supersession; owner-controlled currency limits and qualification codes |
+| `estimate.create/read/edit/submit/revise/approve` | Organization/estimate | State/version/assurance; approval requires estimating authority, separation, and the active policy's elevated qualification above its limit |
+| `estimate.quote.manage/select` | Organization/estimate/quote | Released source file/hash; complete current scope; independent selection and above-limit qualification |
+| `estimate.proposal.generate/approve/issue/download` | Organization/estimate/proposal | Current approved source; commercial authority and separation; above-limit qualification; future validity; artifact-hash verification before download |
+| `estimate.handoff` | Organization/estimate/project | Project-controls authority; same organization; exact reconciliation |
 
 Material, inspection, NCR/punch, subcontractor, and turnover permissions follow the
 same pattern and the detailed role baseline in `../01-requirements/USER_ROLES.md`.

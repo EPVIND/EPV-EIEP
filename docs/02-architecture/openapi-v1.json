@@ -513,6 +513,170 @@
         }
       }
     },
+    "/v1/organizations/{organizationId}/file-uploads": {
+      "post": {
+        "operationId": "postOrganizationsByOrganizationIdFileUploads",
+        "tags": [
+          "files"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "in": "path",
+            "name": "organizationId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "in": "header",
+            "name": "x-eiep-retention-class",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"
+            },
+            "in": "header",
+            "name": "x-idempotency-key",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/identity/accounts/{accountId}/disable": {
       "post": {
         "operationId": "postIdentityAccountsByAccountIdDisable",
@@ -675,82 +839,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "userId": {
-                        "type": "string"
-                      },
-                      "actingOrganizationId": {
-                        "type": "string"
-                      },
-                      "permissions": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "scope": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "properties": {
-                          "organizationId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "projectId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "workPackageId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "objectId": {
-                            "type": "string",
-                            "nullable": true
-                          }
-                        },
-                        "required": [
-                          "objectId",
-                          "organizationId",
-                          "projectId",
-                          "workPackageId"
-                        ]
-                      },
-                      "grantReason": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "actingOrganizationId",
-                      "grantReason",
-                      "permissions",
-                      "scope",
-                      "userId"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "effectiveFrom": {
-                        "type": "string"
-                      },
-                      "effectiveTo": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "effectiveFrom",
-                      "effectiveTo"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -1165,82 +1254,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "delegateUserId": {
-                        "type": "string"
-                      },
-                      "actingOrganizationId": {
-                        "type": "string"
-                      },
-                      "permissions": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "scope": {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "properties": {
-                          "organizationId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "projectId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "workPackageId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "objectId": {
-                            "type": "string",
-                            "nullable": true
-                          }
-                        },
-                        "required": [
-                          "objectId",
-                          "organizationId",
-                          "projectId",
-                          "workPackageId"
-                        ]
-                      },
-                      "justification": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "actingOrganizationId",
-                      "delegateUserId",
-                      "justification",
-                      "permissions",
-                      "scope"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "effectiveFrom": {
-                        "type": "string"
-                      },
-                      "effectiveTo": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "effectiveFrom",
-                      "effectiveTo"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -2118,63 +2132,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "targetType": {
-                        "type": "string",
-                        "enum": [
-                          "system",
-                          "area",
-                          "work_package",
-                          "wbs",
-                          "project"
-                        ]
-                      },
-                      "targetId": {
-                        "type": "string"
-                      },
-                      "responsibilityType": {
-                        "type": "string"
-                      },
-                      "organizationId": {
-                        "type": "string"
-                      },
-                      "personId": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "organizationId",
-                      "personId",
-                      "responsibilityType",
-                      "targetId",
-                      "targetType"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "effectiveFrom": {
-                        "type": "string"
-                      },
-                      "effectiveTo": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "effectiveFrom",
-                      "effectiveTo"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -2307,62 +2265,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "configurationCode": {
-                        "type": "string"
-                      },
-                      "revision": {
-                        "type": "string"
-                      },
-                      "settings": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "oneOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "boolean"
-                            }
-                          ]
-                        }
-                      },
-                      "governingDocumentRevisionIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "configurationCode",
-                      "governingDocumentRevisionIds",
-                      "revision",
-                      "settings"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "effectiveFrom": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "effectiveFrom"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -2650,6 +2553,3890 @@
             },
             "in": "path",
             "name": "configurationCode",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-assemblies": {
+      "post": {
+        "operationId": "postEstimateAssemblies",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "businessScopeOrganizationId": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "costCode": {
+                    "type": "string"
+                  },
+                  "unitCode": {
+                    "type": "string"
+                  },
+                  "baseLaborHoursPerUnit": {
+                    "type": "string"
+                  },
+                  "laborRatePerHour": {
+                    "type": "string"
+                  },
+                  "materialUnitCost": {
+                    "type": "string"
+                  },
+                  "equipmentUnitCost": {
+                    "type": "string"
+                  },
+                  "subcontractUnitCost": {
+                    "type": "string"
+                  },
+                  "supersedesRevisionId": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "baseLaborHoursPerUnit",
+                  "businessScopeOrganizationId",
+                  "code",
+                  "costCode",
+                  "description",
+                  "equipmentUnitCost",
+                  "laborRatePerHour",
+                  "materialUnitCost",
+                  "revision",
+                  "subcontractUnitCost",
+                  "supersedesRevisionId",
+                  "unitCode"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getEstimateAssemblies",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "code",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-assemblies/{assemblyId}/review": {
+      "post": {
+        "operationId": "postEstimateAssembliesByAssemblyIdReview",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "reject",
+                      "approve"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "decision",
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "assemblyId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-productivity-factors": {
+      "post": {
+        "operationId": "postEstimateProductivityFactors",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getEstimateProductivityFactors",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "code",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-productivity-factors/{factorId}/review": {
+      "post": {
+        "operationId": "postEstimateProductivityFactorsByFactorIdReview",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "reject",
+                      "approve"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "decision",
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "factorId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-authority-policies": {
+      "post": {
+        "operationId": "postEstimateAuthorityPolicies",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "businessScopeOrganizationId": {
+                    "type": "string"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "type": "string"
+                  },
+                  "standardEstimateApprovalLimit": {
+                    "type": "string"
+                  },
+                  "standardQuoteSelectionLimit": {
+                    "type": "string"
+                  },
+                  "standardProposalApprovalLimit": {
+                    "type": "string"
+                  },
+                  "estimateAboveThresholdQualification": {
+                    "type": "string"
+                  },
+                  "quoteAboveThresholdQualification": {
+                    "type": "string"
+                  },
+                  "proposalAboveThresholdQualification": {
+                    "type": "string"
+                  },
+                  "supersedesRevisionId": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "businessScopeOrganizationId",
+                  "currency",
+                  "estimateAboveThresholdQualification",
+                  "proposalAboveThresholdQualification",
+                  "quoteAboveThresholdQualification",
+                  "revision",
+                  "standardEstimateApprovalLimit",
+                  "standardProposalApprovalLimit",
+                  "standardQuoteSelectionLimit",
+                  "supersedesRevisionId"
+                ]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getEstimateAuthorityPolicies",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "currency",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-authority-policies/{policyId}/review": {
+      "post": {
+        "operationId": "postEstimateAuthorityPoliciesByPolicyIdReview",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "reject",
+                      "approve"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "decision",
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "policyId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimates": {
+      "post": {
+        "operationId": "postEstimates",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getEstimates",
+        "tags": [
+          "estimating"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimates/{estimateId}": {
+      "get": {
+        "operationId": "getEstimatesByEstimateId",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "estimateId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/lines": {
+      "post": {
+        "operationId": "postEstimateRevisionsByRevisionIdLines",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "lineKey": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "parentLineKey": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "sortOrder": {
+                    "type": "number"
+                  },
+                  "costCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "bidItemCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "alternateCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "wbsCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "workPackageCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "assemblyRevisionId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "type": "string"
+                  },
+                  "unitCode": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "baseLaborHoursPerUnit": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "laborRatePerHour": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "materialUnitCost": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "equipmentUnitCost": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "subcontractUnitCost": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "allowanceCost": {
+                    "type": "string"
+                  },
+                  "otherCost": {
+                    "type": "string"
+                  },
+                  "productivityFactorRevisionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "allowanceCost",
+                  "alternateCode",
+                  "assemblyRevisionId",
+                  "baseLaborHoursPerUnit",
+                  "bidItemCode",
+                  "costCode",
+                  "description",
+                  "equipmentUnitCost",
+                  "laborRatePerHour",
+                  "lineKey",
+                  "materialUnitCost",
+                  "otherCost",
+                  "parentLineKey",
+                  "productivityFactorRevisionIds",
+                  "quantity",
+                  "sortOrder",
+                  "subcontractUnitCost",
+                  "unitCode",
+                  "wbsCode",
+                  "workPackageCode"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-lines/{lineId}": {
+      "put": {
+        "operationId": "putEstimateLinesByLineId",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "lineId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-lines/{lineId}/remove": {
+      "post": {
+        "operationId": "postEstimateLinesByLineIdRemove",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "lineId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/submit": {
+      "post": {
+        "operationId": "postEstimateRevisionsByRevisionIdSubmit",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "expectedVersion"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/review": {
+      "post": {
+        "operationId": "postEstimateRevisionsByRevisionIdReview",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "reject",
+                      "approve"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "decision",
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimates/{estimateId}/revisions": {
+      "post": {
+        "operationId": "postEstimatesByEstimateIdRevisions",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "estimateId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/delta": {
+      "get": {
+        "operationId": "getEstimateRevisionsByRevisionIdDelta",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/quotes": {
+      "post": {
+        "operationId": "postEstimateRevisionsByRevisionIdQuotes",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/quote-comparison": {
+      "get": {
+        "operationId": "getEstimateRevisionsByRevisionIdQuoteComparison",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-quotes/{quoteId}/select": {
+      "post": {
+        "operationId": "postEstimateQuotesByQuoteIdSelect",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "quoteId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-revisions/{revisionId}/proposals": {
+      "post": {
+        "operationId": "postEstimateRevisionsByRevisionIdProposals",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "revisionId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-proposals/{proposalId}/review": {
+      "post": {
+        "operationId": "postEstimateProposalsByProposalIdReview",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "reject",
+                      "approve"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "decision",
+                  "expectedVersion",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-proposals/{proposalId}/issue": {
+      "post": {
+        "operationId": "postEstimateProposalsByProposalIdIssue",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedVersion": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "expectedVersion"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-proposals/{proposalId}/download": {
+      "get": {
+        "operationId": "getEstimateProposalsByProposalIdDownload",
+        "tags": [
+          "estimating"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "proposalId",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate-proposals/{proposalId}/handoff": {
+      "post": {
+        "operationId": "postEstimateProposalsByProposalIdHandoff",
+        "tags": [
+          "estimating"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "authorizationReference": {
+                    "type": "string"
+                  },
+                  "adjustmentCostCodes": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contingency": {
+                        "type": "string"
+                      },
+                      "escalation": {
+                        "type": "string"
+                      },
+                      "markup": {
+                        "type": "string"
+                      },
+                      "tax": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "contingency",
+                      "escalation",
+                      "markup",
+                      "tax"
+                    ]
+                  }
+                },
+                "required": [
+                  "adjustmentCostCodes",
+                  "authorizationReference",
+                  "projectId"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "proposalId",
             "required": true
           }
         ],
@@ -4117,59 +7904,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "detectedMediaType": {
-                        "type": "string"
-                      },
-                      "detectedSha256": {
-                        "type": "string"
-                      },
-                      "malwareState": {
-                        "type": "string",
-                        "enum": [
-                          "clean",
-                          "malicious",
-                          "error"
-                        ]
-                      },
-                      "validatorVersion": {
-                        "type": "string"
-                      },
-                      "activeContentDetected": {
-                        "type": "boolean"
-                      },
-                      "encryptedArchiveDetected": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "activeContentDetected",
-                      "detectedMediaType",
-                      "detectedSha256",
-                      "encryptedArchiveDetected",
-                      "malwareState",
-                      "validatorVersion"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -6949,47 +10684,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "operation": {
-                        "type": "string"
-                      },
-                      "payload": {
-                        "type": "object",
-                        "additionalProperties": {}
-                      },
-                      "idempotencyKey": {
-                        "type": "string"
-                      },
-                      "deviceId": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "deviceId",
-                      "idempotencyKey",
-                      "operation",
-                      "payload"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "originalAt": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "originalAt"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -7133,8 +10828,8 @@
                     "type": "string",
                     "enum": [
                       "conflict",
-                      "accept",
-                      "reject"
+                      "reject",
+                      "accept"
                     ]
                   },
                   "conflictReason": {
@@ -9842,61 +13537,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "decision": {
-                        "type": "string",
-                        "enum": [
-                          "rejected",
-                          "accepted"
-                        ]
-                      },
-                      "heatLotVerified": {
-                        "type": "boolean"
-                      },
-                      "gradeVerified": {
-                        "type": "boolean"
-                      },
-                      "specificationVerified": {
-                        "type": "boolean"
-                      },
-                      "reviewNotes": {
-                        "type": "string"
-                      },
-                      "evidenceFileIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "required": [
-                      "decision",
-                      "evidenceFileIds",
-                      "gradeVerified",
-                      "heatLotVerified",
-                      "reviewNotes",
-                      "specificationVerified"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -10154,38 +13795,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "toLocation": {
-                        "type": "string"
-                      },
-                      "reason": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "reason",
-                      "toLocation"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -10318,38 +13928,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "toLocation": {
-                        "type": "string"
-                      },
-                      "reason": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "reason",
-                      "toLocation"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -10482,54 +14061,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "childIdentifier": {
-                        "type": "string"
-                      },
-                      "relationship": {
-                        "type": "string",
-                        "enum": [
-                          "cut_piece",
-                          "remnant"
-                        ]
-                      },
-                      "childQuantity": {
-                        "type": "string"
-                      },
-                      "remainingParentQuantity": {
-                        "type": "string"
-                      },
-                      "storageLocation": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "childIdentifier",
-                      "childQuantity",
-                      "relationship",
-                      "remainingParentQuantity",
-                      "storageLocation"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -10662,61 +14194,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "identifier": {
-                        "type": "string"
-                      },
-                      "serialNumber": {
-                        "type": "string"
-                      },
-                      "methodCapabilities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "verificationState": {
-                        "type": "string",
-                        "enum": [
-                          "passed",
-                          "failed"
-                        ]
-                      },
-                      "evidenceFileId": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "evidenceFileId",
-                      "identifier",
-                      "methodCapabilities",
-                      "serialNumber",
-                      "verificationState"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "validFrom": {
-                        "type": "string"
-                      },
-                      "validTo": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "validFrom",
-                      "validTo"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -11185,64 +14663,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "planRevisionId": {
-                        "type": "string"
-                      },
-                      "targetType": {
-                        "type": "string"
-                      },
-                      "targetId": {
-                        "type": "string"
-                      },
-                      "fieldValues": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
-                      },
-                      "evidenceFileIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "result": {
-                        "type": "string",
-                        "enum": [
-                          "pass",
-                          "fail"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "evidenceFileIds",
-                      "fieldValues",
-                      "planRevisionId",
-                      "result",
-                      "targetId",
-                      "targetType"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "performedAt": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "performedAt"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -11385,8 +14806,8 @@
                   "decision": {
                     "type": "string",
                     "enum": [
-                      "accept",
-                      "reject"
+                      "reject",
+                      "accept"
                     ]
                   },
                   "meaningOrReason": {
@@ -11956,95 +15377,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "governingRule": {
-                        "type": "string"
-                      },
-                      "requiredMaterial": {
-                        "type": "string"
-                      },
-                      "observedMaterial": {
-                        "type": "string"
-                      },
-                      "method": {
-                        "type": "string"
-                      },
-                      "componentLocation": {
-                        "type": "string"
-                      },
-                      "equipmentId": {
-                        "type": "string"
-                      },
-                      "readings": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
-                      },
-                      "evidenceFileIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "notes": {
-                        "type": "string"
-                      },
-                      "result": {
-                        "type": "string",
-                        "enum": [
-                          "pass",
-                          "fail"
-                        ]
-                      },
-                      "failedNcrNumber": {
-                        "type": "string"
-                      },
-                      "failureDescription": {
-                        "type": "string"
-                      },
-                      "containment": {
-                        "type": "string"
-                      },
-                      "failureResponsibleUserId": {
-                        "type": "string"
-                      },
-                      "turnoverRequired": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "componentLocation",
-                      "equipmentId",
-                      "evidenceFileIds",
-                      "governingRule",
-                      "method",
-                      "notes",
-                      "observedMaterial",
-                      "readings",
-                      "requiredMaterial",
-                      "result"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "inspectedAt": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "inspectedAt"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -13464,38 +16797,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "disposition": {
-                        "type": "string"
-                      },
-                      "correctiveAction": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "correctiveAction",
-                      "disposition"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -14064,81 +17366,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "number": {
-                        "type": "string"
-                      },
-                      "type": {
-                        "type": "string"
-                      },
-                      "priority": {
-                        "type": "string",
-                        "enum": [
-                          "low",
-                          "medium",
-                          "high",
-                          "critical"
-                        ]
-                      },
-                      "systemId": {
-                        "type": "string",
-                        "nullable": true
-                      },
-                      "areaId": {
-                        "type": "string",
-                        "nullable": true
-                      },
-                      "workPackageId": {
-                        "type": "string",
-                        "nullable": true
-                      },
-                      "assetId": {
-                        "type": "string",
-                        "nullable": true
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "ownerUserId": {
-                        "type": "string"
-                      },
-                      "turnoverRequired": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "areaId",
-                      "assetId",
-                      "description",
-                      "number",
-                      "ownerUserId",
-                      "priority",
-                      "systemId",
-                      "turnoverRequired",
-                      "type",
-                      "workPackageId"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "targetAt": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "targetAt"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -15776,76 +19004,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "category": {
-                        "type": "string",
-                        "enum": [
-                          "license",
-                          "insurance",
-                          "bonding",
-                          "safety",
-                          "quality",
-                          "personnel",
-                          "equipment",
-                          "client"
-                        ]
-                      },
-                      "code": {
-                        "type": "string"
-                      },
-                      "approvedScopes": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "issuer": {
-                        "type": "string"
-                      },
-                      "evidenceFileId": {
-                        "type": "string"
-                      },
-                      "exceptionReason": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "approvedScopes",
-                      "category",
-                      "code",
-                      "evidenceFileId",
-                      "exceptionReason",
-                      "issuer"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedProfileVersion": {
-                        "type": "number"
-                      },
-                      "effectiveAt": {
-                        "type": "string"
-                      },
-                      "expiresAt": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "effectiveAt",
-                      "expectedProfileVersion",
-                      "expiresAt"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -16306,40 +19465,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "qualificationId": {
-                        "type": "string",
-                        "nullable": true
-                      },
-                      "evidenceFileId": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "evidenceFileId",
-                      "qualificationId"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "expectedVersion": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "expectedVersion"
-                    ]
-                  }
-                ]
-              }
+              "schema": {}
             }
           }
         },
@@ -16482,8 +19608,8 @@
                   "decision": {
                     "type": "string",
                     "enum": [
-                      "accept",
-                      "reject"
+                      "reject",
+                      "accept"
                     ]
                   },
                   "reason": {
@@ -17196,8 +20322,8 @@
                   "decision": {
                     "type": "string",
                     "enum": [
-                      "accept",
-                      "reject"
+                      "reject",
+                      "accept"
                     ]
                   },
                   "meaningOrReason": {
@@ -17372,6 +20498,9 @@
     },
     {
       "name": "reports"
+    },
+    {
+      "name": "estimating"
     }
   ]
 }

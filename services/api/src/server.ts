@@ -68,6 +68,18 @@ import {
 } from "./domain/platform-service.js";
 import { ApiMetrics } from "./observability/api-metrics.js";
 import { ReportingService, type GenerateControlledReportInput } from "./domain/reporting-service.js";
+import {
+  EstimatingService,
+  type CreateEstimateInput,
+  type CreateEstimateRevisionInput,
+  type EstimateHandoffInput,
+  type GenerateEstimateProposalInput,
+  type ProposeEstimateAssemblyInput,
+  type ProposeEstimateAuthorityPolicyInput,
+  type ProposeProductivityFactorInput,
+  type ReceiveEstimateQuoteInput,
+  type UpsertEstimateLineInput,
+} from "./domain/estimating-service.js";
 
 export interface ServerDependencies {
   readonly service: FoundationService;
@@ -76,6 +88,7 @@ export interface ServerDependencies {
   readonly stagedUpload?: StagedUploadStoragePort;
   readonly identityAdministration?: IdentityAdministrationService;
   readonly reporting?: ReportingService;
+  readonly estimating?: EstimatingService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
   readonly environment: string;
@@ -124,12 +137,16 @@ function openApiOperationId(method: string | readonly string[], url: string): st
 function openApiTag(url: string): string {
   const first = url.replace(/^\/v1\/?/u, "").split("/")[0] ?? "platform";
   const aliases: Readonly<Record<string, string>> = {
-    revisions: "documents", "document-distributions": "documents", files: "files",
+    revisions: "documents", "document-distributions": "documents", files: "files", organizations: "files",
     imports: "interchange", exports: "interchange", integrations: "interchange",
     notifications: "notifications", connectivity: "offline", "connectivity-policy": "offline",
     "offline-drafts": "offline", materials: "materials", pmi: "quality", ncrs: "quality",
     punches: "quality", turnover: "turnover", "turnover-packages": "turnover",
     subcontractors: "subcontractors", portal: "portal", identity: "identity", reports: "reports",
+    estimates: "estimating", "estimate-assemblies": "estimating", "estimate-productivity-factors": "estimating",
+    "estimate-authority-policies": "estimating",
+    "estimate-revisions": "estimating", "estimate-lines": "estimating", "estimate-quotes": "estimating",
+    "estimate-proposals": "estimating",
   };
   return (aliases[first] ?? first) || "platform";
 }
@@ -170,6 +187,7 @@ export async function buildServer(dependencies: ServerDependencies) {
   const platform = dependencies.platform ?? new PlatformService(dependencies.store);
   const identityAdministration = dependencies.identityAdministration ?? new IdentityAdministrationService(dependencies.store);
   const reporting = dependencies.reporting ?? new ReportingService(dependencies.store, dependencies.trainingBanner);
+  const estimating = dependencies.estimating ?? new EstimatingService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
     logger: {
@@ -261,13 +279,14 @@ export async function buildServer(dependencies: ServerDependencies) {
       },
       tags: [
         "identity", "projects", "documents", "files", "materials", "quality", "turnover",
-        "subcontractors", "portal", "interchange", "notifications", "offline", "reports",
+        "subcontractors", "portal", "interchange", "notifications", "offline", "reports", "estimating",
       ].map((name) => ({ name })),
     },
     exposeHeadRoutes: false,
     transform: ({ schema, url, route }) => {
       if (!url.startsWith("/v1")) return { schema, url };
       const routeSchema = url === "/v1/projects/:projectId/file-uploads"
+        || url === "/v1/organizations/:organizationId/file-uploads"
         ? {
           ...(schema ?? {}),
           body: {
@@ -428,6 +447,63 @@ export async function buildServer(dependencies: ServerDependencies) {
   );
 
   server.post<{
+    Params: { organizationId: string };
+    Headers: { "x-eiep-retention-class"?: string; "x-idempotency-key"?: string };
+  }>(
+    "/v1/organizations/:organizationId/file-uploads",
+    {
+      schema: {
+        consumes: ["multipart/form-data"],
+        params: {
+          type: "object", additionalProperties: false, required: ["organizationId"],
+          properties: { organizationId: { type: "string", minLength: 1 } },
+        },
+        headers: {
+          type: "object",
+          required: ["x-eiep-retention-class"],
+          properties: {
+            "x-eiep-retention-class": { type: "string", minLength: 1, maxLength: 128 },
+            "x-idempotency-key": { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      platform.authorizeOrganizationFileUpload(access.context, access.assignments, request.params.organizationId);
+      if (!dependencies.stagedUpload) {
+        return reply.code(503).send({ error: "file_storage_unavailable", correlationId: request.id });
+      }
+      const part = await request.file();
+      if (!part || part.fieldname !== "file") {
+        throw new ValidationError("A single multipart file field named file is required.", ["upload_file_required"]);
+      }
+      if (!part.filename || part.filename.length > 255 || /[\u0000-\u001f\u007f]/u.test(part.filename)) {
+        throw new ValidationError("The uploaded filename is invalid.", ["upload_filename_invalid"]);
+      }
+      const content = await part.toBuffer();
+      if (part.file.truncated || content.length < 1 || content.length > 250 * 1024 * 1024) {
+        return reply.code(413).send({ error: "payload_too_large", correlationId: request.id });
+      }
+      const idempotencyKey = request.headers["x-idempotency-key"];
+      const objectId = idempotencyKey
+        ? createHash("sha256").update(`${access.context.userId}\n${request.params.organizationId}\n${idempotencyKey}`).digest("hex")
+        : randomUUID();
+      const storageKey = `organizations/${request.params.organizationId}/${objectId}`;
+      const sha256 = createHash("sha256").update(content).digest("hex");
+      await dependencies.stagedUpload.putStaged(storageKey, content);
+      const staged = await platform.stageOrganizationFile(
+        access.context, access.assignments, request.params.organizationId,
+        {
+          storageKey, originalFilename: part.filename, declaredMediaType: part.mimetype,
+          sha256, sizeBytes: content.length, retentionClass: request.headers["x-eiep-retention-class"]!,
+        },
+      );
+      return reply.code(201).send(staged);
+    },
+  );
+
+  server.post<{
     Params: { accountId: string };
     Body: { businessScopeOrganizationId: string; expectedVersion: number; reason: string };
   }>("/v1/identity/accounts/:accountId/disable", async (request) => {
@@ -570,6 +646,244 @@ export async function buildServer(dependencies: ServerDependencies) {
       );
     },
   );
+
+  server.post<{ Body: ProposeEstimateAssemblyInput }>("/v1/estimate-assemblies", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await estimating.proposeAssembly(access.context, access.assignments, request.body));
+  });
+
+  server.get<{ Querystring: { code?: string } }>("/v1/estimate-assemblies", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.listAssemblies(access.context, access.assignments, request.query.code);
+  });
+
+  server.post<{
+    Params: { assemblyId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/estimate-assemblies/:assemblyId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.reviewAssembly(
+      access.context, access.assignments, request.params.assemblyId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Body: Omit<ProposeProductivityFactorInput, "effectiveFrom" | "effectiveTo">
+      & { effectiveFrom: string; effectiveTo: string | null };
+  }>("/v1/estimate-productivity-factors", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await estimating.proposeProductivityFactor(access.context, access.assignments, {
+      ...request.body, effectiveFrom: new Date(request.body.effectiveFrom),
+      effectiveTo: request.body.effectiveTo ? new Date(request.body.effectiveTo) : null,
+    }));
+  });
+
+  server.post<{
+    Params: { factorId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/estimate-productivity-factors/:factorId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.reviewProductivityFactor(
+      access.context, access.assignments, request.params.factorId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.get<{ Querystring: { code?: string } }>("/v1/estimate-productivity-factors", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.listProductivityFactors(access.context, access.assignments, request.query.code);
+  });
+
+  server.post<{ Body: ProposeEstimateAuthorityPolicyInput }>(
+    "/v1/estimate-authority-policies",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await estimating.proposeAuthorityPolicy(access.context, access.assignments, request.body));
+    },
+  );
+
+  server.get<{ Querystring: { currency?: string } }>("/v1/estimate-authority-policies", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.listAuthorityPolicies(access.context, access.assignments, request.query.currency);
+  });
+
+  server.post<{
+    Params: { policyId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/estimate-authority-policies/:policyId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.reviewAuthorityPolicy(
+      access.context, access.assignments, request.params.policyId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Body: Omit<CreateEstimateInput, "dueAt"> & { dueAt: string };
+  }>("/v1/estimates", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await estimating.createEstimate(access.context, access.assignments, {
+      ...request.body, dueAt: new Date(request.body.dueAt),
+    }));
+  });
+
+  server.get("/v1/estimates", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.listEstimates(access.context, access.assignments);
+  });
+
+  server.get<{ Params: { estimateId: string } }>("/v1/estimates/:estimateId", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.estimateDetail(access.context, access.assignments, request.params.estimateId);
+  });
+
+  server.post<{ Params: { revisionId: string }; Body: UpsertEstimateLineInput }>(
+    "/v1/estimate-revisions/:revisionId/lines",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await estimating.upsertLine(
+        access.context, access.assignments, request.params.revisionId, null, null, request.body,
+      ));
+    },
+  );
+
+  server.put<{
+    Params: { lineId: string };
+    Body: UpsertEstimateLineInput & { expectedVersion: number };
+  }>("/v1/estimate-lines/:lineId", async (request) => {
+    const access = await accessFor(request, dependencies);
+    const { expectedVersion, ...input } = request.body;
+    const current = await dependencies.store.transaction((transaction) => transaction.estimateLineById(request.params.lineId));
+    if (!current) throw new NotFoundError();
+    return estimating.upsertLine(
+      access.context, access.assignments, current.revisionId, request.params.lineId, expectedVersion, input,
+    );
+  });
+
+  server.post<{
+    Params: { lineId: string };
+    Body: { expectedVersion: number; reason: string };
+  }>("/v1/estimate-lines/:lineId/remove", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.removeLine(
+      access.context, access.assignments, request.params.lineId, request.body.expectedVersion, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Params: { revisionId: string };
+    Body: { expectedVersion: number };
+  }>("/v1/estimate-revisions/:revisionId/submit", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.submitRevision(
+      access.context, access.assignments, request.params.revisionId, request.body.expectedVersion,
+    );
+  });
+
+  server.post<{
+    Params: { revisionId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/estimate-revisions/:revisionId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.reviewRevision(
+      access.context, access.assignments, request.params.revisionId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Params: { estimateId: string };
+    Body: CreateEstimateRevisionInput & { expectedEstimateVersion: number };
+  }>("/v1/estimates/:estimateId/revisions", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    const { expectedEstimateVersion, ...input } = request.body;
+    return reply.code(201).send(await estimating.createRevision(
+      access.context, access.assignments, request.params.estimateId, expectedEstimateVersion, input,
+    ));
+  });
+
+  server.get<{ Params: { revisionId: string } }>("/v1/estimate-revisions/:revisionId/delta", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.revisionDelta(access.context, access.assignments, request.params.revisionId);
+  });
+
+  server.post<{
+    Params: { revisionId: string };
+    Body: Omit<ReceiveEstimateQuoteInput, "validUntil"> & { validUntil: string };
+  }>("/v1/estimate-revisions/:revisionId/quotes", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await estimating.receiveQuote(access.context, access.assignments, request.params.revisionId, {
+      ...request.body, validUntil: new Date(request.body.validUntil),
+    }));
+  });
+
+  server.get<{ Params: { revisionId: string } }>(
+    "/v1/estimate-revisions/:revisionId/quote-comparison",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return estimating.quoteComparison(access.context, access.assignments, request.params.revisionId);
+    },
+  );
+
+  server.post<{
+    Params: { quoteId: string };
+    Body: { expectedVersion: number; reason: string };
+  }>("/v1/estimate-quotes/:quoteId/select", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.selectQuote(
+      access.context, access.assignments, request.params.quoteId, request.body.expectedVersion, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Params: { revisionId: string };
+    Body: Omit<GenerateEstimateProposalInput, "validUntil"> & { validUntil: string };
+  }>("/v1/estimate-revisions/:revisionId/proposals", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await estimating.generateProposal(access.context, access.assignments, request.params.revisionId, {
+      ...request.body, validUntil: new Date(request.body.validUntil),
+    }));
+  });
+
+  server.post<{
+    Params: { proposalId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/estimate-proposals/:proposalId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.reviewProposal(
+      access.context, access.assignments, request.params.proposalId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Params: { proposalId: string };
+    Body: { expectedVersion: number };
+  }>("/v1/estimate-proposals/:proposalId/issue", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return estimating.issueProposal(
+      access.context, access.assignments, request.params.proposalId, request.body.expectedVersion,
+    );
+  });
+
+  server.get<{ Params: { proposalId: string } }>("/v1/estimate-proposals/:proposalId/download", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    const proposal = await estimating.downloadProposal(access.context, access.assignments, request.params.proposalId);
+    return reply.type(proposal.artifactMediaType)
+      .header("content-disposition", `attachment; filename="${proposal.artifactFilename}"`)
+      .send(proposal.artifactContent);
+  });
+
+  server.post<{
+    Params: { proposalId: string };
+    Body: EstimateHandoffInput;
+  }>("/v1/estimate-proposals/:proposalId/handoff", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await estimating.handoffProposal(
+      access.context, access.assignments, request.params.proposalId, request.body,
+    ));
+  });
 
   server.get("/v1/session", async (request) => {
     const access = await accessFor(request, dependencies);
