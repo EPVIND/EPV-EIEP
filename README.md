@@ -112,7 +112,11 @@ Implemented review surfaces include:
   project-rule material receipt, PMI, NCR/punch closure, readiness, and turnover;
 - delivery CI/CycloneDX evidence and a production-guarded private Azure Bicep baseline
   compiled by a pinned toolchain, with a separate fail-closed runtime-start gate so
-  database migration and identity mapping precede application startup.
+  database migration and identity mapping precede application startup;
+- portable compiled workspace artifacts plus four digest-pinned, rootless OCI build
+  targets for API, job worker, internal web, and partner portal; the browser images
+  validate their runtime API origin, omit source maps, emit security headers, and use
+  separate liveness/readiness endpoints in the Container Apps proposal.
 
 This is not production authorization. Configured PostgreSQL startup requires the
 current migration ledger and uses the verified record-normalized runtime adapter, but
@@ -138,13 +142,17 @@ pnpm run database:verify
 pnpm run test:browser
 pnpm audit --prod --audit-level high
 pnpm run sbom:generate
+pnpm run containers:verify
 ```
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
-traceability, OpenAPI drift, and Bicep checks, strict typechecks, and 76 unit/integration/security/
-acceptance tests. `pnpm run build` builds the two
-web applications, API, worker/contracts, shared packages, and validates the migration
-runner syntax. `pnpm run database:verify` creates a disposable PostgreSQL 18 cluster,
+traceability, OpenAPI drift, Bicep/container-definition checks, strict typechecks,
+77 unit/integration/security/acceptance tests, and compiled runtime process smoke
+tests. `pnpm run build` builds the two web applications, API, worker/contracts,
+shared packages, and validates the migration runner syntax. `pnpm run
+containers:build` additionally requires Docker with BuildKit; it builds and smokes
+all four production targets and emits revision-linked image evidence. `pnpm run
+database:verify` creates a disposable PostgreSQL 18 cluster,
 applies fourteen migrations, checks the ledger, 61 representative constraints, runtime
 roles, and repository restart/rollback/concurrency, then removes all database files.
 `pnpm run test:browser` runs five internal/portal workflow cases in a Chromium tablet

@@ -3,6 +3,10 @@ packages:
   - "services/*"
   - "packages/*"
 
+injectWorkspacePackages: true
+syncInjectedDepsAfterScripts:
+  - build
+
 allowBuilds:
   "@embedded-postgres/linux-x64": true
   "@embedded-postgres/windows-x64": true

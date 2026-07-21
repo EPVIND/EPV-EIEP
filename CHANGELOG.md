@@ -49,6 +49,17 @@ All notable controlled changes to the EIEP program definition and implementation
 - Corrected CycloneDX generation to union dependency edges seen through multiple
   workspace traversals, preventing a shallow duplicate from erasing the complete
   transitive graph while retaining the 150-component production inventory.
+- Changed workspace package exports to serve compiled JavaScript at runtime while
+  retaining explicit TypeScript development conditions, and added a process-level
+  gate that starts the compiled API/browser servers and verifies the worker reaches
+  its controlled fail-closed configuration boundary.
+- Added four production Docker targets on one digest-pinned Node 24 base: rootless
+  API, Playwright-equipped job worker, internal web, and partner portal. Portable
+  pnpm deployments include compiled internal packages and record the exact source
+  revision as OCI metadata.
+- Added process-only `/livez` and dependency-backed `/readyz` probes plus dynamic,
+  HTTPS-only browser API configuration, SPA/static security headers, source-map
+  exclusion, and hosted container build/smoke evidence generation.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 

@@ -76,8 +76,10 @@ configuration contracts, and deployment records.
 Architecture/cost/data-residency approval, IaC lint/what-if, environment-boundary
 tests, managed-identity tests, image promotion evidence, capacity/alert tests,
 coordinated restore meeting approved RPO/RTO, region-failure exercise, and rollback.
+The guarded Bicep and four rootless image definitions compile and pass local static
+and process checks; no Azure what-if, registry digest, live identity, restore, or
+capacity evidence exists yet.
 
 ## Supersedes / superseded by
 
 None.
-

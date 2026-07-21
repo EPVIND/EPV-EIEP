@@ -11,6 +11,12 @@ interface HealthStatus {
   readonly blockers: readonly string[];
 }
 
+declare global {
+  interface Window {
+    readonly __EIEP_RUNTIME_CONFIG__?: { readonly apiBaseUrl?: string };
+  }
+}
+
 interface IdentitySettings {
   readonly userId: string;
   readonly organizationId: string;
@@ -76,7 +82,9 @@ function displayCode(value: string): string {
 }
 
 export function App() {
-  const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:3100";
+  const apiBase = window.__EIEP_RUNTIME_CONFIG__?.apiBaseUrl
+    ?? import.meta.env.VITE_API_BASE_URL
+    ?? "http://127.0.0.1:3100";
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [apiUnavailable, setApiUnavailable] = useState(false);
   const [identity, setIdentity] = useState<IdentitySettings>(storedIdentity);

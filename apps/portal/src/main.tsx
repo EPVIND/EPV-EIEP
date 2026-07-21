@@ -4,6 +4,11 @@ import { EnvironmentBanner } from "@eiep/ui-components";
 import "./styles.css";
 
 interface HealthStatus { readonly environment: string; readonly training: boolean; }
+declare global {
+  interface Window {
+    readonly __EIEP_RUNTIME_CONFIG__?: { readonly apiBaseUrl?: string };
+  }
+}
 interface AssignedWork {
   readonly id: string;
   readonly projectId: string;
@@ -25,7 +30,9 @@ interface Submission {
 }
 
 function Portal() {
-  const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:3100";
+  const apiBase = window.__EIEP_RUNTIME_CONFIG__?.apiBaseUrl
+    ?? import.meta.env.VITE_API_BASE_URL
+    ?? "http://127.0.0.1:3100";
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [userId, setUserId] = useState(() => sessionStorage.getItem("eiep.portal.userId") ?? "");

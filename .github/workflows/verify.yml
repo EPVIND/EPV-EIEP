@@ -41,6 +41,11 @@ jobs:
         run: pnpm run verify
       - name: Build workspaces
         run: pnpm run build
+      - name: Build and smoke production containers
+        env:
+          SOURCE_REVISION: ${{ github.sha }}
+          CONTAINER_BUILD_EVIDENCE: artifacts/container-build.json
+        run: pnpm run containers:build
       - name: Verify PostgreSQL 18 migrations and repository
         run: pnpm run database:verify
       - name: Verify tablet and accessibility workflows
@@ -52,6 +57,8 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: controlled-verification-evidence
-          path: artifacts/sbom.cdx.json
+          path: |
+            artifacts/sbom.cdx.json
+            artifacts/container-build.json
           if-no-files-found: error
           retention-days: 90

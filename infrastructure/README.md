@@ -11,6 +11,9 @@ Status: Compiled review implementation; ADR-0009 remains Proposed and no cloud d
   controlled `runtimeAuthorizationReference`; both default closed so foundation
   deployment cannot start code before migrations and managed-identity mappings pass.
 - Every environment requires API, web, portal, and job-worker images addressed by `@sha256:` digest. A mutable tag disables the proposed deployment.
+- `containers/Dockerfile` supplies the four corresponding rootless build targets
+  from one Node 24 base pinned by digest; definition and compiled-runtime checks run
+  locally, while an actual image build is clean-hosted evidence.
 - No template accepts a PostgreSQL administrator or runtime password. Separate API
   and worker URLs are constructed from their deployed identity names and the managed
   database FQDN; both pools acquire short-lived Entra tokens and enforce certificate
@@ -19,7 +22,7 @@ Status: Compiled review implementation; ADR-0009 remains Proposed and no cloud d
 
 ## Proposed modules
 
-The 11 compiled templates cover virtual networking/private DNS, separate frontend, API, and job-worker user-assigned identities, Log Analytics, private storage, Key Vault, Service Bus, private endpoints, Entra-only PostgreSQL 18 with an explicitly supplied administrator plus HA/backup settings, and Container Apps for API/web/portal plus the background job worker. The Container Apps environment routes all supported resource-log categories to dedicated Log Analytics tables through a diagnostic setting. The API identity receives Blob Data Contributor only on the private `staged` container; the worker identity receives the account-level Blob data role needed to validate, quarantine, release, and generate governed artifacts. The template creates the metrics token as a secure Key Vault secret and grants only the API identity secret-read access at that exact secret scope; the worker and browser-facing containers receive no vault role. Both database clients use distinct generated URLs and dynamic Entra tokens; the governed post-migration bootstrap verifies exact Entra object IDs before granting the API and worker different NOLOGIN application roles. The worker may scale from one to five replicas because PostgreSQL claims are atomic, expiring, and token-released. Public access is disabled on data services; application ingress rejects insecure transport. These are proposed settings, not deployed evidence.
+The 11 compiled templates cover virtual networking/private DNS, separate frontend, API, and job-worker user-assigned identities, Log Analytics, private storage, Key Vault, Service Bus, private endpoints, Entra-only PostgreSQL 18 with an explicitly supplied administrator plus HA/backup settings, and Container Apps for API/web/portal plus the background job worker. The Container Apps environment routes all supported resource-log categories to dedicated Log Analytics tables through a diagnostic setting. The API identity receives Blob Data Contributor only on the private `staged` container; the worker identity receives the account-level Blob data role needed to validate, quarantine, release, and generate governed artifacts. The template creates the metrics token as a secure Key Vault secret and grants only the API identity secret-read access at that exact secret scope; the worker and browser-facing containers receive no vault role. Both database clients use distinct generated URLs and dynamic Entra tokens; the governed post-migration bootstrap verifies exact Entra object IDs before granting the API and worker different NOLOGIN application roles. The worker may scale from one to five replicas because PostgreSQL claims are atomic, expiring, and token-released. API liveness is process-only, readiness checks PostgreSQL and managed staging, and browser containers receive only the generated API HTTPS origin at runtime. Public access is disabled on data services; application ingress rejects insecure transport. These are proposed settings, not deployed evidence.
 
 ## Pinned verification tool
 
@@ -30,7 +33,7 @@ $env:BICEP_PATH = "$env:USERPROFILE\.bicep\bicep.exe"
 pnpm run infrastructure:verify
 ```
 
-The check compiles all templates in memory, rejects diagnostics, verifies that `main.bicep` has no resources, and checks the authorization/digest guard and representative private-service controls.
+The check compiles all templates in memory, rejects diagnostics, verifies that `main.bicep` has no resources, and checks the authorization/digest guard and representative private-service controls. `pnpm run containers:verify` separately checks the production image definitions, unprivileged users, pinned base, runtime configuration, and Bicep wiring without requiring Docker.
 
 ## Proposed deployment inputs
 

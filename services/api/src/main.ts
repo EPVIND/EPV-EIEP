@@ -13,7 +13,11 @@ import { ReportingService } from "./domain/reporting-service.js";
 import { buildServer } from "./server.js";
 import { createAzurePostgresAuthentication } from "./domain/azure-postgres-authentication.js";
 
-const config = await loadRuntimeConfig();
+const inferredRepositoryRoot = resolve(import.meta.dirname, "../../..");
+const configurationRoot = process.env.EIEP_CONFIG_ROOT?.trim()
+  ? resolve(process.env.EIEP_CONFIG_ROOT.trim())
+  : inferredRepositoryRoot;
+const config = await loadRuntimeConfig(configurationRoot);
 const databaseAuthentication = config.environment.dataStore === "postgres"
   && config.databaseAuthentication === "azure-managed-identity"
   ? createAzurePostgresAuthentication(process.env.DATABASE_URL!, config.managedIdentityClientId!)
@@ -32,7 +36,10 @@ const stagedUpload = config.storageAccountName
     accountName: config.storageAccountName,
     ...(config.managedIdentityClientId ? { managedIdentityClientId: config.managedIdentityClientId } : {}),
   })
-  : new LocalFilesystemObjectStorage(resolve(config.fileStorageRoot ?? ".eiep-file-storage", config.environment.environment));
+  : new LocalFilesystemObjectStorage(resolve(
+    config.fileStorageRoot ? resolve(configurationRoot, config.fileStorageRoot) : resolve(configurationRoot, ".eiep-file-storage"),
+    config.environment.environment,
+  ));
 const authenticator =
   config.environment.authentication === "oidc"
     ? await OidcAuthenticator.create(config.oidcIssuer!, config.oidcAudience!, new StoreIdentityResolver(store))
@@ -50,6 +57,10 @@ const server = await buildServer({
   allowedOrigins: config.allowedOrigins,
   rateLimitMax: config.rateLimitMax,
   metricsToken: config.metricsToken,
+  readiness: async () => {
+    await postgresStore?.health();
+    if (stagedUpload instanceof AzureBlobStagedUploadStorage) await stagedUpload.assertPrivateBoundary();
+  },
 });
 
 await server.listen({ host: config.host, port: config.port });

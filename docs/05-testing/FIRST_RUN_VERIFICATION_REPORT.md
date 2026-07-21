@@ -8,21 +8,25 @@ Workstation evidence: Windows, Node.js 24.14.0, pnpm 11.9.0, repository-local Po
 
 The controlled MVP vertical slice and supporting platform services build and pass the available local automated gates. The evidence includes governed identity mapping, scoped authorization, guided authoritative project setup/readiness, authenticated file upload, independent MTR review and material movement, complete PMI component/result capture, NCR responsibility/corrective action, all eleven controlled form/report snapshots, an operational dashboard, project/documents/material/PMI/inspection/NCR/punch/turnover/subcontractor workflows, interchange, background work, offline safety, recovery, provisional performance, browser accessibility, infrastructure compilation, and delivery controls.
 
-This report does not authorize live use. No Azure subscription, Entra tenant, managed database/storage/scanner/queue, production identity, real project data, approved pilot budget, or owner authorization was supplied.
+This report does not authorize live use. No deployable Azure subscription access,
+approved Entra applications/policies, managed database/storage/scanner/queue,
+production identity, real project data, approved pilot budget, or owner authorization
+was supplied.
 
 ## Executed evidence
 
 | Command/check | Result | Evidence |
 |---|---|---|
-| `pnpm run verify` | Passed | Production/training boundary, secret scan, 40/25 requirement traceability, generated OpenAPI drift, 11 Bicep templates, strict TypeScript, 76 unit/integration/security/acceptance tests |
-| `pnpm run build` | Passed | 11 implementation workspaces; internal web and partner portal production bundles; API, workers, recovery, contracts, shared packages |
+| `pnpm run verify` | Passed | Production/training boundary, secret scan, 40/25 requirement traceability, generated OpenAPI drift, 11 Bicep templates, four container-definition targets, strict TypeScript, 77 unit/integration/security/acceptance tests, and compiled API/worker/browser process checks |
+| `pnpm run build` | Passed | 12 build-bearing workspaces; internal web and partner portal production bundles without source maps; API, workers, recovery, contracts, shared packages |
+| `pnpm run containers:verify` | Passed within `verify` | One digest-pinned Node 24 base, four rootless production targets, portable compiled workspace deployment, runtime browser configuration/security headers, and Bicep environment wiring |
 | `pnpm run database:verify` | Passed | Fourteen reversible migration pairs applied on disposable PostgreSQL 18.4; 61 controlled constraints and runtime/worker role boundaries; immutable MTR/movement/report tables; required PMI/NCR execution detail; record-normalized restart, typed hydration, rollback, atomic outbox, 2,000-record behavior, concurrent stale updates, and competing leases |
 | `pnpm run test:browser` | Passed | Five tablet-Chromium tests including the guided document-to-turnover chain; fail-closed states, scoped workflows, typed confirmation/current-version submission, 44-pixel actions, and zero serious/critical axe findings |
 | `pnpm audit --prod --audit-level high` | Passed | No known production dependency vulnerability reported by the configured registry |
 | `pnpm run infrastructure:verify` | Passed within `verify` | Pinned Bicep 0.45.15 compiled 11 templates; `main.bicep` remains zero-resource review-only; proposed deployment has separate foundation/runtime authorization guards, private services, an explicit Entra PostgreSQL administrator, and scoped Blob/Key Vault roles |
 | `pnpm run openapi:verify` | Passed within `verify` | TypeScript-derived runtime schemas match 112 active `/v1` routes; generated OpenAPI 3.0.3 publishes 89 request bodies, path/query validation, bearer security, and shared safe errors while excluding internal metrics/training/source-intake surfaces |
 | `pnpm run sbom:generate` | Passed | CycloneDX 1.6 production inventory contains 150 components, a merged transitive dependency graph across workspaces, the lockfile SHA, and no local filesystem paths |
-| GitHub Actions `verify` run `29862697475` at `355dfca` | Passed | Clean hosted Linux run completed source verification, build, PostgreSQL 18 verification, five tablet/axe workflows, production dependency audit, and a retained `controlled-verification-evidence` SBOM artifact |
+| GitHub Actions `verify` run `29862697475` at `355dfca` | Passed | Clean hosted Linux run completed source verification, build, PostgreSQL 18 verification, five tablet/axe workflows, production dependency audit, and a retained `controlled-verification-evidence` SBOM artifact; this earlier run predates the new hosted image-build step |
 | Turnover renderer review fixture | Passed | Seven searchable letter-size pages; 72 exact source snapshots; JSON/CSV/log hash verification; no JavaScript; individual visual page inspection; PDF/A explicitly unclaimed |
 
 ## Automated coverage summary
@@ -50,6 +54,17 @@ All eleven controlled MVP forms/reports generate immutable revisioned structured
 
 Turnover generation now freezes the exact canonical source bytes behind every manifest digest and enqueues an outbox message. The leased worker invokes a pinned Chromium renderer and idempotently persists searchable PDF plus exact JSON, CSV, and a last-written hash-verifying generation log without arbitrary network or JavaScript access; a replay adopts a complete immutable set without rerendering. The local 72-entry review fixture renders cleanly across seven inspected pages. The path is not deployed against managed object storage, and PDF/A conformance remains deliberately unclaimed pending an approved profile, converter/validator, fonts/color policy, and contractual evidence.
 
+Production artifacts now have four Docker build targets derived from one Node 24
+base pinned by digest. API and worker use portable production-only pnpm deployments;
+web and portal serve compiled bundles through a minimal Node server that validates an
+exact API origin at startup, injects it at request time, emits a restrictive CSP and
+other browser protections, and exposes a separate health endpoint. All targets run as
+the unprivileged `node` user and carry the full source revision. Local compiled
+artifact and server smoke tests pass. Docker is not installed on this workstation,
+so an actual Linux image build, image IDs, and Chromium-in-image validation remain
+pending the updated hosted workflow; registry digests, vulnerability scans, and
+signatures remain release evidence rather than local claims.
+
 ## Evidence not available locally
 
 | Required production evidence | Blocking dependency |
@@ -63,6 +78,7 @@ Turnover generation now freezes the exact canonical source bytes behind every ma
 | Approved load, device, file, network, large-package, and concurrency budgets | Pilot scope, supported devices, network profile, user volume |
 | Manual WCAG 2.2 AA, screen-reader, keyboard, zoom/reflow, touch/outdoor field review | Accessibility reviewer and approved physical devices |
 | Manual security/threat/penetration/container-image review and incident exercise | Security authority, deployed images/environment, support team |
+| Built image IDs, registry digests, vulnerability results, and signatures | Clean hosted builder, approved ACR, scanner/signing policy, and deployment identity |
 | Production authorization | Product owner, industrial/QC authority, security authority, designated production owner |
 
 ## Conclusion

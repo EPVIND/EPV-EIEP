@@ -99,6 +99,7 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
           image: apiImage
           env: [
             { name: 'EIEP_ENV', value: environmentName }
+            { name: 'EIEP_CONFIG_ROOT', value: '/app' }
             { name: 'HOST', value: '0.0.0.0' }
             { name: 'PORT', value: '3100' }
             { name: 'DATABASE_URL', value: apiDatabaseUrl }
@@ -114,13 +115,13 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
           probes: [
             {
               type: 'Liveness'
-              httpGet: { path: '/health', port: 3100, scheme: 'HTTP' }
+              httpGet: { path: '/livez', port: 3100, scheme: 'HTTP' }
               initialDelaySeconds: 15
               periodSeconds: 30
             }
             {
               type: 'Readiness'
-              httpGet: { path: '/health', port: 3100, scheme: 'HTTP' }
+              httpGet: { path: '/readyz', port: 3100, scheme: 'HTTP' }
               initialDelaySeconds: 5
               periodSeconds: 10
             }
@@ -171,7 +172,11 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
         {
           name: 'web'
           image: webImage
-          probes: [{ type: 'Liveness', httpGet: { path: '/', port: 8080, scheme: 'HTTP' } }]
+          env: [
+            { name: 'EIEP_ENV', value: environmentName }
+            { name: 'API_BASE_URL', value: 'https://${api.properties.configuration.ingress.fqdn}' }
+          ]
+          probes: [{ type: 'Liveness', httpGet: { path: '/healthz', port: 8080, scheme: 'HTTP' } }]
           resources: { cpu: json('0.5'), memory: '1Gi' }
         }
       ]
@@ -202,7 +207,11 @@ resource portal 'Microsoft.App/containerApps@2026-01-01' = {
         {
           name: 'portal'
           image: portalImage
-          probes: [{ type: 'Liveness', httpGet: { path: '/', port: 8080, scheme: 'HTTP' } }]
+          env: [
+            { name: 'EIEP_ENV', value: environmentName }
+            { name: 'API_BASE_URL', value: 'https://${api.properties.configuration.ingress.fqdn}' }
+          ]
+          probes: [{ type: 'Liveness', httpGet: { path: '/healthz', port: 8080, scheme: 'HTTP' } }]
           resources: { cpu: json('0.5'), memory: '1Gi' }
         }
       ]

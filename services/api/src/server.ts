@@ -83,6 +83,7 @@ export interface ServerDependencies {
   readonly allowedOrigins?: readonly string[];
   readonly rateLimitMax?: number;
   readonly metricsToken?: string | null;
+  readonly readiness?: () => Promise<void>;
 }
 
 export const sensitiveLogPaths = [
@@ -294,7 +295,7 @@ export async function buildServer(dependencies: ServerDependencies) {
     if (error) throw error;
     const enforceRateLimit = server.rateLimit.call(server);
     server.addHook("onRequest", async (request, reply) => {
-      if (request.url === "/health" || request.url === "/metrics") return;
+      if (["/health", "/livez", "/readyz", "/metrics"].includes(request.url)) return;
       return enforceRateLimit.call(server, request, reply);
     });
   });
@@ -308,7 +309,8 @@ export async function buildServer(dependencies: ServerDependencies) {
   });
 
   server.addHook("onRequest", async (request, reply) => {
-    if (dependencies.environment === "production" && request.protocol !== "https") {
+    const internalTransportEndpoint = request.url === "/livez" || request.url === "/readyz" || request.url === "/metrics";
+    if (dependencies.environment === "production" && request.protocol !== "https" && !internalTransportEndpoint) {
       return reply.code(426).send({ error: "https_required", correlationId: request.id });
     }
   });
@@ -374,6 +376,18 @@ export async function buildServer(dependencies: ServerDependencies) {
       "pilot_acceptance_and_production_approvals_missing",
     ],
   }));
+
+  server.get("/livez", { schema: { hide: true } }, async () => ({ status: "ok" }));
+
+  server.get("/readyz", { schema: { hide: true } }, async (request, reply) => {
+    try {
+      await dependencies.readiness?.();
+      return { status: "ready" };
+    } catch {
+      request.log.error("readiness check failed");
+      return reply.code(503).send({ status: "unavailable" });
+    }
+  });
 
   server.get("/metrics", { schema: { hide: true } }, async (request, reply) => {
     const supplied = request.headers["x-eiep-metrics-token"];

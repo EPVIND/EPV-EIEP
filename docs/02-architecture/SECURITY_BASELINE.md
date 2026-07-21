@@ -46,6 +46,10 @@ Security controls must be refined through threat modeling and approved architect
 - Use distinct managed identities for API and worker database access. Entra-only
   PostgreSQL connections use short-lived tokens and verified TLS, never a stored
   database password; verify exact Entra object mappings before role grants.
+- Build API, worker, web, and portal artifacts from one digest-pinned base, run each
+  container as an unprivileged user, exclude browser source maps, inject only a
+  validated HTTPS API origin at browser startup, and promote immutable registry
+  digests rather than mutable tags.
 - Centralize security logs, health, metrics, alerting, time synchronization, vulnerability management, and incident response.
 - Back up database, files, keys/configuration, and required audit evidence; test coordinated restore.
 - Document supplier/service dependencies and incident, outage, exit, and data-export plans.

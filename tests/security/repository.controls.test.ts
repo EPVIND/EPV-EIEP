@@ -13,6 +13,7 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   const workflow = await readFile(join(process.cwd(), ".github", "workflows", "verify.yml"), "utf8");
   const toolchain = JSON.parse(await readFile(join(process.cwd(), "infrastructure", "bicep", "toolchain.json"), "utf8"));
   const jobWorkerPackage = JSON.parse(await readFile(join(process.cwd(), "services", "job-worker", "package.json"), "utf8"));
+  const apiPackage = JSON.parse(await readFile(join(process.cwd(), "services", "api", "package.json"), "utf8"));
   const databaseConnection = await readFile(join(process.cwd(), "packages", "database", "connection.mjs"), "utf8");
   const databaseBootstrap = await readFile(join(process.cwd(), "packages", "database", "bootstrap-azure-identities.mjs"), "utf8");
   const azureBlobStorage = await readFile(join(process.cwd(), "services", "document-processing", "src", "azure-blob-object-storage.ts"), "utf8");
@@ -23,7 +24,7 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   const postgresql = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "postgresql.bicep"), "utf8");
   assert.equal(packageJson.packageManager, "pnpm@11.9.0");
   assert.equal(packageJson.engines.node, ">=24 <25");
-  for (const script of ["verify", "build", "database:verify", "infrastructure:verify", "sbom:generate"]) {
+  for (const script of ["verify", "build", "runtime:verify", "database:verify", "infrastructure:verify", "sbom:generate"]) {
     assert.equal(typeof packageJson.scripts[script], "string", script);
   }
   assert.match(workflow, /permissions:\s+contents: read/u);
@@ -39,6 +40,9 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(toolchain.windowsX64Sha256, /^[0-9a-f]{64}$/u);
   assert.match(toolchain.linuxX64Sha256, /^[0-9a-f]{64}$/u);
   assert.equal(jobWorkerPackage.scripts.start, "node dist/main.js");
+  assert.equal(apiPackage.exports["."].default, "./dist/index.js");
+  assert.equal(jobWorkerPackage.exports["."].default, "./dist/index.js");
+  assert.match(packageJson.scripts.verify, /runtime:verify/u);
   assert.match(databaseConnection, /DefaultAzureCredential/u);
   assert.match(databaseConnection, /ossrdbms-aad\.database\.windows\.net\/\.default/u);
   assert.match(databaseConnection, /rejectUnauthorized: true/u);
@@ -55,6 +59,8 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(appRuntime, /name: 'AZURE_STORAGE_ACCOUNT_NAME'/u);
   assert.match(appRuntime, /name: 'AZURE_CLIENT_ID'/u);
   assert.match(appRuntime, /name: 'CLAMAV_HOST'/u);
+  assert.match(appRuntime, /path: '\/livez'/u);
+  assert.match(appRuntime, /path: '\/readyz'/u);
   assert.match(appRuntime, /Microsoft\.Insights\/diagnosticSettings@2021-05-01-preview/u);
   assert.match(appRuntime, /categoryGroup: 'allLogs'/u);
   assert.match(appRuntime, /workspaceId: logAnalyticsWorkspaceId/u);

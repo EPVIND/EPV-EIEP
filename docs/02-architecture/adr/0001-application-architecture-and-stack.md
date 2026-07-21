@@ -65,9 +65,10 @@ never rewrite controlled history in place.
 
 Required before acceptance: clean setup/build, module-boundary checks, API contract
 tests, PostgreSQL integration tests, browser/tablet validation, dependency/security
-review, and accountable-team maintainability review.
+review, compiled-runtime and rootless-container verification, and accountable-team
+maintainability review. Local definition/process evidence passes; actual registry
+promotion, image scans/signatures, and owner review remain required.
 
 ## Supersedes / superseded by
 
 None.
-
