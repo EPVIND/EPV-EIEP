@@ -174,7 +174,7 @@ test("NFR-USE-003: internal workspace scopes records and requires typed confirma
   await expectNoSeriousAccessibilityViolations(page);
 });
 
-test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-004, FR-TOV-001-004 / AC-03-09: guided internal workflow reaches an immutable turnover version", async ({ page }) => {
+test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001, FR-TOV-001-004 / AC-03-09: guided internal workflow reaches an immutable turnover version", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "chain-controller");
     sessionStorage.setItem("eiep.organizationId", "org-epv");

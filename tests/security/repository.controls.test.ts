@@ -19,9 +19,12 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   const azureBlobStorage = await readFile(join(process.cwd(), "services", "document-processing", "src", "azure-blob-object-storage.ts"), "utf8");
   const appRuntime = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "app-runtime.bicep"), "utf8");
   const proposedEnvironment = await readFile(join(process.cwd(), "infrastructure", "bicep", "proposed-environment.bicep"), "utf8");
+  const privateEndpoints = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "private-endpoints.bicep"), "utf8");
+  const network = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "network.bicep"), "utf8");
   const storage = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "storage.bicep"), "utf8");
   const keyVault = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "key-vault.bicep"), "utf8");
   const postgresql = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "postgresql.bicep"), "utf8");
+  const traceabilityCheck = await readFile(join(process.cwd(), "scripts", "check-traceability.mjs"), "utf8");
   assert.equal(packageJson.packageManager, "pnpm@11.9.0");
   assert.equal(packageJson.engines.node, ">=24 <25");
   for (const script of ["verify", "build", "runtime:verify", "database:verify", "infrastructure:verify", "sbom:generate"]) {
@@ -71,6 +74,11 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(proposedEnvironment, /module apiIdentity /u);
   assert.match(proposedEnvironment, /var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty\(runtimeAuthorizationReference\)/u);
   assert.match(proposedEnvironment, /module runtime .* = if \(runtimeEnabled\)/u);
+  assert.doesNotMatch(proposedEnvironment, /module messaging /u);
+  assert.doesNotMatch(privateEndpoints, /servicebus/iu);
+  assert.doesNotMatch(network, /servicebus/iu);
+  assert.match(traceabilityCheck, /no executable test title references/u);
+  assert.match(traceabilityCheck, /evidence does not exist/u);
   assert.match(storage, /ba92f5b4-2d11-453d-a403-e96b0029c9fe/u);
   assert.match(storage, /principalId: workerPrincipalId/u);
   assert.match(storage, /principalId: apiPrincipalId/u);

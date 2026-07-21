@@ -9,7 +9,7 @@ Workstation evidence: Windows, Node.js 24.14.0, pnpm 11.9.0, repository-local Po
 The controlled MVP vertical slice and supporting platform services build and pass the available local automated gates. The evidence includes governed identity mapping, scoped authorization, guided authoritative project setup/readiness, authenticated file upload, independent MTR review and material movement, complete PMI component/result capture, NCR responsibility/corrective action, all eleven controlled form/report snapshots, an operational dashboard, project/documents/material/PMI/inspection/NCR/punch/turnover/subcontractor workflows, interchange, background work, offline safety, recovery, provisional performance, browser accessibility, infrastructure compilation, and delivery controls.
 
 This report does not authorize live use. No deployable Azure subscription access,
-approved Entra applications/policies, managed database/storage/scanner/queue,
+approved Entra applications/policies, managed database/storage/scanner/worker,
 production identity, real project data, approved pilot budget, or owner authorization
 was supplied.
 
@@ -75,7 +75,7 @@ requirements.
 | Entra MFA/Conditional Access/B2B lifecycle, disabled/revoked users, break-glass and cross-tenant cases | Tenant/app registrations, policies, licensing, test identities |
 | Managed PostgreSQL sizing, connection limits, failover, and approved pilot-volume behavior | Subscription, approved service tier, deployed environment, and pilot profile |
 | Managed Blob boundaries, short-lived downloads, malware service, immutable audit retention | Subscription, identities, policies, service selection, keys |
-| Managed queue/provider crash/replay, notification and external-interface contracts | Counterpart owners, endpoints, credentials, network |
+| Deployed PostgreSQL worker/provider crash/replay, notification and external-interface contracts | Counterpart owners, endpoints, credentials, network |
 | Approved RPO/RTO and recurring coordinated restore meeting them | Production owner, backup policy, deployed database/object/config/audit/package services |
 | Approved load, device, file, network, large-package, and concurrency budgets | Pilot scope, supported devices, network profile, user volume |
 | Manual WCAG 2.2 AA, screen-reader, keyboard, zoom/reflow, touch/outdoor field review | Accessibility reviewer and approved physical devices |

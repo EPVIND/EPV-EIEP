@@ -60,7 +60,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2025-05-01' = {
 var privateDnsZoneNames = [
   'privatelink.postgres.database.azure.com'
   'privatelink.blob.${environment().suffixes.storage}'
-  'privatelink.servicebus.windows.net'
   'privatelink.vaultcore.azure.net'
 ]
 
@@ -89,5 +88,4 @@ output postgresSubnetId string = virtualNetwork.properties.subnets[1].id
 output privateEndpointSubnetId string = virtualNetwork.properties.subnets[2].id
 output postgresPrivateDnsZoneId string = privateDnsZones[0].id
 output blobPrivateDnsZoneId string = privateDnsZones[1].id
-output serviceBusPrivateDnsZoneId string = privateDnsZones[2].id
-output vaultPrivateDnsZoneId string = privateDnsZones[3].id
+output vaultPrivateDnsZoneId string = privateDnsZones[2].id

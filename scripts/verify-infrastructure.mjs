@@ -72,6 +72,11 @@ if (!compiled.includes("@sha256:") || !compiled.includes("imageReferencesAreImmu
 if (!compiled.includes("runtimeAuthorizationReference") || !compiled.includes("runtimeEnabled")) {
   throw new Error("Application startup requires a controlled post-migration authorization reference.");
 }
+if (proposed.resources.some((resource) => JSON.stringify(resource).includes("-messaging"))
+  || compiled.includes("Microsoft.ServiceBus/namespaces")
+  || compiled.includes("privatelink.servicebus.windows.net")) {
+  throw new Error("The MVP environment must not provision the optional Service Bus boundary before separate approval.");
+}
 if (proposed.parameters?.metricsToken?.type !== "securestring"
   || proposed.parameters.metricsToken.minLength !== 32
   || proposed.parameters.metricsToken.maxLength !== 256
@@ -126,6 +131,14 @@ const postgresql = templates.get(join(bicepRoot, "modules", "postgresql.bicep"))
 if (!postgresql?.resources?.some((resource) => resource.type === "Microsoft.DBforPostgreSQL/flexibleServers/administrators")) {
   throw new Error("Entra-only PostgreSQL must declare an independently supplied administrator principal.");
 }
+const messaging = templates.get(join(bicepRoot, "modules", "messaging.bicep"));
+const messagingCompiled = JSON.stringify(messaging);
+if (!messagingCompiled.includes("Microsoft.ServiceBus/namespaces")
+  || !messagingCompiled.includes('"disableLocalAuth":true')
+  || !messagingCompiled.includes('"publicNetworkAccess":"Disabled"')
+  || !messagingCompiled.includes('"requiresDuplicateDetection":true')) {
+  throw new Error("The uninstantiated optional Service Bus blueprint must retain secure managed-queue controls.");
+}
 const appRuntime = templates.get(join(bicepRoot, "modules", "app-runtime.bicep"));
 const managedEnvironmentDiagnostics = appRuntime?.resources?.find(
   (resource) => resource.type === "Microsoft.Insights/diagnosticSettings",
@@ -144,5 +157,5 @@ for (const dependency of ["-vault", "-postgresql", "-private-endpoints", "-obser
 }
 
 process.stdout.write(
-  `Bicep ${toolchain.version} compiled ${templates.size} templates; review-only entry point and guarded private-service baseline verified.\n`,
+  `Bicep ${toolchain.version} compiled ${templates.size} templates; guarded private-service baseline verified with the optional Service Bus boundary uninstantiated.\n`,
 );

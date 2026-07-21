@@ -5,10 +5,8 @@ param tags object
 param namePrefix string
 param subnetId string
 param storageAccountId string
-param serviceBusNamespaceId string
 param keyVaultId string
 param blobPrivateDnsZoneId string
-param serviceBusPrivateDnsZoneId string
 param vaultPrivateDnsZoneId string
 
 var endpoints = [
@@ -17,12 +15,6 @@ var endpoints = [
     targetId: storageAccountId
     groupId: 'blob'
     zoneId: blobPrivateDnsZoneId
-  }
-  {
-    name: '${namePrefix}-servicebus-pe'
-    targetId: serviceBusNamespaceId
-    groupId: 'namespace'
-    zoneId: serviceBusPrivateDnsZoneId
   }
   {
     name: '${namePrefix}-vault-pe'

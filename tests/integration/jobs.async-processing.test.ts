@@ -7,7 +7,7 @@ import { assignment, completeReadiness, context, scope, sequentialIds } from "..
 
 const now = new Date("2026-07-21T09:00:00.000Z");
 
-test("NFR-PER-003, NFR-REL-004 / AC-10: durable worker processes queued export and leaves an explicit terminal state", async () => {
+test("NFR-PER-003, NFR-REL-003-004 / AC-10: transactional export/outbox work reaches an explicit terminal state", async () => {
   const store = new InMemoryFoundationStore();
   const ids = sequentialIds("job-worker");
   const foundation = new FoundationService(store, () => now, ids);
@@ -38,6 +38,12 @@ test("NFR-PER-003, NFR-REL-004 / AC-10: durable worker processes queued export a
     project.id,
     { recordClass: "imported", recordIds: ["job-source-record"], format: "jsonl", recipientOrganizationId: "org-epv" },
   );
+  const queuedPair = await store.transaction((transaction) => ({
+    exportJob: transaction.exportJobById(queued.id),
+    outbox: transaction.integrationMessageByKey("export.worker", queued.id),
+  }));
+  assert.equal(queuedPair.exportJob?.state, "queued");
+  assert.equal(queuedPair.outbox?.state, "pending");
   const workerContext = context("job-worker-user", "mfa", ["export_worker", "integration_worker"]);
   const worker = new JobWorker(store, platform, { batchSize: 10 });
   const result = await worker.runOnce(workerContext, [assignment(

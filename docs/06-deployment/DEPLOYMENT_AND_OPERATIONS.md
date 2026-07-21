@@ -76,6 +76,12 @@ and transfer protected values only through the approved secure deployment channe
 
 Development, test, training, and production must use distinct identity registrations, workload identities, database/storage/queue/vault/telemetry resources, configuration, keys, data, and access. Training retains its visible banner and persistent isolation. Production rejects development authentication, memory persistence, plaintext ingress, static database authentication, missing runtime DB role, missing HTTPS CORS origins, missing metrics secret, missing managed upload/scanner configuration, or a non-HTTPS browser API origin. API containers use `eiep_runtime` and a distinct managed identity whose Blob Data Contributor scope is limited to the private `staged` container. Worker containers use `eiep_job_worker`, atomic leases, heartbeat renewal, a separate user-assigned worker identity, the private Blob account, and an explicitly supplied private `CLAMAV_HOST`; only this worker receives the account-level data role required to validate, quarantine, release, and generate artifacts. The template constructs separate passwordless URLs from those deployed identities and both clients obtain short-lived Entra PostgreSQL tokens dynamically while enforcing TLS certificate verification. Only the API receives Key Vault Secrets User at the exact generated metrics-secret scope; worker, web, and portal receive no vault role. Web and portal also receive no Blob data role. Keep the lease duration above normal per-message latency and below the operational stuck-work threshold.
 
+ADR-0006 uses the PostgreSQL transactional outbox/inbox and leased worker for the MVP.
+The repository retains a secure Service Bus blueprint, but the proposed environment
+does not instantiate a namespace, queues, private endpoint, DNS zone, credentials, or
+runtime configuration. Adding that boundary requires a separately approved external
+integration or scale decision and its own adapter/identity/contract evidence.
+
 `infrastructure/bicep/main.bicep` deploys nothing. The proposed environment is eligible for an authorized what-if only after ADR-0009, subscription, region/residency, capacity, budget, RPO/RTO, DNS/certificates, app registrations, role assignments, and action groups are approved. The proposal fails closed for production without a controlled authorization reference and for every environment unless API/web/portal/job-worker images use immutable `@sha256:` references.
 
 Deployment sequence after those approvals:

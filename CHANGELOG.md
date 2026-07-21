@@ -65,6 +65,13 @@ All notable controlled changes to the EIEP program definition and implementation
   passed PostgreSQL 18, tablet/axe, dependency-audit, and retained-evidence gates.
   Registry promotion, scanning/signing, Azure deployment, and owner authorization
   remain separate external controls.
+- Strengthened traceability from ID counting to executable-title, acceptance-link,
+  and 144 repository-evidence-path validation; corrected an invalid test range and
+  made the transactional export/outbox evidence explicit for NFR-REL-003.
+- Removed the unapproved, unused Premium Service Bus namespace, queues, private
+  endpoint, and DNS zone from the proposed MVP environment. The secure module remains
+  compiled but uninstantiated until ADR-0006's separate integration/scale condition
+  is approved and implemented.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 

@@ -78,7 +78,9 @@ tests, managed-identity tests, image promotion evidence, capacity/alert tests,
 coordinated restore meeting approved RPO/RTO, region-failure exercise, and rollback.
 The guarded Bicep and four rootless image definitions compile and pass local static
 and process checks; no Azure what-if, registry digest, live identity, restore, or
-capacity evidence exists yet.
+capacity evidence exists yet. The optional secure Service Bus module also compiles,
+but the MVP proposal intentionally does not instantiate it because ADR-0006 selects
+the PostgreSQL outbox/worker until a separate integration or scale boundary is approved.
 
 ## Supersedes / superseded by
 

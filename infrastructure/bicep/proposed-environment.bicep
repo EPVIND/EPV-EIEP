@@ -114,15 +114,6 @@ module keyVault 'modules/key-vault.bicep' = if (deploymentEnabled) {
   }
 }
 
-module messaging 'modules/messaging.bicep' = if (deploymentEnabled) {
-  name: '${deployment().name}-messaging'
-  params: {
-    name: '${prefix}-bus'
-    location: location
-    tags: tags
-  }
-}
-
 module postgresql 'modules/postgresql.bicep' = if (deploymentEnabled) {
   name: '${deployment().name}-postgresql'
   params: {
@@ -147,10 +138,8 @@ module privateEndpoints 'modules/private-endpoints.bicep' = if (deploymentEnable
     namePrefix: prefix
     subnetId: network!.outputs.privateEndpointSubnetId
     storageAccountId: storage!.outputs.id
-    serviceBusNamespaceId: messaging!.outputs.id
     keyVaultId: keyVault!.outputs.id
     blobPrivateDnsZoneId: network!.outputs.blobPrivateDnsZoneId
-    serviceBusPrivateDnsZoneId: network!.outputs.serviceBusPrivateDnsZoneId
     vaultPrivateDnsZoneId: network!.outputs.vaultPrivateDnsZoneId
   }
 }
