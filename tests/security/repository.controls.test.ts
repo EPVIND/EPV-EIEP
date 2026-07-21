@@ -36,6 +36,9 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   assert.match(workflow, /pnpm audit --prod --audit-level high/u);
   assert.match(workflow, /SOURCE_REVISION: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/u);
   assert.match(workflow, /sha256sum --check/u);
+  assert.match(workflow, /sha256sum artifacts\/sbom\.cdx\.json artifacts\/container-build\.json > artifacts\/evidence\.sha256/u);
+  assert.match(workflow, /sha256sum --check artifacts\/evidence\.sha256/u);
+  assert.match(workflow, /artifacts\/evidence\.sha256/u);
   const actionReferences = [...workflow.matchAll(/uses:\s+[^@\s]+@([^\s#]+)/gu)]
     .map((match) => match[1])
     .filter((reference): reference is string => Boolean(reference));
