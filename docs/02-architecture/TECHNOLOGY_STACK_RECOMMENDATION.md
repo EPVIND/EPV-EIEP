@@ -146,6 +146,11 @@ An offline client never asserts release or current authority.
   environment configuration.
 - Run API and worker with separate managed identities and least-privilege storage,
   database, queue, and vault permissions.
+- Use Entra-only PostgreSQL with a passwordless connection descriptor, dynamically
+  acquired access tokens, verified TLS, an independently supplied administrator, and
+  exact object-ID mapping to separate NOLOGIN application roles. See Microsoft’s
+  [managed-identity connection guidance](https://learn.microsoft.com/en-us/azure/postgresql/security/security-connect-with-managed-identity)
+  and [Entra role-management contract](https://learn.microsoft.com/en-us/azure/postgresql/security/security-manage-entra-users).
 - Parameterize Azure region. Do not approve a primary/secondary region until data
   classification, customer contracts, latency, service availability, and disaster
   recovery objectives are accepted.

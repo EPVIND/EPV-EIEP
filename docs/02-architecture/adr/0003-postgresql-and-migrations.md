@@ -52,6 +52,13 @@ roles. Normal application roles cannot update/delete audit history. Parameterize
 queries. Protect network access, encryption, backups, credentials/managed identity,
 and privileged statements.
 
+For the proposed Entra-only Azure service, API and worker connection pools obtain a
+short-lived token for each new connection and use it as the PostgreSQL password while
+enforcing certificate verification. Passwords and connection-string TLS overrides
+are rejected on that path. Migration/verification tools use the same token contract;
+an administrator-only idempotent bootstrap verifies exact Entra object IDs before
+granting distinct identities membership in `eiep_runtime` and `eiep_job_worker`.
+
 ## Migration and rollback
 
 Prefer expand/migrate/contract changes. Separate destructive cleanup from schema
@@ -65,10 +72,12 @@ Migration up/checksum tests, constraint and concurrency tests, representative-vo
 timing, permission tests, backup/restore rehearsal, genealogy-cycle tests, and
 current-revision uniqueness tests.
 
-Local review evidence currently includes eleven reversible migrations, 58 named
+Local review evidence currently includes fourteen reversible migrations, 61 named
 controls, a typed record-normalized repository with optimistic row revisions,
-serializable retry, rollback/restart/hydration checks, and a 2,000-record guard. This
-evidence does not accept this ADR or replace managed-service/pilot validation.
+serializable retry, rollback/restart/hydration checks, a 2,000-record guard, dynamic
+Entra-token/TLS configuration tests, and compiled Entra administrator/Key Vault role
+controls. This evidence does not accept this ADR or replace live token, principal,
+managed-service, or pilot validation.
 
 ## Supersedes / superseded by
 

@@ -14,6 +14,7 @@ import type {
   IntegrationWorkClaim,
   IntegrationWorkLease,
 } from "./foundation-store.js";
+import type { PostgresConnectionAuthentication } from "./azure-postgres-authentication.js";
 
 export type RepositoryWireValue =
   | { readonly type: "null" }
@@ -236,10 +237,15 @@ export class PostgresFoundationStore implements FoundationStore {
   public static async connect(
     connectionString: string,
     runtimeRole: "eiep_runtime" | "eiep_job_worker" | null = null,
+    authentication?: PostgresConnectionAuthentication,
   ): Promise<PostgresFoundationStore> {
     if (!connectionString.trim()) throw new Error("A PostgreSQL connection string is required.");
     const pool = new pg.Pool({
       connectionString,
+      ...(authentication ? {
+        password: authentication.password,
+        ssl: { rejectUnauthorized: true },
+      } : {}),
       application_name: runtimeRole === "eiep_job_worker" ? "eiep-job-worker" : "eiep-api",
       ...(runtimeRole ? { options: `-c role=${runtimeRole}` } : {}),
       max: 20,

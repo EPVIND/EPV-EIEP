@@ -13,9 +13,14 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   const workflow = await readFile(join(process.cwd(), ".github", "workflows", "verify.yml"), "utf8");
   const toolchain = JSON.parse(await readFile(join(process.cwd(), "infrastructure", "bicep", "toolchain.json"), "utf8"));
   const jobWorkerPackage = JSON.parse(await readFile(join(process.cwd(), "services", "job-worker", "package.json"), "utf8"));
+  const databaseConnection = await readFile(join(process.cwd(), "packages", "database", "connection.mjs"), "utf8");
+  const databaseBootstrap = await readFile(join(process.cwd(), "packages", "database", "bootstrap-azure-identities.mjs"), "utf8");
+  const azureBlobStorage = await readFile(join(process.cwd(), "services", "document-processing", "src", "azure-blob-object-storage.ts"), "utf8");
   const appRuntime = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "app-runtime.bicep"), "utf8");
   const proposedEnvironment = await readFile(join(process.cwd(), "infrastructure", "bicep", "proposed-environment.bicep"), "utf8");
   const storage = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "storage.bicep"), "utf8");
+  const keyVault = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "key-vault.bicep"), "utf8");
+  const postgresql = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "postgresql.bicep"), "utf8");
   assert.equal(packageJson.packageManager, "pnpm@11.9.0");
   assert.equal(packageJson.engines.node, ">=24 <25");
   for (const script of ["verify", "build", "database:verify", "infrastructure:verify", "sbom:generate"]) {
@@ -34,18 +39,42 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(toolchain.windowsX64Sha256, /^[0-9a-f]{64}$/u);
   assert.match(toolchain.linuxX64Sha256, /^[0-9a-f]{64}$/u);
   assert.equal(jobWorkerPackage.scripts.start, "node dist/main.js");
+  assert.match(databaseConnection, /DefaultAzureCredential/u);
+  assert.match(databaseConnection, /ossrdbms-aad\.database\.windows\.net\/\.default/u);
+  assert.match(databaseConnection, /rejectUnauthorized: true/u);
+  assert.match(databaseBootstrap, /pgaadauth_create_principal_with_oid/u);
+  assert.match(databaseBootstrap, /pgaadauth_list_principals/u);
+  assert.match(databaseBootstrap, /The API and job worker require distinct managed identities/u);
+  assert.match(azureBlobStorage, /ManagedIdentityCredential/u);
+  assert.doesNotMatch(azureBlobStorage, /DefaultAzureCredential/u);
   assert.match(appRuntime, /name: 'eiep-\$\{environmentName\}-job-worker'/u);
   assert.match(appRuntime, /name: 'DATABASE_RUNTIME_ROLE', value: 'eiep_job_worker'/u);
+  assert.equal((appRuntime.match(/name: 'DATABASE_AUTH_MODE', value: 'azure-managed-identity'/gu) ?? []).length, 2);
+  assert.equal((appRuntime.match(/name: 'DATABASE_URL', value:/gu) ?? []).length, 2);
+  assert.equal((appRuntime.match(/keyVaultUrl:/gu) ?? []).length, 1);
   assert.match(appRuntime, /name: 'AZURE_STORAGE_ACCOUNT_NAME'/u);
   assert.match(appRuntime, /name: 'AZURE_CLIENT_ID'/u);
   assert.match(appRuntime, /name: 'CLAMAV_HOST'/u);
+  assert.match(appRuntime, /Microsoft\.Insights\/diagnosticSettings@2021-05-01-preview/u);
+  assert.match(appRuntime, /categoryGroup: 'allLogs'/u);
+  assert.match(appRuntime, /workspaceId: logAnalyticsWorkspaceId/u);
   assert.match(appRuntime, /userAssignedIdentities:\s*\{\s*'\$\{jobWorkerIdentityId\}'/u);
   assert.match(proposedEnvironment, /module jobWorkerIdentity /u);
   assert.match(proposedEnvironment, /module apiIdentity /u);
+  assert.match(proposedEnvironment, /var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty\(runtimeAuthorizationReference\)/u);
+  assert.match(proposedEnvironment, /module runtime .* = if \(runtimeEnabled\)/u);
   assert.match(storage, /ba92f5b4-2d11-453d-a403-e96b0029c9fe/u);
   assert.match(storage, /principalId: workerPrincipalId/u);
   assert.match(storage, /principalId: apiPrincipalId/u);
   assert.match(storage, /scope: containers\[0\]/u);
+  assert.equal((keyVault.match(/4633458b-17de-408a-b874-0445c86b69e6/gu) ?? []).length, 1);
+  assert.match(keyVault, /scope: metricsSecret/u);
+  assert.match(keyVault, /principalId: apiPrincipalId/u);
+  assert.doesNotMatch(keyVault, /jobWorkerPrincipalId/u);
+  assert.match(proposedEnvironment, /apiDatabaseUrl: 'postgresql:\/\/\$\{uriComponent\(apiIdentity!/u);
+  assert.match(proposedEnvironment, /jobWorkerDatabaseUrl: 'postgresql:\/\/\$\{uriComponent\(jobWorkerIdentity!/u);
+  assert.match(postgresql, /flexibleServers\/administrators@2025-08-01/u);
+  assert.match(postgresql, /name: administratorObjectId/u);
   assert.match(appRuntime, /scale: \{ minReplicas: 1, maxReplicas: 5 \}/u);
 });
 
@@ -63,6 +92,10 @@ test("NFR-SEC-003 / AC-01-10: generated CycloneDX evidence covers production pac
     assert.equal(bom.specVersion, "1.6");
     assert.ok(bom.components.some((component: { name: string }) => component.name === "fastify"));
     assert.ok(bom.components.some((component: { name: string }) => component.name === "pg"));
+    const coreAuth = bom.dependencies.find((dependency: { ref: string }) => dependency.ref.startsWith("@azure/core-auth@"));
+    assert.ok(coreAuth?.dependsOn.some((reference: string) => reference.startsWith("@azure/core-util@")));
+    const database = bom.dependencies.find((dependency: { ref: string }) => dependency.ref === "@eiep/database@0.1.0");
+    assert.ok(database?.dependsOn.includes("@azure/identity@4.13.1"));
     assert.match(bom.metadata.properties[0].value, /^[0-9a-f]{64}$/u);
     assert.equal(text.includes(process.cwd()), false);
   } finally {

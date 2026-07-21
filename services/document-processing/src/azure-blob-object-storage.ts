@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { DefaultAzureCredential } from "@azure/identity";
+import { ManagedIdentityCredential } from "@azure/identity";
 import { BlobServiceClient, type ContainerClient } from "@azure/storage-blob";
 import { ImmutableStorageConflictError, type ObjectStoragePort, type StagedUploadStoragePort } from "./index.js";
 
@@ -168,11 +168,9 @@ export class AzureBlobStagedUploadStorage implements StagedUploadStoragePort {
     }
     const suffix = configuration.endpointSuffix ?? "blob.core.windows.net";
     if (!/^[a-z0-9.-]+$/u.test(suffix)) throw new Error("The Azure Storage endpoint suffix is invalid.");
-    const credential = new DefaultAzureCredential({
-      ...(configuration.managedIdentityClientId
-        ? { managedIdentityClientId: configuration.managedIdentityClientId }
-        : {}),
-    });
+    const credential = configuration.managedIdentityClientId
+      ? new ManagedIdentityCredential(configuration.managedIdentityClientId)
+      : new ManagedIdentityCredential();
     const service = new BlobServiceClient(`https://${configuration.accountName}.${suffix}`, credential);
     const staged = new AzureSdkBlobContainer(service.getContainerClient(configuration.stagedContainer ?? "staged"), "staged");
     const storage = new AzureBlobStagedUploadStorage(staged, configuration.maximumMoveBytes);
@@ -209,11 +207,9 @@ export class AzureBlobObjectStorage implements ObjectStoragePort {
     }
     const suffix = configuration.endpointSuffix ?? "blob.core.windows.net";
     if (!/^[a-z0-9.-]+$/u.test(suffix)) throw new Error("The Azure Storage endpoint suffix is invalid.");
-    const credential = new DefaultAzureCredential({
-      ...(configuration.managedIdentityClientId
-        ? { managedIdentityClientId: configuration.managedIdentityClientId }
-        : {}),
-    });
+    const credential = configuration.managedIdentityClientId
+      ? new ManagedIdentityCredential(configuration.managedIdentityClientId)
+      : new ManagedIdentityCredential();
     const service = new BlobServiceClient(`https://${configuration.accountName}.${suffix}`, credential);
     const boundary = (name: string, kind: "staged" | "quarantine" | "released" | "generated") =>
       new AzureSdkBlobContainer(service.getContainerClient(name), kind);

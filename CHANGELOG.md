@@ -32,6 +32,23 @@ All notable controlled changes to the EIEP program definition and implementation
   GitHub-owned Actions, protected `main`, and empty development/test/training/
   fail-closed production environments establish the live repository boundary without
   claiming cloud or production authorization.
+- Replaced the proposed hosted PostgreSQL password path with short-lived Microsoft
+  Entra tokens for API, worker, migration, and verification connections. Production
+  rejects static database authentication and connection-string TLS overrides; the
+  pool requests a new managed-identity token for each connection and verifies the
+  server certificate.
+- Added an idempotent governed Azure PostgreSQL principal bootstrap that verifies
+  exact Entra object IDs and maps distinct API/worker identities to their separate
+  least-privilege roles. The guarded Bicep proposal now requires an explicit Entra
+  administrator, constructs distinct passwordless database URLs from deployed
+  identities, creates the protected metrics secret, and grants only the API access
+  to that exact secret.
+- Split infrastructure and application startup with `runtimeAuthorized=false` by
+  default, so migrations and exact Entra role mapping must finish before reviewed
+  API, web, portal, and worker image digests can start.
+- Corrected CycloneDX generation to union dependency edges seen through multiple
+  workspace traversals, preventing a shallow duplicate from erasing the complete
+  transitive graph while retaining the 150-component production inventory.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 

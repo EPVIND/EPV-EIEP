@@ -11,5 +11,6 @@ resource workloadIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024
 }
 
 output id string = workloadIdentity.id
+output name string = workloadIdentity.name
 output clientId string = workloadIdentity.properties.clientId
 output principalId string = workloadIdentity.properties.principalId

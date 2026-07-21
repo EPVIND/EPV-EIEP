@@ -109,6 +109,9 @@ importers:
 
   packages/database:
     dependencies:
+      '@azure/identity':
+        specifier: 4.13.1
+        version: 4.13.1
       pg:
         specifier: ^8.0.0
         version: 8.22.0
@@ -143,6 +146,9 @@ importers:
 
   services/api:
     dependencies:
+      '@azure/identity':
+        specifier: 4.13.1
+        version: 4.13.1
       '@eiep/document-processing':
         specifier: workspace:*
         version: link:../document-processing

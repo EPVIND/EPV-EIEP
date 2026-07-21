@@ -95,6 +95,9 @@ Implemented review surfaces include:
   a record-normalized, migration-gated serializable persistence adapter with indexed
   metadata, optimistic row revisions, restart/rollback/concurrency, 2,000-record, and
   competing-worker lease verification;
+- passwordless Azure PostgreSQL runtime/migration adapters that acquire short-lived
+  Microsoft Entra tokens dynamically, verify TLS, reject embedded passwords, and map
+  distinct API/worker managed identities to separate least-privilege database roles;
 - isolated environment contracts and production/training boundary checks;
 - local filesystem/ClamAV boundaries plus a managed-identity Azure Blob adapter with
   private-container, immutable-write, ETag, hash, bounded-stream, quarantine, and
@@ -108,7 +111,8 @@ Implemented review surfaces include:
 - a responsive guided internal workflow covering document control through exact
   project-rule material receipt, PMI, NCR/punch closure, readiness, and turnover;
 - delivery CI/CycloneDX evidence and a production-guarded private Azure Bicep baseline
-  compiled by a pinned toolchain.
+  compiled by a pinned toolchain, with a separate fail-closed runtime-start gate so
+  database migration and identity mapping precede application startup.
 
 This is not production authorization. Configured PostgreSQL startup requires the
 current migration ledger and uses the verified record-normalized runtime adapter, but
@@ -137,7 +141,7 @@ pnpm run sbom:generate
 ```
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
-traceability, OpenAPI drift, and Bicep checks, strict typechecks, and 73 unit/integration/security/
+traceability, OpenAPI drift, and Bicep checks, strict typechecks, and 76 unit/integration/security/
 acceptance tests. `pnpm run build` builds the two
 web applications, API, worker/contracts, shared packages, and validates the migration
 runner syntax. `pnpm run database:verify` creates a disposable PostgreSQL 18 cluster,
@@ -168,6 +172,18 @@ pnpm --filter @eiep/database migrate
 It requires a protected `DATABASE_URL`. The migration has passed the disposable
 PostgreSQL 18 verification path, but it has not been authorized for a persistent or
 hosted environment; see `docs/05-testing/FIRST_RUN_VERIFICATION_REPORT.md`.
+
+After an approved Entra-only Azure database is migrated, an authorized administrator
+maps the exact API and worker managed-identity names/object IDs to their respective
+`eiep_runtime` and `eiep_job_worker` roles with:
+
+```powershell
+pnpm run database:bootstrap-azure
+```
+
+That command requires a passwordless `DATABASE_ADMIN_URL` targeting the `postgres`
+database plus the four `API_DATABASE_PRINCIPAL_*` / `WORKER_DATABASE_PRINCIPAL_*`
+values. It verifies an existing mapping before reuse and refuses identity aliasing.
 
 ## Production blockers
 

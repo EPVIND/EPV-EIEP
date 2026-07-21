@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { PlatformService, PostgresFoundationStore } from "@eiep/api";
+import { PlatformService, PostgresFoundationStore, createAzurePostgresAuthentication } from "@eiep/api";
 import { AzureBlobObjectStorage, ClamAvTcpScanner, FileProcessingWorker } from "@eiep/document-processing";
 import type { AccessContext } from "@eiep/shared-types";
 import { TurnoverPdfRenderer } from "@eiep/turnover-renderer";
@@ -33,13 +33,23 @@ const workerInstanceId = process.env.WORKER_INSTANCE_ID?.trim() || process.env.H
 const environmentName = process.env.EIEP_ENV?.trim() || "development";
 const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim() || null;
 const managedIdentityClientId = process.env.AZURE_CLIENT_ID?.trim() || undefined;
+const databaseAuthenticationMode = process.env.DATABASE_AUTH_MODE?.trim() || "connection-string";
+if (databaseAuthenticationMode !== "connection-string" && databaseAuthenticationMode !== "azure-managed-identity") {
+  throw new Error("DATABASE_AUTH_MODE must be connection-string or azure-managed-identity.");
+}
 const clamAvHost = process.env.CLAMAV_HOST?.trim() || null;
 const clamAvPort = boundedInteger("CLAMAV_PORT", 3310, 1, 65_535);
 if ((storageAccountName === null) !== (clamAvHost === null)) {
   throw new Error("AZURE_STORAGE_ACCOUNT_NAME and CLAMAV_HOST must be configured together.");
 }
-if (environmentName === "production" && (!storageAccountName || !clamAvHost)) {
-  throw new Error("Production job workers require managed Blob storage and a malware scanner.");
+if (environmentName === "production" && (!storageAccountName || !clamAvHost || !managedIdentityClientId)) {
+  throw new Error("Production job workers require a managed identity, managed Blob storage, and a malware scanner.");
+}
+if (environmentName === "production" && databaseAuthenticationMode !== "azure-managed-identity") {
+  throw new Error("Production job workers require DATABASE_AUTH_MODE=azure-managed-identity.");
+}
+if (databaseAuthenticationMode === "azure-managed-identity" && !managedIdentityClientId) {
+  throw new Error("Azure PostgreSQL authentication requires AZURE_CLIENT_ID.");
 }
 
 const objectStorage = storageAccountName
@@ -53,7 +63,10 @@ const fileProcessing = objectStorage && clamAvHost
   : undefined;
 const turnoverRenderer = objectStorage ? new TurnoverPdfRenderer() : undefined;
 
-const store = await PostgresFoundationStore.connect(databaseUrl, "eiep_job_worker");
+const databaseAuthentication = databaseAuthenticationMode === "azure-managed-identity"
+  ? createAzurePostgresAuthentication(databaseUrl, managedIdentityClientId!)
+  : undefined;
+const store = await PostgresFoundationStore.connect(databaseUrl, "eiep_job_worker", databaseAuthentication);
 const worker = new JobWorker(store, new PlatformService(store), {
   batchSize,
   workerId: workerInstanceId,

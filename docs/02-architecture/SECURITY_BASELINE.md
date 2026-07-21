@@ -43,6 +43,9 @@ Security controls must be refined through threat modeling and approved architect
 ## Infrastructure and operations
 
 - Use infrastructure as code, controlled promotion, separate accounts/subscriptions/projects where approved, private networking where practical, and restricted administrative access.
+- Use distinct managed identities for API and worker database access. Entra-only
+  PostgreSQL connections use short-lived tokens and verified TLS, never a stored
+  database password; verify exact Entra object mappings before role grants.
 - Centralize security logs, health, metrics, alerting, time synchronization, vulnerability management, and incident response.
 - Back up database, files, keys/configuration, and required audit evidence; test coordinated restore.
 - Document supplier/service dependencies and incident, outage, exit, and data-export plans.
@@ -55,4 +58,3 @@ Security controls must be refined through threat modeling and approved architect
 - Authorization matrix tests and manual penetration testing proportional to risk.
 - No unresolved critical/high finding without formal risk acceptance and time-bounded treatment.
 - Restore, key recovery, logging, alerting, and incident runbooks tested before go-live.
-

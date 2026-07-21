@@ -11,11 +11,16 @@ import { PlatformService } from "./domain/platform-service.js";
 import { PostgresFoundationStore } from "./domain/postgres-foundation-store.js";
 import { ReportingService } from "./domain/reporting-service.js";
 import { buildServer } from "./server.js";
+import { createAzurePostgresAuthentication } from "./domain/azure-postgres-authentication.js";
 
 const config = await loadRuntimeConfig();
+const databaseAuthentication = config.environment.dataStore === "postgres"
+  && config.databaseAuthentication === "azure-managed-identity"
+  ? createAzurePostgresAuthentication(process.env.DATABASE_URL!, config.managedIdentityClientId!)
+  : undefined;
 
 const postgresStore = config.environment.dataStore === "postgres"
-  ? await PostgresFoundationStore.connect(process.env.DATABASE_URL!, config.databaseRuntimeRole)
+  ? await PostgresFoundationStore.connect(process.env.DATABASE_URL!, config.databaseRuntimeRole, databaseAuthentication)
   : null;
 const store = postgresStore ?? new InMemoryFoundationStore();
 const service = new FoundationService(store);

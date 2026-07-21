@@ -13,6 +13,7 @@
     "secrets:check": "node scripts/check-secrets.mjs",
     "traceability:check": "node scripts/check-traceability.mjs",
     "database:verify": "node scripts/verify-postgres-foundation.mjs",
+    "database:bootstrap-azure": "pnpm --filter @eiep/database bootstrap:azure-identities",
     "infrastructure:verify": "node scripts/verify-infrastructure.mjs",
     "route-schemas:generate": "tsx scripts/generate-route-schemas.ts",
     "route-schemas:verify": "tsx scripts/generate-route-schemas.ts --check",

@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
-  "serialNumber": "urn:uuid:61678945-57da-44a5-ace1-6d7c0e733c0b",
+  "serialNumber": "urn:uuid:c2d453c3-3574-472a-adbd-4e470b55db09",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-07-21T18:47:09.079Z",
+    "timestamp": "2026-07-21T19:41:43.492Z",
     "tools": {
       "components": [
         {
@@ -23,7 +23,7 @@
     "properties": [
       {
         "name": "eiep:pnpm-lock-sha256",
-        "value": "ed53fc22d99006f35f0c442cb807b8809315b03114f29c7d45177d7cdcf65173"
+        "value": "92a0db9debd5ac9766d633f30c82723774bdafd3c0ea0824ae8308f4ffb8d28f"
       }
     ]
   },
@@ -1100,7 +1100,9 @@
     },
     {
       "ref": "@azure/abort-controller@2.2.0",
-      "dependsOn": []
+      "dependsOn": [
+        "tslib@2.8.1"
+      ]
     },
     {
       "ref": "@azure/core-auth@1.11.0",
@@ -1124,7 +1126,11 @@
     },
     {
       "ref": "@azure/core-http-compat@2.5.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-client@1.11.0",
+        "@azure/core-rest-pipeline@1.25.0"
+      ]
     },
     {
       "ref": "@azure/core-lro@2.7.2",
@@ -1176,7 +1182,19 @@
     },
     {
       "ref": "@azure/identity@4.13.1",
-      "dependsOn": []
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-auth@1.11.0",
+        "@azure/core-client@1.11.0",
+        "@azure/core-rest-pipeline@1.25.0",
+        "@azure/core-tracing@1.4.0",
+        "@azure/core-util@1.14.0",
+        "@azure/logger@1.4.0",
+        "@azure/msal-browser@5.17.1",
+        "@azure/msal-node@5.4.1",
+        "open@10.2.0",
+        "tslib@2.8.1"
+      ]
     },
     {
       "ref": "@azure/logger@1.4.0",
@@ -1204,7 +1222,22 @@
     },
     {
       "ref": "@azure/storage-blob@12.33.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-auth@1.11.0",
+        "@azure/core-client@1.11.0",
+        "@azure/core-http-compat@2.5.0",
+        "@azure/core-lro@2.7.2",
+        "@azure/core-paging@1.7.0",
+        "@azure/core-rest-pipeline@1.25.0",
+        "@azure/core-tracing@1.4.0",
+        "@azure/core-util@1.14.0",
+        "@azure/core-xml@1.6.0",
+        "@azure/logger@1.4.0",
+        "@azure/storage-common@12.4.1",
+        "events@3.3.0",
+        "tslib@2.8.1"
+      ]
     },
     {
       "ref": "@azure/storage-common@12.4.1",
@@ -1222,17 +1255,33 @@
     },
     {
       "ref": "@eiep/api@0.1.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@azure/identity@4.13.1",
+        "@eiep/document-processing@0.1.0",
+        "@eiep/rules-engine@0.1.0",
+        "@eiep/shared-types@0.1.0",
+        "@fastify/cors@11.2.0",
+        "@fastify/multipart@10.1.0",
+        "@fastify/rate-limit@11.1.0",
+        "@fastify/swagger@9.8.1",
+        "fastify@5.10.0",
+        "jose@6.2.3",
+        "pg@8.22.0"
+      ]
     },
     {
       "ref": "@eiep/database@0.1.0",
       "dependsOn": [
+        "@azure/identity@4.13.1",
         "pg@8.22.0"
       ]
     },
     {
       "ref": "@eiep/document-processing@0.1.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@azure/identity@4.13.1",
+        "@azure/storage-blob@12.33.0"
+      ]
     },
     {
       "ref": "@eiep/integration@0.1.0",
@@ -1264,7 +1313,9 @@
     },
     {
       "ref": "@eiep/rules-engine@0.1.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@eiep/shared-types@0.1.0"
+      ]
     },
     {
       "ref": "@eiep/shared-types@0.1.0",
@@ -1303,7 +1354,10 @@
     },
     {
       "ref": "@fastify/cors@11.2.0",
-      "dependsOn": []
+      "dependsOn": [
+        "fastify-plugin@5.1.0",
+        "toad-cache@3.7.4"
+      ]
     },
     {
       "ref": "@fastify/deepmerge@3.2.1",
@@ -1331,7 +1385,13 @@
     },
     {
       "ref": "@fastify/multipart@10.1.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@fastify/busboy@3.2.0",
+        "@fastify/deepmerge@3.2.1",
+        "@fastify/error@4.2.0",
+        "fastify-plugin@6.0.0",
+        "secure-json-parse@4.1.0"
+      ]
     },
     {
       "ref": "@fastify/proxy-addr@5.1.0",
@@ -1342,11 +1402,21 @@
     },
     {
       "ref": "@fastify/rate-limit@11.1.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@lukeed/ms@2.0.2",
+        "fastify-plugin@6.0.0",
+        "toad-cache@3.7.4"
+      ]
     },
     {
       "ref": "@fastify/swagger@9.8.1",
-      "dependsOn": []
+      "dependsOn": [
+        "fastify-plugin@6.0.0",
+        "json-schema-resolver@3.0.0",
+        "openapi-types@12.1.3",
+        "rfdc@1.4.1",
+        "yaml@2.9.0"
+      ]
     },
     {
       "ref": "@lukeed/ms@2.0.2",
@@ -1378,11 +1448,18 @@
     },
     {
       "ref": "ajv-formats@3.0.1",
-      "dependsOn": []
+      "dependsOn": [
+        "ajv@8.20.0"
+      ]
     },
     {
       "ref": "ajv@8.20.0",
-      "dependsOn": []
+      "dependsOn": [
+        "fast-deep-equal@3.1.3",
+        "fast-uri@3.1.4",
+        "json-schema-traverse@1.0.0",
+        "require-from-string@2.0.2"
+      ]
     },
     {
       "ref": "anynum@1.0.1",
@@ -1513,7 +1590,23 @@
     },
     {
       "ref": "fastify@5.10.0",
-      "dependsOn": []
+      "dependsOn": [
+        "@fastify/ajv-compiler@4.0.5",
+        "@fastify/error@4.2.0",
+        "@fastify/fast-json-stringify-compiler@5.1.0",
+        "@fastify/proxy-addr@5.1.0",
+        "abstract-logging@2.0.1",
+        "avvio@9.3.0",
+        "fast-json-stringify@7.0.1",
+        "find-my-way@9.6.0",
+        "light-my-request@6.6.0",
+        "pino@10.3.1",
+        "process-warning@5.0.0",
+        "rfdc@1.4.1",
+        "secure-json-parse@4.1.0",
+        "semver@7.8.5",
+        "toad-cache@3.7.4"
+      ]
     },
     {
       "ref": "fastq@1.20.1",
@@ -1557,7 +1650,9 @@
     },
     {
       "ref": "is-inside-container@1.0.0",
-      "dependsOn": []
+      "dependsOn": [
+        "is-docker@3.0.0"
+      ]
     },
     {
       "ref": "is-unsafe@2.0.0",
@@ -1716,7 +1811,14 @@
     },
     {
       "ref": "pg@8.22.0",
-      "dependsOn": []
+      "dependsOn": [
+        "pg-cloudflare@1.4.0",
+        "pg-connection-string@2.14.0",
+        "pg-pool@3.14.0",
+        "pg-protocol@1.15.0",
+        "pg-types@2.2.0",
+        "pgpass@1.0.5"
+      ]
     },
     {
       "ref": "pgpass@1.0.5",
@@ -1756,7 +1858,10 @@
     },
     {
       "ref": "playwright@1.61.1",
-      "dependsOn": []
+      "dependsOn": [
+        "fsevents@2.3.2",
+        "playwright-core@1.61.1"
+      ]
     },
     {
       "ref": "postgres-array@2.0.0",
@@ -1790,7 +1895,10 @@
     },
     {
       "ref": "react-dom@19.2.7",
-      "dependsOn": []
+      "dependsOn": [
+        "react@19.2.7",
+        "scheduler@0.27.0"
+      ]
     },
     {
       "ref": "react@19.2.7",

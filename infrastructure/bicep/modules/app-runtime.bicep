@@ -5,6 +5,7 @@ param location string
 param tags object
 param managedEnvironmentName string
 param infrastructureSubnetId string
+param logAnalyticsWorkspaceId string
 param workloadIdentityId string
 param apiIdentityId string
 param apiIdentityClientId string
@@ -17,7 +18,8 @@ param apiImage string
 param webImage string
 param portalImage string
 param jobWorkerImage string
-param databaseSecretUri string
+param apiDatabaseUrl string
+param jobWorkerDatabaseUrl string
 param metricsSecretUri string
 param oidcIssuer string
 param oidcAudience string
@@ -38,6 +40,21 @@ resource managedEnvironment 'Microsoft.App/managedEnvironments@2026-01-01' = {
       internal: false
     }
     zoneRedundant: true
+  }
+}
+
+resource managedEnvironmentDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'eiep-${environmentName}-logs'
+  scope: managedEnvironment
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logAnalyticsDestinationType: 'Dedicated'
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
   }
 }
 
@@ -70,11 +87,6 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
       secrets: [
         {
           identity: apiIdentityId
-          keyVaultUrl: databaseSecretUri
-          name: 'database-url'
-        }
-        {
-          identity: apiIdentityId
           keyVaultUrl: metricsSecretUri
           name: 'metrics-token'
         }
@@ -89,7 +101,8 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
             { name: 'EIEP_ENV', value: environmentName }
             { name: 'HOST', value: '0.0.0.0' }
             { name: 'PORT', value: '3100' }
-            { name: 'DATABASE_URL', secretRef: 'database-url' }
+            { name: 'DATABASE_URL', value: apiDatabaseUrl }
+            { name: 'DATABASE_AUTH_MODE', value: 'azure-managed-identity' }
             { name: 'DATABASE_RUNTIME_ROLE', value: 'eiep_runtime' }
             { name: 'METRICS_TOKEN', secretRef: 'metrics-token' }
             { name: 'OIDC_ISSUER', value: oidcIssuer }
@@ -213,7 +226,6 @@ resource jobWorker 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       activeRevisionsMode: 'Single'
       registries: [{ identity: jobWorkerIdentityId, server: registryServer }]
-      secrets: [{ identity: jobWorkerIdentityId, keyVaultUrl: databaseSecretUri, name: 'database-url' }]
     }
     template: {
       containers: [
@@ -222,7 +234,8 @@ resource jobWorker 'Microsoft.App/containerApps@2026-01-01' = {
           image: jobWorkerImage
           env: [
             { name: 'EIEP_ENV', value: environmentName }
-            { name: 'DATABASE_URL', secretRef: 'database-url' }
+            { name: 'DATABASE_URL', value: jobWorkerDatabaseUrl }
+            { name: 'DATABASE_AUTH_MODE', value: 'azure-managed-identity' }
             { name: 'DATABASE_RUNTIME_ROLE', value: 'eiep_job_worker' }
             { name: 'AZURE_STORAGE_ACCOUNT_NAME', value: storageAccountName }
             { name: 'AZURE_CLIENT_ID', value: jobWorkerIdentityClientId }

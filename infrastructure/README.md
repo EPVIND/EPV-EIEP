@@ -7,13 +7,19 @@ Status: Compiled review implementation; ADR-0009 remains Proposed and no cloud d
 - `bicep/main.bicep` is the only safe entry point before approval. It deliberately compiles to zero resources.
 - `bicep/proposed-environment.bicep` composes the review modules. Every module uses one deployment guard.
 - Production requires `productionAuthorized=true` and a nonempty controlled authorization reference.
+- Application containers require both `runtimeAuthorized=true` and a nonempty
+  controlled `runtimeAuthorizationReference`; both default closed so foundation
+  deployment cannot start code before migrations and managed-identity mappings pass.
 - Every environment requires API, web, portal, and job-worker images addressed by `@sha256:` digest. A mutable tag disables the proposed deployment.
-- No template accepts a PostgreSQL administrator password. Runtime secrets are Key Vault references consumed through scoped workload identities.
+- No template accepts a PostgreSQL administrator or runtime password. Separate API
+  and worker URLs are constructed from their deployed identity names and the managed
+  database FQDN; both pools acquire short-lived Entra tokens and enforce certificate
+  verification.
 - Development, test, training, and production parameters/resources must be distinct. Production requires a separate approved subscription.
 
 ## Proposed modules
 
-The 11 compiled templates cover virtual networking/private DNS, separate frontend, API, and job-worker user-assigned identities, Log Analytics, private storage, Key Vault, Service Bus, private endpoints, Entra-only PostgreSQL 18 with HA/backup settings, and Container Apps for API/web/portal plus the background job worker. The API identity receives Blob Data Contributor only on the private `staged` container; the worker identity receives the account-level Blob data role needed to validate, quarantine, release, and generate governed artifacts. Browser-facing containers receive neither data role. The worker may scale from one to five replicas because PostgreSQL claims are atomic, expiring, and token-released. Public access is disabled on data services; application ingress rejects insecure transport. These are proposed settings, not deployed evidence.
+The 11 compiled templates cover virtual networking/private DNS, separate frontend, API, and job-worker user-assigned identities, Log Analytics, private storage, Key Vault, Service Bus, private endpoints, Entra-only PostgreSQL 18 with an explicitly supplied administrator plus HA/backup settings, and Container Apps for API/web/portal plus the background job worker. The Container Apps environment routes all supported resource-log categories to dedicated Log Analytics tables through a diagnostic setting. The API identity receives Blob Data Contributor only on the private `staged` container; the worker identity receives the account-level Blob data role needed to validate, quarantine, release, and generate governed artifacts. The template creates the metrics token as a secure Key Vault secret and grants only the API identity secret-read access at that exact secret scope; the worker and browser-facing containers receive no vault role. Both database clients use distinct generated URLs and dynamic Entra tokens; the governed post-migration bootstrap verifies exact Entra object IDs before granting the API and worker different NOLOGIN application roles. The worker may scale from one to five replicas because PostgreSQL claims are atomic, expiring, and token-released. Public access is disabled on data services; application ingress rejects insecure transport. These are proposed settings, not deployed evidence.
 
 ## Pinned verification tool
 
@@ -28,10 +34,10 @@ The check compiles all templates in memory, rejects diagnostics, verifies that `
 
 ## Proposed deployment inputs
 
-Before an authorized what-if, supply environment, location, unique deployment stamp, registry server, four digest-qualified images, Key Vault secret URIs for the database URL and metrics token, OIDC issuer/audience, exact HTTPS CORS origins, and an active least-privilege worker account/organization. Do not put secret values in parameter files.
+Before an authorized what-if, supply environment, location, unique deployment stamp, registry server, four digest-qualified images, the metrics token through a protected secure-parameter channel, OIDC issuer/audience, exact HTTPS CORS origins, the PostgreSQL Entra administrator name/object/type, and an active least-privilege worker account/organization. Deploy the foundation with `runtimeAuthorized=false`, apply migrations and the exact-identity bootstrap, then review a second what-if before setting it true with the controlled evidence reference. Do not put the metrics token or any other secret value in a parameter file or command history.
 
 ## Missing authorization/evidence
 
-Subscription ownership, regions/residency, RPO/RTO, DNS/certificates, service tiers/capacity, budget, action groups/alert routing, app registrations, managed-service role assignments, what-if review, deployment, smoke tests, backup/restore, and operations acceptance are not available in this repository. Until those are approved, do not invoke the proposed template against a cloud resource group.
+Subscription ownership, regions/residency, RPO/RTO, DNS/certificates, service tiers/capacity, budget, action groups/alert routing, app registrations, ACR pull and deployment/migrator authority, what-if review, deployment, smoke tests, backup/restore, and operations acceptance are not available in this repository. Until those are approved, do not invoke the proposed template against a cloud resource group.
 
 Local PostgreSQL may instead be exercised with `pnpm run database:verify`, which uses disposable repository-local PostgreSQL 18 and removes its data afterward.

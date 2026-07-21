@@ -10,6 +10,7 @@ export interface RuntimeConfig {
   readonly oidcIssuer: string | null;
   readonly oidcAudience: string | null;
   readonly databaseUrlPresent: boolean;
+  readonly databaseAuthentication: "connection-string" | "azure-managed-identity";
   readonly databaseRuntimeRole: "eiep_runtime" | null;
   readonly allowedOrigins: readonly string[];
   readonly rateLimitMax: number;
@@ -38,6 +39,11 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   if (environment.dataStore === "postgres" && !process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is required for PostgreSQL persistence.");
   }
+  const requestedDatabaseAuthentication = process.env.DATABASE_AUTH_MODE?.trim() || "connection-string";
+  if (requestedDatabaseAuthentication !== "connection-string" && requestedDatabaseAuthentication !== "azure-managed-identity") {
+    throw new Error("DATABASE_AUTH_MODE must be connection-string or azure-managed-identity.");
+  }
+  const databaseAuthentication = requestedDatabaseAuthentication;
   const requestedDatabaseRole = process.env.DATABASE_RUNTIME_ROLE?.trim() || null;
   if (requestedDatabaseRole && requestedDatabaseRole !== "eiep_runtime") {
     throw new Error("DATABASE_RUNTIME_ROLE must be eiep_runtime when supplied.");
@@ -45,6 +51,9 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   const databaseRuntimeRole: "eiep_runtime" | null = requestedDatabaseRole === "eiep_runtime" ? "eiep_runtime" : null;
   if (environment.environment === "production" && databaseRuntimeRole !== "eiep_runtime") {
     throw new Error("Production requires DATABASE_RUNTIME_ROLE=eiep_runtime.");
+  }
+  if (environment.environment === "production" && databaseAuthentication !== "azure-managed-identity") {
+    throw new Error("Production requires DATABASE_AUTH_MODE=azure-managed-identity.");
   }
 
   const port = Number(process.env.PORT ?? "3100");
@@ -82,6 +91,9 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   if (environment.environment === "production" && (!storageAccountName || !managedIdentityClientId)) {
     throw new Error("Production requires AZURE_STORAGE_ACCOUNT_NAME and AZURE_CLIENT_ID for governed uploads.");
   }
+  if (databaseAuthentication === "azure-managed-identity" && !managedIdentityClientId) {
+    throw new Error("Azure PostgreSQL authentication requires AZURE_CLIENT_ID.");
+  }
   return {
     environment,
     host: process.env.HOST ?? "127.0.0.1",
@@ -89,6 +101,7 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
     oidcIssuer,
     oidcAudience,
     databaseUrlPresent: Boolean(process.env.DATABASE_URL),
+    databaseAuthentication,
     databaseRuntimeRole,
     allowedOrigins,
     rateLimitMax,

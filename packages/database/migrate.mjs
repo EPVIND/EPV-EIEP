@@ -3,6 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { databaseConnectionConfig } from "./connection.mjs";
 
 const migrationDirectory = join(dirname(fileURLToPath(import.meta.url)), "migrations");
 const connectionString = process.env.DATABASE_URL;
@@ -11,7 +12,7 @@ if (!connectionString) {
   throw new Error("DATABASE_URL is required. Supply it through protected environment configuration.");
 }
 
-const pool = new pg.Pool({ connectionString });
+const pool = new pg.Pool(databaseConnectionConfig(connectionString));
 
 async function ensureLedger(client) {
   await client.query(`
@@ -80,4 +81,3 @@ async function main() {
 }
 
 await main();
-

@@ -4,6 +4,10 @@ param name string
 param location string
 param tags object
 param tenantId string
+param administratorObjectId string
+param administratorPrincipalName string
+@allowed(['Group', 'ServicePrincipal', 'User'])
+param administratorPrincipalType string
 param delegatedSubnetResourceId string
 param privateDnsZoneResourceId string
 @minValue(7)
@@ -54,5 +58,16 @@ resource database 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-08-0
   }
 }
 
+resource entraAdministrator 'Microsoft.DBforPostgreSQL/flexibleServers/administrators@2025-08-01' = {
+  parent: databaseServer
+  name: administratorObjectId
+  properties: {
+    principalName: administratorPrincipalName
+    principalType: administratorPrincipalType
+    tenantId: tenantId
+  }
+}
+
 output id string = databaseServer.id
 output fqdn string = databaseServer.properties.fullyQualifiedDomainName
+output entraAdministratorId string = entraAdministrator.id
