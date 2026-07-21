@@ -18,6 +18,17 @@ import type {
   EstimateQuoteRecord,
   EstimateRecord,
   EstimateRevisionRecord,
+  ProcurementBidPackageRecord,
+  ProcurementCommitmentRecord,
+  ProcurementRequisitionRecord,
+  ProjectChangeRequestRecord,
+  ProjectControlBaselineRecord,
+  ProjectControlsAuthorityPolicyRevisionRecord,
+  ProjectCostEntryRecord,
+  ProjectProgressClaimRecord,
+  ScheduleImportRecord,
+  ScheduleProgramRecord,
+  ScheduleRevisionRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -131,6 +142,62 @@ export interface FoundationTransaction {
   estimateHandoffByProposal(proposalId: string): EstimateHandoffRecord | null;
   estimateHandoffs(estimateId: string): readonly EstimateHandoffRecord[];
   insertEstimateHandoff(handoff: EstimateHandoffRecord): void;
+  projectControlsAuthorityPolicyById(id: string): ProjectControlsAuthorityPolicyRevisionRecord | null;
+  projectControlsAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): ProjectControlsAuthorityPolicyRevisionRecord | null;
+  projectControlsAuthorityPolicies(
+    organizationId: string, currency?: string,
+  ): readonly ProjectControlsAuthorityPolicyRevisionRecord[];
+  insertProjectControlsAuthorityPolicy(policy: ProjectControlsAuthorityPolicyRevisionRecord): void;
+  updateProjectControlsAuthorityPolicy(policy: ProjectControlsAuthorityPolicyRevisionRecord, expectedVersion: number): void;
+  projectControlBaselineById(id: string): ProjectControlBaselineRecord | null;
+  projectControlBaselineByRevision(projectId: string, number: string, revision: string): ProjectControlBaselineRecord | null;
+  projectControlBaselines(projectId: string): readonly ProjectControlBaselineRecord[];
+  insertProjectControlBaseline(baseline: ProjectControlBaselineRecord): void;
+  updateProjectControlBaseline(baseline: ProjectControlBaselineRecord, expectedVersion: number): void;
+  projectChangeRequestById(id: string): ProjectChangeRequestRecord | null;
+  projectChangeRequestByNumber(projectId: string, number: string): ProjectChangeRequestRecord | null;
+  projectChangeRequests(projectId: string): readonly ProjectChangeRequestRecord[];
+  insertProjectChangeRequest(change: ProjectChangeRequestRecord): void;
+  updateProjectChangeRequest(change: ProjectChangeRequestRecord, expectedVersion: number): void;
+  projectCostEntryById(id: string): ProjectCostEntryRecord | null;
+  projectCostEntries(projectId: string): readonly ProjectCostEntryRecord[];
+  insertProjectCostEntry(entry: ProjectCostEntryRecord): void;
+  updateProjectCostEntry(entry: ProjectCostEntryRecord, expectedVersion: number): void;
+  projectProgressClaimById(id: string): ProjectProgressClaimRecord | null;
+  projectProgressClaims(projectId: string): readonly ProjectProgressClaimRecord[];
+  insertProjectProgressClaim(claim: ProjectProgressClaimRecord): void;
+  updateProjectProgressClaim(claim: ProjectProgressClaimRecord, expectedVersion: number): void;
+  procurementRequisitionById(id: string): ProcurementRequisitionRecord | null;
+  procurementRequisitionByNumber(projectId: string, number: string): ProcurementRequisitionRecord | null;
+  procurementRequisitions(projectId: string): readonly ProcurementRequisitionRecord[];
+  insertProcurementRequisition(requisition: ProcurementRequisitionRecord): void;
+  updateProcurementRequisition(requisition: ProcurementRequisitionRecord, expectedVersion: number): void;
+  procurementBidPackageById(id: string): ProcurementBidPackageRecord | null;
+  procurementBidPackageByNumber(projectId: string, number: string): ProcurementBidPackageRecord | null;
+  procurementBidPackages(projectId: string): readonly ProcurementBidPackageRecord[];
+  insertProcurementBidPackage(bidPackage: ProcurementBidPackageRecord): void;
+  updateProcurementBidPackage(bidPackage: ProcurementBidPackageRecord, expectedVersion: number): void;
+  procurementCommitmentById(id: string): ProcurementCommitmentRecord | null;
+  procurementCommitments(projectId: string): readonly ProcurementCommitmentRecord[];
+  insertProcurementCommitment(commitment: ProcurementCommitmentRecord): void;
+  updateProcurementCommitment(commitment: ProcurementCommitmentRecord, expectedVersion: number): void;
+  scheduleProgramById(id: string): ScheduleProgramRecord | null;
+  scheduleProgramByNumber(projectId: string, number: string): ScheduleProgramRecord | null;
+  schedulePrograms(projectId: string): readonly ScheduleProgramRecord[];
+  insertScheduleProgram(schedule: ScheduleProgramRecord): void;
+  updateScheduleProgram(schedule: ScheduleProgramRecord, expectedVersion: number): void;
+  scheduleRevisionById(id: string): ScheduleRevisionRecord | null;
+  scheduleRevisionByName(scheduleId: string, revision: string): ScheduleRevisionRecord | null;
+  scheduleRevisions(scheduleId: string): readonly ScheduleRevisionRecord[];
+  insertScheduleRevision(revision: ScheduleRevisionRecord): void;
+  updateScheduleRevision(revision: ScheduleRevisionRecord, expectedVersion: number): void;
+  scheduleImportById(id: string): ScheduleImportRecord | null;
+  scheduleImportByKey(projectId: string, idempotencyKey: string): ScheduleImportRecord | null;
+  scheduleImports(projectId: string): readonly ScheduleImportRecord[];
+  insertScheduleImport(scheduleImport: ScheduleImportRecord): void;
+  updateScheduleImport(scheduleImport: ScheduleImportRecord, expectedVersion: number): void;
   projectById(id: string): ProjectRecord | null;
   projectByNumber(businessScopeOrganizationId: string, number: string): ProjectRecord | null;
   projects(): readonly ProjectRecord[];

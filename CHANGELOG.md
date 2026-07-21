@@ -2,6 +2,31 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.10.0 - Integrated project controls, procurement, and scheduling pilot
+
+- Added immutable estimate-handoff-derived cost/quantity baselines, thresholded
+  change approval and successor baselines, exact period cost/forecast/EAC/variance,
+  and quantity/evidence progress that remains separate from quality and invoice
+  acceptance.
+- Added requisitions tied to exact released document revisions, comparative
+  source-file/hash-backed offers and visible gaps, independent recommendation,
+  currency-policy thresholded award, commitments, expediting milestones, and a
+  fail-closed requirement for receipt events to link same-project controlled
+  material records.
+- Added schedule programs, stable activity identities, logic/cycle validation,
+  independently approved baseline and update history, baseline variance, authorized
+  look-aheads with document/material/inspection blockers, and provider-neutral P6/
+  Microsoft Project released-source preview/idempotent commit into unapproved drafts.
+- Added 30 secured API operations and a tablet-accessible workspace spanning cost/
+  change, procurement, scheduling, revision approval, receiving linkage, and import
+  reconciliation. Promoted 11 requirements into the controlled baseline and added
+  AC-12.
+- Local verification passes 88 source tests, seven Chromium tablet/axe workflows,
+  170 active `/v1` routes with 135 request bodies, PostgreSQL 18 record hydration/
+  restart/concurrency, production build/runtime gates, and 86-requirement/185-path
+  traceability. External owner policies, normalized production migrations, live
+  provider/accounting/vendor sandboxes, deployment, and pilot approval remain gates.
+
 ## 0.9.0 - Guided activation setup and complete PMI/NCR execution detail
 
 - Recorded the task-supplied enterprise dashboard as a hash-identified controlled

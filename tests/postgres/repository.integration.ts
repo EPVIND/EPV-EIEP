@@ -138,6 +138,45 @@ try {
   const persistentEstimateRevision = await estimating.submitRevision(
     estimator, estimatingAssignments, persistentEstimate.revisions[0]!.id, persistentEstimate.revisions[0]!.version,
   );
+  await store.transaction((transaction) => {
+    transaction.insertProjectControlsAuthorityPolicy({
+      id: "postgres-controls-policy", businessScopeOrganizationId: "org-epv", currency: "USD", revision: "1",
+      standardChangeApprovalLimit: "1000.00", standardProcurementAwardLimit: "5000.00",
+      changeAboveThresholdQualification: "EXECUTIVE_CHANGE_AUTHORITY",
+      procurementAboveThresholdQualification: "EXECUTIVE_PROCUREMENT_AUTHORITY", state: "active",
+      supersedesRevisionId: null, proposedAt: now, proposedBy: "postgres-controls-editor",
+      reviewedAt: now, reviewedBy: "postgres-controls-reviewer", reviewReason: "Persistent controls policy.", version: 2,
+    });
+    transaction.insertProjectControlBaseline({
+      id: "postgres-control-baseline", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      sourceHandoffId: "postgres-handoff", sourceHandoffSha256: "b".repeat(64), number: "PG-CB-001", revision: "0",
+      parentBaselineId: null, revisionReason: "Persistent award baseline", currency: "USD",
+      periodStart: new Date("2026-07-01T00:00:00.000Z"), periodFinish: new Date("2027-06-30T00:00:00.000Z"),
+      lines: [{ lineKey: "PG-LINE-001", sourceEstimateLineKey: "PG-LINE-001", sourceCategory: "direct_cost",
+        costCode: "PIPING", wbsCode: "WBS-PIPING", workPackageCode: "WP-PIPING",
+        controlAccountCode: "CA-PIPING", responsibleOrganizationId: "org-epv",
+        budgetQuantity: "2", unitCode: "EA", budgetAmount: "665.00" }],
+      sourceAwardAmount: "665.00", approvedChangeAmount: "0.00", managementReserveAmount: "35.00",
+      currentBudgetAmount: "700.00", state: "approved", submittedAt: now, submittedBy: "postgres-controls-author",
+      reviewedAt: now, reviewedBy: "postgres-controls-reviewer", reviewReason: "Persistent control baseline.",
+      version: 3, createdAt: now, createdBy: "postgres-controls-author", updatedAt: now, updatedBy: "postgres-controls-reviewer",
+    });
+    transaction.insertScheduleProgram({
+      id: "postgres-schedule", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      number: "PG-SCH-001", name: "Persistent schedule", timeZone: "UTC",
+      currentRevisionId: "postgres-schedule-revision", version: 2, createdAt: now,
+      createdBy: "postgres-scheduler", updatedAt: now, updatedBy: "postgres-schedule-reviewer",
+    });
+    transaction.insertScheduleRevision({
+      id: "postgres-schedule-revision", scheduleId: "postgres-schedule", revision: "B0",
+      revisionType: "baseline", parentRevisionId: null, sourceBaselineId: "postgres-control-baseline",
+      dataDate: now, reason: "Persistent schedule baseline", sourceSystem: "manual", sourceVersion: null,
+      sourceSha256: null, activities: [], dependencies: [], baselineVarianceDays: "0", state: "approved",
+      submittedAt: now, submittedBy: "postgres-scheduler", reviewedAt: now,
+      reviewedBy: "postgres-schedule-reviewer", reviewReason: "Persistent schedule verified.",
+      version: 3, createdAt: now, createdBy: "postgres-scheduler",
+    });
+  });
   await store.close();
 
   store = await PostgresFoundationStore.connect(connectionString);
@@ -153,6 +192,10 @@ try {
     estimate: transaction.estimateById(persistentEstimate.estimate.id),
     estimateRevision: transaction.estimateRevisionById(persistentEstimateRevision.id),
     estimateLines: transaction.estimateLines(persistentEstimateRevision.id),
+    controlBaseline: transaction.projectControlBaselineById("postgres-control-baseline"),
+    controlsPolicy: transaction.projectControlsAuthorityPolicyById("postgres-controls-policy"),
+    schedule: transaction.scheduleProgramById("postgres-schedule"),
+    scheduleRevision: transaction.scheduleRevisionById("postgres-schedule-revision"),
   }));
   assert.equal(persisted.applicationIdentityBootstrap.identityAccounts.length, 2);
   assert.equal(persisted.applicationIdentityBootstrap.externalIdentities.length, 2);
@@ -173,6 +216,11 @@ try {
   assert.equal(persisted.estimateRevision?.totals.finalPrice, "845.33");
   assert.equal(persisted.estimateLines[0]?.id, persistentEstimateLine.id);
   assert.equal(persisted.estimateLines[0]?.calculation.totalCost, "665.00");
+  assert.equal(persisted.controlBaseline?.currentBudgetAmount, "700.00");
+  assert.ok(persisted.controlBaseline?.periodStart instanceof Date);
+  assert.equal(persisted.controlsPolicy?.standardChangeApprovalLimit, "1000.00");
+  assert.equal(persisted.schedule?.currentRevisionId, persisted.scheduleRevision?.id);
+  assert.ok(persisted.scheduleRevision?.dataDate instanceof Date);
 
   const claim = {
     interfaceCodes: new Set(["export.worker"]), limit: 1, now,
@@ -262,7 +310,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, estimating hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

@@ -67,7 +67,9 @@ Only the shared foundation and the first operational vertical slice are implemen
 
 Task-owner direction on 2026-07-21 activates advanced estimating/proposals first,
 then project controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed
-Bluebeam collaboration. These are separate controlled releases under
+Bluebeam collaboration. Estimating and project controls/procurement/scheduling now
+have locally verified controlled-pilot slices; welding/NDE/PWHT/testing is the active
+implementation target. These are separate controlled releases under
 `../01-requirements/EXPANSION_REQUIREMENTS.md`; activation does not enlarge the MVP
 acceptance claim or authorize production use.
 

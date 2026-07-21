@@ -27,7 +27,7 @@ assignments, licensed code/standard content, or production-readiness evidence.
 
 | Vision surface | Controlled EIEP interpretation | Current repository position |
 |---|---|---|
-| Dashboard | Permission-scoped portfolio, work, quality, schedule, task, activity, and service-health projections | Partial: project/quality/turnover health and release-boundary projections exist; unified task/activity/schedule projection remains active work |
+| Dashboard | Permission-scoped portfolio, work, quality, schedule, task, activity, and service-health projections | Partial: project/quality/turnover and project-control/cost/procurement/schedule projections exist; unified task/activity projection remains active work |
 | Projects | Project identity, organizations, structures, responsibilities, configuration, readiness, and governed activation | Implemented first controlled slice; external pilot/production acceptance remains gated |
 | Document Control | Documents, drawings, revisions, files, approvals, distribution/current-for-work, transmittals, and collaboration evidence | Implemented first controlled slice; advanced transmittal/Bluebeam expansion remains active work |
 | Engineering Database | Shared controlled engineering identity and revisions for requirements, drawings, specifications, systems, equipment/components, and discipline data | Partial shared foundation; discipline engineering registers remain active expansion |
@@ -37,7 +37,7 @@ assignments, licensed code/standard content, or production-readiness evidence.
 | QC / Inspection | Inspection plans/points, observations/results, qualification/equipment evidence, acceptance, deficiencies, and releases | Material/PMI/NCR/punch slice implemented; generalized inspection and execution disciplines remain active expansion |
 | NCR Management | NCR creation, evidence, responsibility, disposition, verification, closure, audit, and linked records | Implemented first controlled slice |
 | Estimating | Opportunities, revisions, assemblies, labor/productivity, direct cost, quotes, price adjustments, approvals, proposal, and award handoff | Locally verified controlled-pilot slice implemented; normalized production migrations, owner configuration, deployed validation, and production authorization remain gated |
-| Scheduling | Calendars, WBS activities, logic, constraints, baselines, updates, look-aheads, progress, variance, and controlled exchange | Active controlled requirements; implementation follows estimating/project controls |
+| Scheduling | Calendars, WBS activities, logic, constraints, baselines, updates, look-aheads, progress, variance, and controlled exchange | Locally verified provider-neutral controlled-pilot slice implemented; owner calendars/mappings, live P6/MS Project sandboxes, deployed validation, and production authorization remain gated |
 | Fabrication | Work packages/travelers, components/pieces, production events, material/weld/inspection linkage, progress, and release | Partial shared work/material foundation; discipline fabrication workflows remain expansion |
 | Spool Generation | Controlled piping spool identity and revision, component/weld/material mapping, fabrication/erection state, and approved output | Expected capability; detailed controlled requirements and implementation pending |
 | CNC / Waterjet / Profiling | Approved model/detail/CNC source revision, validation/preview, machine-neutral output, reconciliation, and execution evidence | Expected advanced integration; production machine control is not authorized by this baseline |

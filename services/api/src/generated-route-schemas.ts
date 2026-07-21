@@ -203,6 +203,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "GET /v1/portal/assigned-work": {},
+  "GET /v1/project-controls-authority-policies": {},
   "GET /v1/projects": {},
   "GET /v1/projects/:projectId/audit": {
     "params": {
@@ -232,6 +233,34 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "configurationCode",
+        "projectId"
+      ]
+    }
+  },
+  "GET /v1/projects/:projectId/controls": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "GET /v1/projects/:projectId/cost-summary": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
         "projectId"
       ]
     }
@@ -393,6 +422,32 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "format"
+      ]
+    }
+  },
+  "GET /v1/schedules/:scheduleId/look-ahead": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scheduleId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    },
+    "querystring": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "windowDays": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "windowDays"
       ]
     }
   },
@@ -2355,6 +2410,225 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/procurement-bid-packages/:bidPackageId/award": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "purchaseOrderReference": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "purchaseOrderReference",
+        "reason",
+        "revision"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bidPackageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "bidPackageId"
+      ]
+    }
+  },
+  "POST /v1/procurement-bid-packages/:bidPackageId/offers": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bidPackageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "bidPackageId"
+      ]
+    }
+  },
+  "POST /v1/procurement-bid-packages/:bidPackageId/recommend": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "offerKey": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "offerKey",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bidPackageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "bidPackageId"
+      ]
+    }
+  },
+  "POST /v1/procurement-commitments/:commitmentId/status-events": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commitmentId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "commitmentId"
+      ]
+    }
+  },
+  "POST /v1/procurement-requisitions/:requisitionId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requisitionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "requisitionId"
+      ]
+    }
+  },
+  "POST /v1/procurement-requisitions/:requisitionId/submit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requisitionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "requisitionId"
+      ]
+    }
+  },
+  "POST /v1/project-changes/:changeId/baseline": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "changeId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "changeId"
+      ]
+    }
+  },
+  "POST /v1/project-changes/:changeId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "changeId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "changeId"
+      ]
+    }
+  },
   "POST /v1/project-configurations/:configurationId/approve": {
     "body": {
       "type": "object",
@@ -2378,6 +2652,227 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "configurationId"
+      ]
+    }
+  },
+  "POST /v1/project-control-baselines/:baselineId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "baselineId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baselineId"
+      ]
+    }
+  },
+  "POST /v1/project-control-baselines/:baselineId/submit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "baselineId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baselineId"
+      ]
+    }
+  },
+  "POST /v1/project-controls-authority-policies": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "businessScopeOrganizationId": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "standardChangeApprovalLimit": {
+          "type": "string"
+        },
+        "standardProcurementAwardLimit": {
+          "type": "string"
+        },
+        "changeAboveThresholdQualification": {
+          "type": "string"
+        },
+        "procurementAboveThresholdQualification": {
+          "type": "string"
+        },
+        "supersedesRevisionId": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "businessScopeOrganizationId",
+        "changeAboveThresholdQualification",
+        "currency",
+        "procurementAboveThresholdQualification",
+        "revision",
+        "standardChangeApprovalLimit",
+        "standardProcurementAwardLimit",
+        "supersedesRevisionId"
+      ]
+    }
+  },
+  "POST /v1/project-controls-authority-policies/:policyId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "policyId"
+      ]
+    }
+  },
+  "POST /v1/project-cost-entries/:entryId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "accept"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entryId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entryId"
+      ]
+    }
+  },
+  "POST /v1/project-progress-claims/:claimId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "accept"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "claimId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "claimId"
       ]
     }
   },
@@ -2476,6 +2971,92 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/projects/:projectId/changes": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "baselineId": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "scheduleDaysImpact": {
+          "type": "string"
+        },
+        "quotationReference": {
+          "type": "string",
+          "nullable": true
+        },
+        "evidenceFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lineImpacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "baselineLineKey": {
+                "type": "string"
+              },
+              "quantityDelta": {
+                "type": "string"
+              },
+              "amountDelta": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "amountDelta",
+              "baselineLineKey",
+              "quantityDelta",
+              "reason"
+            ]
+          }
+        }
+      },
+      "required": [
+        "baselineId",
+        "description",
+        "evidenceFileIds",
+        "lineImpacts",
+        "number",
+        "origin",
+        "quotationReference",
+        "scheduleDaysImpact",
+        "title"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "POST /v1/projects/:projectId/completion-boundaries": {
     "body": {
       "type": "object",
@@ -2519,6 +3100,36 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "POST /v1/projects/:projectId/configurations": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/control-baselines": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/cost-entries": {
     "body": {},
     "params": {
       "type": "object",
@@ -3195,6 +3806,73 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/projects/:projectId/procurement-bid-packages": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requisitionId": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "bidderOrganizationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "bidderOrganizationIds",
+        "number",
+        "requisitionId"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/procurement-requisitions": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/progress-claims": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "POST /v1/projects/:projectId/punch-items": {
     "body": {},
     "params": {
@@ -3330,6 +4008,40 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "dispositionAction",
         "recordClass",
         "retentionDurationDays"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/schedules": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "timeZone": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "number",
+        "timeZone"
       ]
     },
     "params": {
@@ -3707,6 +4419,126 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "revisionId"
+      ]
+    }
+  },
+  "POST /v1/schedule-imports/:importId/commit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "importId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "importId"
+      ]
+    }
+  },
+  "POST /v1/schedule-revisions/:revisionId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/schedule-revisions/:revisionId/submit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revisionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "revisionId"
+      ]
+    }
+  },
+  "POST /v1/schedules/:scheduleId/imports/preview": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scheduleId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheduleId"
+      ]
+    }
+  },
+  "POST /v1/schedules/:scheduleId/revisions": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scheduleId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheduleId"
       ]
     }
   },

@@ -107,8 +107,14 @@ Implemented review surfaces include:
   independently approved currency authority policies, exact price build-up,
   released-file-backed quote comparison/selection, hash-verified printable proposal
   issue/download, audit, and exact same-organization award handoff;
+- an integrated project-controls workspace and service covering exact handoff-based
+  cost/quantity baselines, thresholded change, period actual/accrual/forecast/EAC,
+  separately accepted quantity progress, requisitions, comparative bids,
+  thresholded award/commitments, expediting and controlled receiving linkage,
+  independently approved schedule baselines/updates, look-aheads, and validated
+  idempotent P6/Microsoft Project import drafts;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 140 routes/109 request bodies, drift verification, bearer security,
+  schemas for 170 routes/135 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -152,7 +158,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 traceability, OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-84 unit/integration/security/acceptance tests, and compiled runtime process smoke
+88 unit/integration/security/acceptance tests, and compiled runtime process smoke
 tests. `pnpm run build` builds the two web applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
 containers:build` additionally requires Docker with BuildKit; it builds and smokes
@@ -164,7 +170,7 @@ That PostgreSQL path also creates, exactly retries, restarts, and verifies the g
 first-application-authority bootstrap; the production operator contract is in
 `docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
 
-`pnpm run test:browser` runs six internal/portal workflow cases in a Chromium tablet
+`pnpm run test:browser` runs seven internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 
 Local review servers:

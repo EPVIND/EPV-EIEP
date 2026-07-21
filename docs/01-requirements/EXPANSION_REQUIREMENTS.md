@@ -1,7 +1,8 @@
 # Enterprise Expansion Requirements
 
-Status: Implementation priority directed; requirements remain proposed until their
-executable evidence is promoted into the controlled traceability baseline  
+Status: Estimating and project-controls/procurement/scheduling requirements promoted
+into the controlled baseline; execution-discipline and Bluebeam requirements remain
+proposed until their executable evidence is promoted
 Date: 2026-07-21
 
 These requirements define the active post-MVP expansion. They supplement rather

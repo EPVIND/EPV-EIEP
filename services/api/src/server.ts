@@ -6,7 +6,7 @@ import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import { ImmutableStorageConflictError, type StagedUploadStoragePort } from "@eiep/document-processing";
 import { AuthorizationDeniedError } from "@eiep/rules-engine";
-import type { AccessContext, RoleAssignment } from "@eiep/shared-types";
+import type { AccessContext, ProcurementOffer, ProcurementRequisitionItem, RoleAssignment, ScheduleActivity } from "@eiep/shared-types";
 import { AuthenticationError, type Authenticator } from "./auth/authenticator.js";
 import { ConflictError, NotFoundError, ValidationError } from "./domain/errors.js";
 import { generatedRouteSchemas } from "./generated-route-schemas.js";
@@ -80,6 +80,22 @@ import {
   type ReceiveEstimateQuoteInput,
   type UpsertEstimateLineInput,
 } from "./domain/estimating-service.js";
+import {
+  ProjectControlsService,
+  type AwardProcurementInput,
+  type CreateControlBaselineFromChangeInput,
+  type CreateProcurementBidPackageInput,
+  type CreateProcurementRequisitionInput,
+  type CreateProjectChangeInput,
+  type CreateProjectControlBaselineInput,
+  type CreateScheduleProgramInput,
+  type CreateScheduleRevisionInput,
+  type PreviewScheduleImportInput,
+  type ProposeProjectControlsAuthorityPolicyInput,
+  type RecordProcurementStatusInput,
+  type SubmitProjectCostEntryInput,
+  type SubmitProjectProgressClaimInput,
+} from "./domain/project-controls-service.js";
 
 export interface ServerDependencies {
   readonly service: FoundationService;
@@ -89,6 +105,7 @@ export interface ServerDependencies {
   readonly identityAdministration?: IdentityAdministrationService;
   readonly reporting?: ReportingService;
   readonly estimating?: EstimatingService;
+  readonly projectControls?: ProjectControlsService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
   readonly environment: string;
@@ -147,6 +164,12 @@ function openApiTag(url: string): string {
     "estimate-authority-policies": "estimating",
     "estimate-revisions": "estimating", "estimate-lines": "estimating", "estimate-quotes": "estimating",
     "estimate-proposals": "estimating",
+    "project-controls-authority-policies": "project-controls",
+    "project-control-baselines": "project-controls", "project-changes": "project-controls",
+    "project-cost-entries": "project-controls", "project-progress-claims": "project-controls",
+    "procurement-requisitions": "procurement", "procurement-bid-packages": "procurement",
+    "procurement-commitments": "procurement", schedules: "scheduling", "schedule-revisions": "scheduling",
+    "schedule-imports": "scheduling",
   };
   return (aliases[first] ?? first) || "platform";
 }
@@ -183,11 +206,43 @@ const projectReadinessSchema = {
   },
 } as const;
 
+type ProcurementRequisitionItemHttp = Omit<ProcurementRequisitionItem, "needBy"> & { readonly needBy: string };
+type CreateProcurementRequisitionHttp = Omit<CreateProcurementRequisitionInput, "items"> & {
+  readonly items: readonly ProcurementRequisitionItemHttp[];
+};
+type ProcurementOfferHttp = Omit<ProcurementOffer, "validUntil" | "promisedDate" | "receivedAt" | "receivedBy"> & {
+  readonly validUntil: string;
+  readonly promisedDate: string;
+};
+type ScheduleActivityHttp = Omit<ScheduleActivity, "plannedStart" | "plannedFinish" | "actualStart" | "actualFinish"> & {
+  readonly plannedStart: string;
+  readonly plannedFinish: string;
+  readonly actualStart: string | null;
+  readonly actualFinish: string | null;
+};
+type CreateScheduleRevisionHttp = Omit<CreateScheduleRevisionInput, "dataDate" | "activities"> & {
+  readonly dataDate: string;
+  readonly activities: readonly ScheduleActivityHttp[];
+};
+type PreviewScheduleImportHttp = Omit<PreviewScheduleImportInput, "dataDate" | "activities"> & {
+  readonly dataDate: string;
+  readonly activities: readonly ScheduleActivityHttp[];
+};
+
+function scheduleActivityFromHttp(activity: ScheduleActivityHttp): ScheduleActivity {
+  return {
+    ...activity, plannedStart: new Date(activity.plannedStart), plannedFinish: new Date(activity.plannedFinish),
+    actualStart: activity.actualStart ? new Date(activity.actualStart) : null,
+    actualFinish: activity.actualFinish ? new Date(activity.actualFinish) : null,
+  };
+}
+
 export async function buildServer(dependencies: ServerDependencies) {
   const platform = dependencies.platform ?? new PlatformService(dependencies.store);
   const identityAdministration = dependencies.identityAdministration ?? new IdentityAdministrationService(dependencies.store);
   const reporting = dependencies.reporting ?? new ReportingService(dependencies.store, dependencies.trainingBanner);
   const estimating = dependencies.estimating ?? new EstimatingService(dependencies.store);
+  const projectControls = dependencies.projectControls ?? new ProjectControlsService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
     logger: {
@@ -883,6 +938,326 @@ export async function buildServer(dependencies: ServerDependencies) {
     return reply.code(201).send(await estimating.handoffProposal(
       access.context, access.assignments, request.params.proposalId, request.body,
     ));
+  });
+
+  server.post<{ Body: ProposeProjectControlsAuthorityPolicyInput }>(
+    "/v1/project-controls-authority-policies",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await projectControls.proposeAuthorityPolicy(
+        access.context, access.assignments, request.body,
+      ));
+    },
+  );
+
+  server.get("/v1/project-controls-authority-policies", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.listAuthorityPolicies(
+      access.context, access.assignments, access.context.actingOrganizationId,
+    );
+  });
+
+  server.post<{
+    Params: { policyId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/project-controls-authority-policies/:policyId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewAuthorityPolicy(
+      access.context, access.assignments, request.params.policyId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/controls", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.projectSnapshot(access.context, access.assignments, request.params.projectId);
+  });
+
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/cost-summary", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.costSummary(access.context, access.assignments, request.params.projectId);
+  });
+
+  server.post<{
+    Params: { projectId: string };
+    Body: Omit<CreateProjectControlBaselineInput, "periodStart" | "periodFinish"> & {
+      periodStart: string; periodFinish: string;
+    };
+  }>("/v1/projects/:projectId/control-baselines", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await projectControls.createBaselineFromHandoff(
+      access.context, access.assignments, request.params.projectId,
+      { ...request.body, periodStart: new Date(request.body.periodStart), periodFinish: new Date(request.body.periodFinish) },
+    ));
+  });
+
+  server.post<{
+    Params: { baselineId: string };
+    Body: { expectedVersion: number };
+  }>("/v1/project-control-baselines/:baselineId/submit", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.submitBaseline(
+      access.context, access.assignments, request.params.baselineId, request.body.expectedVersion,
+    );
+  });
+
+  server.post<{
+    Params: { baselineId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/project-control-baselines/:baselineId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewBaseline(
+      access.context, access.assignments, request.params.baselineId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateProjectChangeInput }>(
+    "/v1/projects/:projectId/changes",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await projectControls.createChangeRequest(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { changeId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/project-changes/:changeId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewChangeRequest(
+      access.context, access.assignments, request.params.changeId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Params: { changeId: string };
+    Body: Omit<CreateControlBaselineFromChangeInput, "periodStart" | "periodFinish"> & {
+      periodStart: string; periodFinish: string;
+    };
+  }>("/v1/project-changes/:changeId/baseline", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await projectControls.createBaselineFromChange(
+      access.context, access.assignments, request.params.changeId,
+      { ...request.body, periodStart: new Date(request.body.periodStart), periodFinish: new Date(request.body.periodFinish) },
+    ));
+  });
+
+  server.post<{
+    Params: { projectId: string };
+    Body: Omit<SubmitProjectCostEntryInput, "periodStart" | "periodFinish"> & {
+      periodStart: string; periodFinish: string;
+    };
+  }>("/v1/projects/:projectId/cost-entries", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await projectControls.submitCostEntry(
+      access.context, access.assignments, request.params.projectId,
+      { ...request.body, periodStart: new Date(request.body.periodStart), periodFinish: new Date(request.body.periodFinish) },
+    ));
+  });
+
+  server.post<{
+    Params: { entryId: string };
+    Body: { expectedVersion: number; decision: "accept" | "reject"; reason: string };
+  }>("/v1/project-cost-entries/:entryId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewCostEntry(
+      access.context, access.assignments, request.params.entryId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{
+    Params: { projectId: string };
+    Body: Omit<SubmitProjectProgressClaimInput, "periodStart" | "periodFinish"> & {
+      periodStart: string; periodFinish: string;
+    };
+  }>("/v1/projects/:projectId/progress-claims", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    return reply.code(201).send(await projectControls.submitProgressClaim(
+      access.context, access.assignments, request.params.projectId,
+      { ...request.body, periodStart: new Date(request.body.periodStart), periodFinish: new Date(request.body.periodFinish) },
+    ));
+  });
+
+  server.post<{
+    Params: { claimId: string };
+    Body: { expectedVersion: number; decision: "accept" | "reject"; reason: string };
+  }>("/v1/project-progress-claims/:claimId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewProgressClaim(
+      access.context, access.assignments, request.params.claimId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateProcurementRequisitionHttp }>(
+    "/v1/projects/:projectId/procurement-requisitions",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await projectControls.createProcurementRequisition(
+        access.context, access.assignments, request.params.projectId,
+        { ...request.body, items: request.body.items.map((item) => ({ ...item, needBy: new Date(item.needBy) })) },
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { requisitionId: string };
+    Body: { expectedVersion: number };
+  }>("/v1/procurement-requisitions/:requisitionId/submit", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.submitProcurementRequisition(
+      access.context, access.assignments, request.params.requisitionId, request.body.expectedVersion,
+    );
+  });
+
+  server.post<{
+    Params: { requisitionId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/procurement-requisitions/:requisitionId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewProcurementRequisition(
+      access.context, access.assignments, request.params.requisitionId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateProcurementBidPackageInput }>(
+    "/v1/projects/:projectId/procurement-bid-packages",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await projectControls.createProcurementBidPackage(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { bidPackageId: string };
+    Body: ProcurementOfferHttp & { expectedVersion: number };
+  }>("/v1/procurement-bid-packages/:bidPackageId/offers", async (request) => {
+    const access = await accessFor(request, dependencies);
+    const { expectedVersion, ...offer } = request.body;
+    return projectControls.recordProcurementOffer(
+      access.context, access.assignments, request.params.bidPackageId, expectedVersion,
+      { ...offer, validUntil: new Date(offer.validUntil), promisedDate: new Date(offer.promisedDate) },
+    );
+  });
+
+  server.post<{
+    Params: { bidPackageId: string };
+    Body: { expectedVersion: number; offerKey: string; reason: string };
+  }>("/v1/procurement-bid-packages/:bidPackageId/recommend", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.recommendProcurementOffer(
+      access.context, access.assignments, request.params.bidPackageId,
+      request.body.expectedVersion, request.body.offerKey, request.body.reason,
+    );
+  });
+
+  server.post<{ Params: { bidPackageId: string }; Body: AwardProcurementInput }>(
+    "/v1/procurement-bid-packages/:bidPackageId/award",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return projectControls.awardProcurementOffer(
+        access.context, access.assignments, request.params.bidPackageId, request.body,
+      );
+    },
+  );
+
+  server.post<{
+    Params: { commitmentId: string };
+    Body: Omit<RecordProcurementStatusInput, "promisedAt" | "forecastAt" | "actualAt"> & {
+      promisedAt: string | null; forecastAt: string | null; actualAt: string | null;
+    };
+  }>("/v1/procurement-commitments/:commitmentId/status-events", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.recordProcurementStatus(
+      access.context, access.assignments, request.params.commitmentId,
+      { ...request.body,
+        promisedAt: request.body.promisedAt ? new Date(request.body.promisedAt) : null,
+        forecastAt: request.body.forecastAt ? new Date(request.body.forecastAt) : null,
+        actualAt: request.body.actualAt ? new Date(request.body.actualAt) : null },
+    );
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateScheduleProgramInput }>(
+    "/v1/projects/:projectId/schedules",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await projectControls.createScheduleProgram(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { scheduleId: string };
+    Body: CreateScheduleRevisionHttp & { expectedScheduleVersion: number };
+  }>("/v1/schedules/:scheduleId/revisions", async (request, reply) => {
+    const access = await accessFor(request, dependencies);
+    const { expectedScheduleVersion, ...body } = request.body;
+    return reply.code(201).send(await projectControls.createScheduleRevision(
+      access.context, access.assignments, request.params.scheduleId, expectedScheduleVersion,
+      { ...body, dataDate: new Date(body.dataDate), activities: body.activities.map(scheduleActivityFromHttp) },
+    ));
+  });
+
+  server.post<{
+    Params: { revisionId: string };
+    Body: { expectedVersion: number };
+  }>("/v1/schedule-revisions/:revisionId/submit", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.submitScheduleRevision(
+      access.context, access.assignments, request.params.revisionId, request.body.expectedVersion,
+    );
+  });
+
+  server.post<{
+    Params: { revisionId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/schedule-revisions/:revisionId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.reviewScheduleRevision(
+      access.context, access.assignments, request.params.revisionId,
+      request.body.expectedVersion, request.body.decision, request.body.reason,
+    );
+  });
+
+  server.get<{
+    Params: { scheduleId: string };
+    Querystring: { windowDays: number };
+  }>("/v1/schedules/:scheduleId/look-ahead", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.scheduleLookAhead(
+      access.context, access.assignments, request.params.scheduleId, Number(request.query.windowDays),
+    );
+  });
+
+  server.post<{ Params: { scheduleId: string }; Body: PreviewScheduleImportHttp }>(
+    "/v1/schedules/:scheduleId/imports/preview",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await projectControls.previewScheduleImport(
+        access.context, access.assignments, request.params.scheduleId,
+        { ...request.body, dataDate: new Date(request.body.dataDate),
+          activities: request.body.activities.map(scheduleActivityFromHttp) },
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { importId: string };
+    Body: { expectedVersion: number };
+  }>("/v1/schedule-imports/:importId/commit", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return projectControls.commitScheduleImport(
+      access.context, access.assignments, request.params.importId, request.body.expectedVersion,
+    );
   });
 
   server.get("/v1/session", async (request) => {

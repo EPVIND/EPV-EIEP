@@ -992,6 +992,381 @@ export interface EstimateHandoffRecord {
   readonly createdBy: string;
 }
 
+export interface ProjectControlsAuthorityPolicyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly currency: string;
+  readonly revision: string;
+  readonly standardChangeApprovalLimit: string;
+  readonly standardProcurementAwardLimit: string;
+  readonly changeAboveThresholdQualification: string;
+  readonly procurementAboveThresholdQualification: string;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface ProjectControlBaselineLine {
+  readonly lineKey: string;
+  readonly sourceEstimateLineKey: string;
+  readonly sourceCategory: EstimateHandoffMapping["category"];
+  readonly costCode: string;
+  readonly wbsCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly controlAccountCode: string;
+  readonly responsibleOrganizationId: string;
+  readonly budgetQuantity: string;
+  readonly unitCode: string;
+  readonly budgetAmount: string;
+}
+
+export interface ProjectControlBaselineRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly sourceHandoffId: string;
+  readonly sourceHandoffSha256: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly parentBaselineId: string | null;
+  readonly revisionReason: string;
+  readonly currency: string;
+  readonly periodStart: Date;
+  readonly periodFinish: Date;
+  readonly lines: readonly ProjectControlBaselineLine[];
+  readonly sourceAwardAmount: string;
+  readonly approvedChangeAmount: string;
+  readonly managementReserveAmount: string;
+  readonly currentBudgetAmount: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "superseded";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ProjectChangeLineImpact {
+  readonly baselineLineKey: string;
+  readonly quantityDelta: string;
+  readonly amountDelta: string;
+  readonly reason: string;
+}
+
+export interface ProjectChangeRequestRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly number: string;
+  readonly title: string;
+  readonly origin: string;
+  readonly description: string;
+  readonly scheduleDaysImpact: string;
+  readonly quotationReference: string | null;
+  readonly evidenceFileIds: readonly string[];
+  readonly lineImpacts: readonly ProjectChangeLineImpact[];
+  readonly totalCostImpact: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "incorporated";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly resultingBaselineId: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type ProjectCostEntryType =
+  | "actual"
+  | "accrual"
+  | "forecast_remaining"
+  | "contingency_draw"
+  | "reserve_movement";
+
+export interface ProjectCostEntryRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly baselineLineKey: string | null;
+  readonly entryType: ProjectCostEntryType;
+  readonly amount: string;
+  readonly currency: string;
+  readonly periodStart: Date;
+  readonly periodFinish: Date;
+  readonly sourceType: string;
+  readonly sourceId: string;
+  readonly sourceSha256: string;
+  readonly description: string;
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface ProjectProgressClaimRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly baselineLineKey: string;
+  readonly periodStart: Date;
+  readonly periodFinish: Date;
+  readonly claimedQuantity: string;
+  readonly unitCode: string;
+  readonly claimedEarnedAmount: string;
+  readonly evidenceFileIds: readonly string[];
+  readonly fieldStatus: string;
+  readonly qualityAcceptanceState: "not_evaluated";
+  readonly invoiceApprovalState: "not_submitted";
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface ProcurementRequisitionItem {
+  readonly itemKey: string;
+  readonly baselineLineKey: string;
+  readonly itemType: "material" | "service" | "equipment" | "subcontract";
+  readonly description: string;
+  readonly specificationReference: string;
+  readonly governingDocumentRevisionIds: readonly string[];
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly needBy: Date;
+  readonly deliveryTerms: string;
+  readonly inspectionRequirements: readonly string[];
+  readonly documentRequirements: readonly string[];
+  readonly turnoverRequirements: readonly string[];
+  readonly costCode: string;
+  readonly workPackageCode: string | null;
+  readonly budgetAmount: string;
+}
+
+export interface ProcurementRequisitionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly number: string;
+  readonly title: string;
+  readonly items: readonly ProcurementRequisitionItem[];
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "issued";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ProcurementOffer {
+  readonly offerKey: string;
+  readonly vendorOrganizationId: string;
+  readonly quoteReference: string;
+  readonly sourceFileId: string;
+  readonly sourceSha256: string;
+  readonly currency: string;
+  readonly validUntil: Date;
+  readonly totalAmount: string;
+  readonly promisedDate: Date;
+  readonly inclusions: readonly string[];
+  readonly exclusions: readonly string[];
+  readonly clarifications: readonly string[];
+  readonly unresolvedItemKeys: readonly string[];
+  readonly receivedAt: Date;
+  readonly receivedBy: string;
+}
+
+export interface ProcurementBidPackageRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly requisitionId: string;
+  readonly number: string;
+  readonly bidderOrganizationIds: readonly string[];
+  readonly offers: readonly ProcurementOffer[];
+  readonly recommendedOfferKey: string | null;
+  readonly recommendationReason: string | null;
+  readonly recommendedAt: Date | null;
+  readonly recommendedBy: string | null;
+  readonly awardedOfferKey: string | null;
+  readonly awardReason: string | null;
+  readonly awardedAt: Date | null;
+  readonly awardedBy: string | null;
+  readonly state: "issued" | "comparison" | "recommended" | "awarded" | "cancelled";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ProcurementStatusEvent {
+  readonly id: string;
+  readonly eventType: "acknowledgement" | "submittal" | "fabrication_milestone" | "shipment" | "exception" | "receipt";
+  readonly status: string;
+  readonly promisedAt: Date | null;
+  readonly forecastAt: Date | null;
+  readonly actualAt: Date | null;
+  readonly sourceReference: string;
+  readonly evidenceFileIds: readonly string[];
+  readonly receivedMaterialItemIds: readonly string[];
+  readonly responsibleUserId: string;
+  readonly recordedAt: Date;
+  readonly recordedBy: string;
+}
+
+export interface ProcurementCommitmentRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly requisitionId: string;
+  readonly bidPackageId: string;
+  readonly offerKey: string;
+  readonly vendorOrganizationId: string;
+  readonly purchaseOrderReference: string;
+  readonly revision: string;
+  readonly amount: string;
+  readonly currency: string;
+  readonly statusEvents: readonly ProcurementStatusEvent[];
+  readonly state: "awarded" | "acknowledged" | "in_fabrication" | "shipped" | "partially_received" | "received" | "exception" | "closed";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ScheduleActivity {
+  readonly activityKey: string;
+  readonly displayId: string;
+  readonly name: string;
+  readonly activityType: "activity" | "milestone";
+  readonly calendarCode: string;
+  readonly wbsCode: string;
+  readonly workPackageCode: string | null;
+  readonly responsibleOrganizationId: string;
+  readonly completionBoundaryId: string | null;
+  readonly plannedStart: Date;
+  readonly plannedFinish: Date;
+  readonly actualStart: Date | null;
+  readonly actualFinish: Date | null;
+  readonly remainingDurationDays: string;
+  readonly quantity: string | null;
+  readonly unitCode: string | null;
+  readonly resourceCodes: readonly string[];
+  readonly constraintCodes: readonly string[];
+  readonly requiredDocumentRevisionIds: readonly string[];
+  readonly requiredMaterialItemIds: readonly string[];
+  readonly requiredInspectionIds: readonly string[];
+  readonly fieldClaimPercent: string;
+  readonly acceptedProgressPercent: string;
+  readonly sourceExternalId: string | null;
+}
+
+export interface ScheduleDependency {
+  readonly predecessorActivityKey: string;
+  readonly successorActivityKey: string;
+  readonly relationship: "FS" | "SS" | "FF" | "SF";
+  readonly lagDays: string;
+}
+
+export interface ScheduleProgramRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly name: string;
+  readonly timeZone: string;
+  readonly currentRevisionId: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ScheduleRevisionRecord {
+  readonly id: string;
+  readonly scheduleId: string;
+  readonly revision: string;
+  readonly revisionType: "baseline" | "update";
+  readonly parentRevisionId: string | null;
+  readonly sourceBaselineId: string;
+  readonly dataDate: Date;
+  readonly reason: string;
+  readonly sourceSystem: "manual" | "p6" | "microsoft_project";
+  readonly sourceVersion: string | null;
+  readonly sourceSha256: string | null;
+  readonly activities: readonly ScheduleActivity[];
+  readonly dependencies: readonly ScheduleDependency[];
+  readonly baselineVarianceDays: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "superseded";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+
+export interface ScheduleImportRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly scheduleId: string;
+  readonly idempotencyKey: string;
+  readonly sourceSystem: "p6" | "microsoft_project";
+  readonly sourceVersion: string;
+  readonly sourceFileId: string;
+  readonly sourceSha256: string;
+  readonly mappingVersion: string;
+  readonly targetRevision: string;
+  readonly targetRevisionType: "baseline" | "update";
+  readonly parentRevisionId: string | null;
+  readonly dataDate: Date;
+  readonly activities: readonly ScheduleActivity[];
+  readonly dependencies: readonly ScheduleDependency[];
+  readonly previewErrors: readonly string[];
+  readonly state: "previewed" | "invalid" | "committed";
+  readonly committedRevisionId: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly committedAt: Date | null;
+  readonly committedBy: string | null;
+}
+
 export type ProjectStructureType = "system" | "area" | "wbs" | "work_package";
 
 export interface ProjectStructureElementRecord {

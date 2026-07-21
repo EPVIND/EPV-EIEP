@@ -58,7 +58,21 @@ integration surface.
   migrations, owner-approved numbers/rates/productivity/authority limits and
   qualification assignments, customer proposal/PDF acceptance, deployed security,
   and pilot sign-off remain required.
-- Sequence 2 is the active implementation target. Sequences 3 and 4 remain pending.
+- Sequence 2 now has a locally verified domain/API/PostgreSQL controlled-pilot
+  implementation for cost/quantity baselines, changes, period ledger/EAC, progress,
+  requisitions, comparative bidding, thresholded award, commitments/expediting,
+  receiving linkage, schedule baseline/updates/look-ahead, and provider-neutral
+  P6/Microsoft Project preview/commit, plus a verified visible browser workspace.
+- Sequence 2 complete local verification passes 88 source tests, seven Chromium
+  tablet/accessibility workflows, 170 active secured `/v1` routes with 135 request
+  bodies, 86 controlled-requirement traceability checks, PostgreSQL 18 restart and
+  concurrency checks, and exact receiving-link denial/acceptance evidence.
+- Sequence 2 is not production authorized. Owner control structures, currencies,
+  thresholds, calendars, mapping fixtures, live provider/accounting/vendor
+  sandboxes, normalized production migrations, deployed validation, and pilot
+  sign-off remain required.
+- Sequence 3 is the active implementation target after the Sequence 2 controlled
+  increment is sealed. Sequence 4 remains pending.
 
 ## Controlled impact
 

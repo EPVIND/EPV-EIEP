@@ -34,6 +34,20 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-EST-009** A proposal shall freeze the exact approved revision, price, terms/references, validity, source hash, artifact manifest hash, and independent approval/issue history.
 - **FR-EST-010** Award handoff shall immutably map and reconcile the approved proposal revision into a same-organization project baseline without rewriting the estimate or proposal.
 
+## Project controls, procurement, and scheduling
+
+- **FR-PJC-001** Project controls shall establish independently approved, immutable, versioned cost and quantity baselines mapped to WBS, work packages, cost codes, control accounts, responsible organizations, and the exact awarded estimate handoff.
+- **FR-PJC-002** Commitments, approved changes, actuals/imports, accruals, progress, forecast, estimate-at-completion, variance, contingency draw, and management reserve shall remain distinguishable and traceable to source and period.
+- **FR-PJC-003** Change requests shall preserve origin, schedule/cost/quantity impact, affected baseline items, released evidence, quotation, thresholded independent approval, disposition, and resulting baseline revision; pending or rejected changes shall not alter the baseline.
+- **FR-PJC-004** Progress claims shall be quantity/evidence based, periodized, scoped, independently accepted, and explicitly separated from invoice/payment approval and quality acceptance.
+- **FR-PRC-001** Procurement shall manage requisition, bid package, bidders, clarifications, comparison, recommendation, thresholded independent award, purchase-order revision, commitment, and approval against exact estimate and project scope.
+- **FR-PRC-002** Purchase items shall retain material/service identity, specification and exact governing document revisions, quantity/unit, need date, delivery, inspection/document/turnover requirements, cost code, work package, budget, and receiving linkage.
+- **FR-PRC-003** Expediting shall preserve acknowledgements, submittals, fabrication milestones, promised/forecast/actual dates, shipment, exceptions, receipt, responsible follow-up, released evidence, and linked controlled receiving records without replacing vendor evidence.
+- **FR-SCH-001** Scheduling shall model time zone/calendar, WBS-linked stable activity identity, milestones, logic, constraints, resources/quantities, responsible organization, completion boundary, and schedule state without using display IDs as identity.
+- **FR-SCH-002** A schedule baseline shall be independently approved and immutable; updates shall retain data date, actuals, remaining duration, forecast, logic changes, reasons, source/import identifiers, and baseline variance.
+- **FR-SCH-003** Look-aheads shall derive from the current approved schedule update, expose constraints and required documents/materials/inspections, and keep field claim progress distinct from accepted progress.
+- **FR-SCH-004** P6 and Microsoft Project exchange shall use released exact source files, versioned mappings, preview validation, stable external IDs, idempotent commit, conflict/reconciliation, and independent schedule approval.
+
 ## Documents
 
 - **FR-DOC-001** The system shall register a controlled document with number, title, type, discipline, revision, status, source, and project applicability.

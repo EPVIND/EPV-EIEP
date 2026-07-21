@@ -240,6 +240,92 @@ test("FR-EST-001-010, NFR-USE-001-003 / AC-02-03, AC-09-11: estimating workspace
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-PJC-001-004, FR-PRC-001-003, FR-SCH-001-004, NFR-USE-001-003 / AC-02-03, AC-12: project controls expose cost, procurement, and schedule evidence at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "controls-reader");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "step-up");
+  });
+  const baseline = { id: "baseline-1", sourceHandoffId: "handoff-1", number: "CB-001", revision: "1",
+    revisionReason: "Incorporate CR-001", currency: "USD", currentBudgetAmount: "1400.00",
+    managementReserveAmount: "100.00", state: "approved", version: 3, lines: [{ lineKey: "PIPE-001",
+      sourceEstimateLineKey: "PIPE-001", costCode: "PIPING", wbsCode: "WBS-PIPING", workPackageCode: "WP-PIPING",
+      controlAccountCode: "CA-PIPING", budgetQuantity: "12", unitCode: "EA", budgetAmount: "1200.00" }] };
+  const snapshot = {
+    baselines: [baseline], changes: [{ id: "change-1", number: "CR-001", title: "Additional piping",
+      origin: "Owner request", totalCostImpact: "200.00", scheduleDaysImpact: "3", state: "incorporated", version: 3 }],
+    costEntries: [{ id: "cost-1", entryType: "actual", amount: "300.00", currency: "USD",
+      periodStart: "2026-07-01T00:00:00.000Z", sourceId: "ACTUAL-2026-07", state: "accepted", version: 2 }],
+    progressClaims: [{ id: "progress-1", baselineLineKey: "PIPE-001", claimedQuantity: "5",
+      claimedEarnedAmount: "500.00", qualityAcceptanceState: "not_evaluated", invoiceApprovalState: "not_submitted",
+      state: "accepted", version: 2 }],
+    requisitions: [{ id: "req-1", number: "REQ-001", title: "Piping materials and services", state: "approved", version: 3,
+      items: [{ itemKey: "ITEM-001", description: "Controlled pipe item", quantity: "5", unitCode: "EA",
+        needBy: "2026-09-01T00:00:00.000Z", specificationReference: "SPEC-100 REV 0",
+        governingDocumentRevisionIds: ["revision-controls"] }] }],
+    bidPackages: [{ id: "bid-1", number: "BID-001", state: "awarded", version: 5,
+      recommendedOfferKey: "OFFER-A", awardedOfferKey: "OFFER-A", offers: [
+        { offerKey: "OFFER-A", vendorOrganizationId: "vendor-a", totalAmount: "850.00", currency: "USD",
+          validUntil: "2026-08-31T00:00:00.000Z", unresolvedItemKeys: [], sourceSha256: "a".repeat(64) },
+        { offerKey: "OFFER-B", vendorOrganizationId: "vendor-b", totalAmount: "820.00", currency: "USD",
+          validUntil: "2026-08-31T00:00:00.000Z", unresolvedItemKeys: ["ITEM-001"], sourceSha256: "b".repeat(64) },
+      ] }],
+    commitments: [{ id: "commitment-1", purchaseOrderReference: "PO-001", revision: "0", vendorOrganizationId: "vendor-a",
+      amount: "850.00", currency: "USD", state: "received", version: 3, statusEvents: [{ eventType: "receipt",
+        status: "Linked controlled receiving record.", sourceReference: "REC-001" }] }],
+    schedules: [{ id: "schedule-1", number: "SCH-001", name: "Project control schedule", timeZone: "America/Denver",
+      currentRevisionId: "schedule-update-2", version: 4 }],
+    scheduleRevisions: [{ id: "schedule-update-2", scheduleId: "schedule-1", revision: "U2", revisionType: "update",
+      dataDate: "2026-08-04T00:00:00.000Z", baselineVarianceDays: "3", sourceSystem: "p6", state: "approved", version: 3,
+      activities: [{ activityKey: "A200", name: "Activity A200", plannedStart: "2026-08-03T00:00:00.000Z",
+        plannedFinish: "2026-08-13T00:00:00.000Z", fieldClaimPercent: "15", acceptedProgressPercent: "10",
+        constraintCodes: ["MATERIAL-DELIVERY"] }] }],
+    scheduleImports: [{ id: "import-1", sourceSystem: "p6", sourceVersion: "P6-24.12", mappingVersion: "P6-MAP-1",
+      targetRevision: "U2", state: "committed", previewErrors: [], version: 2 }],
+  };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname;
+    const respond = async (json: unknown, status = 200) => route.fulfill({ status, headers: corsHeaders, json });
+    if (path === "/health") return respond({ status: "ok", environment: "test", training: false, productionReady: false, blockers: ["external_pilot_approval"] });
+    if (path === "/v1/session") return respond({ userId: "controls-reader", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 12, environment: "test", training: false });
+    if (path === "/v1/projects") return respond([{ id: "project-1", number: "PJC-001", name: "Project controls pilot",
+      customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/controls") return respond(snapshot);
+    if (path === "/v1/projects/project-1/cost-summary") return respond({ currency: "USD", currentBudget: "1400.00",
+      commitments: "850.00", actuals: "300.00", accruals: "100.00", acceptedProgress: "500.00",
+      forecastRemaining: "500.00", estimateAtCompletion: "900.00", varianceAtCompletion: "500.00",
+      contingencyDraws: "0.00", reserveMovements: "0.00" });
+    if (path === "/v1/project-controls-authority-policies") return respond([{ id: "policy-1", currency: "USD", revision: "1",
+      standardChangeApprovalLimit: "100.00", standardProcurementAwardLimit: "800.00", state: "active" }]);
+    if (path === "/v1/schedules/schedule-1/look-ahead") return respond([{ activity: snapshot.scheduleRevisions[0]!.activities[0]!, blockers: ["MATERIAL-DELIVERY"] }]);
+    return respond({ error: "not_found" }, 404);
+  });
+
+  await page.setViewportSize({ width: 900, height: 1100 });
+  await page.goto("/");
+  await page.getByRole("link", { name: /Project Controls/u }).click();
+  await expect(page.getByRole("heading", { name: "Controls, procurement & schedule — PJC-001" })).toBeVisible();
+  await expect(page.getByText("USD 1400.00", { exact: true })).toBeVisible();
+  await expect(page.getByText("Quality not_evaluated · invoice not_submitted")).toBeVisible();
+  await expect(page.getByText("Change limit 100.00 · procurement award limit 800.00")).toBeVisible();
+
+  await page.getByRole("link", { name: /Procurement/u }).click();
+  await expect(page.getByRole("strong").filter({ hasText: "REQ-001 · Piping materials and services" })).toBeVisible();
+  await expect(page.getByText("Complete mapped scope")).toBeVisible();
+  await expect(page.getByText("Scope gaps: ITEM-001")).toBeVisible();
+  await expect(page.getByText("PO-001 · revision 0")).toBeVisible();
+
+  await page.getByRole("link", { name: /Scheduling/u }).click();
+  await expect(page.getByText("U2 · update")).toBeVisible();
+  await expect(page.getByText("p6 P6-24.12 → U2")).toBeVisible();
+  await page.getByRole("button", { name: "30-day look-ahead" }).click();
+  await expect(page.getByText("A200 · Activity A200")).toBeVisible();
+  await expect(page.getByText("MATERIAL-DELIVERY", { exact: true })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001, FR-TOV-001-004 / AC-03-09: guided internal workflow reaches an immutable turnover version", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "chain-controller");

@@ -64,6 +64,33 @@ This is a conceptual model. Physical names and persistence choices require ADR r
   project by direct/contingency/escalation/markup/tax categories and requires an
   exact zero-difference reconciliation. The source estimate is never rewritten.
 
+## Project controls, procurement, and scheduling
+
+- `ProjectControlBaseline` freezes the exact awarded handoff, period, currency,
+  management reserve, and mapped cost/quantity lines. An approved change produces a
+  parent-linked successor; approved and superseded revisions remain immutable.
+- `ProjectChangeRequest` preserves origin, released evidence, quotation reference,
+  schedule impact, and exact quantity/amount changes before thresholded independent
+  approval and baseline incorporation.
+- `ProjectCostEntry` is a period/source/hash-attributed actual, accrual, remaining
+  forecast, contingency draw, or reserve movement. `ProjectProgressClaim` records
+  quantity/evidence and earned amount while quality and invoice states remain
+  explicitly outside the claim.
+- `ProjectControlsAuthorityPolicyRevision` holds active currency-specific change and
+  procurement thresholds plus separately assigned elevated qualifications.
+- `ProcurementRequisition` and its items bind exact baseline, governing document
+  revisions, specification, quantity/unit, need date, requirements, budget, cost
+  code, and work package. `ProcurementBidPackage` preserves comparative vendor
+  source files/hashes, gaps, recommendation, and award. `ProcurementCommitment`
+  freezes PO/contract revision and retains append-only expediting events, including
+  exact controlled material-item links at receipt.
+- `ScheduleProgram` owns `ScheduleRevision` history. Revisions freeze stable activity
+  keys, display IDs, calendar, WBS/work package, logic, resources, quantities,
+  constraints, completion boundaries, document/material/inspection prerequisites,
+  field claims, accepted progress, source, and variance. `ScheduleImport` preserves
+  released source file/hash, provider/mapping version, idempotency, preview errors,
+  and committed draft revision.
+
 ## Inspection and equipment
 
 - `InspectionPlan` and `InspectionPlanRevision` define versioned stages, required fields, hold/witness/review points, acceptance references, and roles.
@@ -124,7 +151,10 @@ Do not force discipline-specific attributes into one wide nullable table. Use st
   hash-mismatched file; no submitted estimate-line mutation; no award handoff with a
   nonzero reconciliation difference; no above-limit estimating decision without the
   active policy's exact elevated qualification; no proposal download after artifact
-  content/hash divergence.
+  content/hash divergence; no pending/rejected change altering an approved baseline;
+  no accepted progress above baseline quantity; no procurement receipt without a
+  same-project controlled material item; no cyclic schedule logic, duplicate import
+  external ID, or imported revision bypassing independent approval.
 
 The physical review schema currently advances through reversible migration
 `0014_pmi_ncr_execution_detail`, which makes PMI component location/notes and NCR

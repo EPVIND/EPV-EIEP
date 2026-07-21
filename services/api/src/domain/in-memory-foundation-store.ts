@@ -19,6 +19,17 @@ import type {
   EstimateQuoteRecord,
   EstimateRecord,
   EstimateRevisionRecord,
+  ProcurementBidPackageRecord,
+  ProcurementCommitmentRecord,
+  ProcurementRequisitionRecord,
+  ProjectChangeRequestRecord,
+  ProjectControlBaselineRecord,
+  ProjectControlsAuthorityPolicyRevisionRecord,
+  ProjectCostEntryRecord,
+  ProjectProgressClaimRecord,
+  ScheduleImportRecord,
+  ScheduleProgramRecord,
+  ScheduleRevisionRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -123,6 +134,17 @@ export interface MemoryState {
   estimateQuotes: Map<string, EstimateQuoteRecord>;
   estimateProposals: Map<string, EstimateProposalRecord>;
   estimateHandoffs: Map<string, EstimateHandoffRecord>;
+  projectControlsAuthorityPolicies: Map<string, ProjectControlsAuthorityPolicyRevisionRecord>;
+  projectControlBaselines: Map<string, ProjectControlBaselineRecord>;
+  projectChangeRequests: Map<string, ProjectChangeRequestRecord>;
+  projectCostEntries: Map<string, ProjectCostEntryRecord>;
+  projectProgressClaims: Map<string, ProjectProgressClaimRecord>;
+  procurementRequisitions: Map<string, ProcurementRequisitionRecord>;
+  procurementBidPackages: Map<string, ProcurementBidPackageRecord>;
+  procurementCommitments: Map<string, ProcurementCommitmentRecord>;
+  schedulePrograms: Map<string, ScheduleProgramRecord>;
+  scheduleRevisions: Map<string, ScheduleRevisionRecord>;
+  scheduleImports: Map<string, ScheduleImportRecord>;
   audits: AuditEvent[];
 }
 
@@ -514,6 +536,319 @@ class MemoryTransaction implements FoundationTransaction {
       throw new ConflictError();
     }
     this.state.estimateHandoffs.set(handoff.id, cloneValue(handoff));
+  }
+
+  public projectControlsAuthorityPolicyById(id: string): ProjectControlsAuthorityPolicyRevisionRecord | null {
+    const policy = this.state.projectControlsAuthorityPolicies.get(id);
+    return policy ? cloneValue(policy) : null;
+  }
+
+  public projectControlsAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): ProjectControlsAuthorityPolicyRevisionRecord | null {
+    const policy = [...this.state.projectControlsAuthorityPolicies.values()].find((candidate) =>
+      candidate.businessScopeOrganizationId === organizationId && candidate.currency === currency
+      && candidate.revision === revision);
+    return policy ? cloneValue(policy) : null;
+  }
+
+  public projectControlsAuthorityPolicies(
+    organizationId: string, currency?: string,
+  ): readonly ProjectControlsAuthorityPolicyRevisionRecord[] {
+    return cloneValue([...this.state.projectControlsAuthorityPolicies.values()]
+      .filter((policy) => policy.businessScopeOrganizationId === organizationId
+        && (!currency || policy.currency === currency))
+      .sort((left, right) => left.currency.localeCompare(right.currency)
+        || left.proposedAt.getTime() - right.proposedAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectControlsAuthorityPolicy(policy: ProjectControlsAuthorityPolicyRevisionRecord): void {
+    if (this.state.projectControlsAuthorityPolicies.has(policy.id)
+      || this.projectControlsAuthorityPolicyByRevision(
+        policy.businessScopeOrganizationId, policy.currency, policy.revision,
+      )) throw new ConflictError();
+    this.state.projectControlsAuthorityPolicies.set(policy.id, cloneValue(policy));
+  }
+
+  public updateProjectControlsAuthorityPolicy(
+    policy: ProjectControlsAuthorityPolicyRevisionRecord, expectedVersion: number,
+  ): void {
+    const current = this.state.projectControlsAuthorityPolicies.get(policy.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectControlsAuthorityPolicies.set(policy.id, cloneValue(policy));
+  }
+
+  public projectControlBaselineById(id: string): ProjectControlBaselineRecord | null {
+    const baseline = this.state.projectControlBaselines.get(id);
+    return baseline ? cloneValue(baseline) : null;
+  }
+
+  public projectControlBaselineByRevision(
+    projectId: string, number: string, revision: string,
+  ): ProjectControlBaselineRecord | null {
+    const baseline = [...this.state.projectControlBaselines.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number && candidate.revision === revision);
+    return baseline ? cloneValue(baseline) : null;
+  }
+
+  public projectControlBaselines(projectId: string): readonly ProjectControlBaselineRecord[] {
+    return cloneValue([...this.state.projectControlBaselines.values()]
+      .filter((baseline) => baseline.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectControlBaseline(baseline: ProjectControlBaselineRecord): void {
+    if (this.state.projectControlBaselines.has(baseline.id)
+      || this.projectControlBaselineByRevision(baseline.projectId, baseline.number, baseline.revision)) {
+      throw new ConflictError();
+    }
+    this.state.projectControlBaselines.set(baseline.id, cloneValue(baseline));
+  }
+
+  public updateProjectControlBaseline(baseline: ProjectControlBaselineRecord, expectedVersion: number): void {
+    const current = this.state.projectControlBaselines.get(baseline.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectControlBaselines.set(baseline.id, cloneValue(baseline));
+  }
+
+  public projectChangeRequestById(id: string): ProjectChangeRequestRecord | null {
+    const change = this.state.projectChangeRequests.get(id);
+    return change ? cloneValue(change) : null;
+  }
+
+  public projectChangeRequestByNumber(projectId: string, number: string): ProjectChangeRequestRecord | null {
+    const change = [...this.state.projectChangeRequests.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return change ? cloneValue(change) : null;
+  }
+
+  public projectChangeRequests(projectId: string): readonly ProjectChangeRequestRecord[] {
+    return cloneValue([...this.state.projectChangeRequests.values()]
+      .filter((change) => change.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertProjectChangeRequest(change: ProjectChangeRequestRecord): void {
+    if (this.state.projectChangeRequests.has(change.id)
+      || this.projectChangeRequestByNumber(change.projectId, change.number)) throw new ConflictError();
+    this.state.projectChangeRequests.set(change.id, cloneValue(change));
+  }
+
+  public updateProjectChangeRequest(change: ProjectChangeRequestRecord, expectedVersion: number): void {
+    const current = this.state.projectChangeRequests.get(change.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectChangeRequests.set(change.id, cloneValue(change));
+  }
+
+  public projectCostEntryById(id: string): ProjectCostEntryRecord | null {
+    const entry = this.state.projectCostEntries.get(id);
+    return entry ? cloneValue(entry) : null;
+  }
+
+  public projectCostEntries(projectId: string): readonly ProjectCostEntryRecord[] {
+    return cloneValue([...this.state.projectCostEntries.values()]
+      .filter((entry) => entry.projectId === projectId)
+      .sort((left, right) => left.periodStart.getTime() - right.periodStart.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectCostEntry(entry: ProjectCostEntryRecord): void {
+    if (this.state.projectCostEntries.has(entry.id)) throw new ConflictError();
+    this.state.projectCostEntries.set(entry.id, cloneValue(entry));
+  }
+
+  public updateProjectCostEntry(entry: ProjectCostEntryRecord, expectedVersion: number): void {
+    const current = this.state.projectCostEntries.get(entry.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectCostEntries.set(entry.id, cloneValue(entry));
+  }
+
+  public projectProgressClaimById(id: string): ProjectProgressClaimRecord | null {
+    const claim = this.state.projectProgressClaims.get(id);
+    return claim ? cloneValue(claim) : null;
+  }
+
+  public projectProgressClaims(projectId: string): readonly ProjectProgressClaimRecord[] {
+    return cloneValue([...this.state.projectProgressClaims.values()]
+      .filter((claim) => claim.projectId === projectId)
+      .sort((left, right) => left.periodStart.getTime() - right.periodStart.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectProgressClaim(claim: ProjectProgressClaimRecord): void {
+    if (this.state.projectProgressClaims.has(claim.id)) throw new ConflictError();
+    this.state.projectProgressClaims.set(claim.id, cloneValue(claim));
+  }
+
+  public updateProjectProgressClaim(claim: ProjectProgressClaimRecord, expectedVersion: number): void {
+    const current = this.state.projectProgressClaims.get(claim.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectProgressClaims.set(claim.id, cloneValue(claim));
+  }
+
+  public procurementRequisitionById(id: string): ProcurementRequisitionRecord | null {
+    const requisition = this.state.procurementRequisitions.get(id);
+    return requisition ? cloneValue(requisition) : null;
+  }
+
+  public procurementRequisitionByNumber(projectId: string, number: string): ProcurementRequisitionRecord | null {
+    const requisition = [...this.state.procurementRequisitions.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return requisition ? cloneValue(requisition) : null;
+  }
+
+  public procurementRequisitions(projectId: string): readonly ProcurementRequisitionRecord[] {
+    return cloneValue([...this.state.procurementRequisitions.values()]
+      .filter((requisition) => requisition.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertProcurementRequisition(requisition: ProcurementRequisitionRecord): void {
+    if (this.state.procurementRequisitions.has(requisition.id)
+      || this.procurementRequisitionByNumber(requisition.projectId, requisition.number)) throw new ConflictError();
+    this.state.procurementRequisitions.set(requisition.id, cloneValue(requisition));
+  }
+
+  public updateProcurementRequisition(requisition: ProcurementRequisitionRecord, expectedVersion: number): void {
+    const current = this.state.procurementRequisitions.get(requisition.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.procurementRequisitions.set(requisition.id, cloneValue(requisition));
+  }
+
+  public procurementBidPackageById(id: string): ProcurementBidPackageRecord | null {
+    const bidPackage = this.state.procurementBidPackages.get(id);
+    return bidPackage ? cloneValue(bidPackage) : null;
+  }
+
+  public procurementBidPackageByNumber(projectId: string, number: string): ProcurementBidPackageRecord | null {
+    const bidPackage = [...this.state.procurementBidPackages.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return bidPackage ? cloneValue(bidPackage) : null;
+  }
+
+  public procurementBidPackages(projectId: string): readonly ProcurementBidPackageRecord[] {
+    return cloneValue([...this.state.procurementBidPackages.values()]
+      .filter((bidPackage) => bidPackage.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertProcurementBidPackage(bidPackage: ProcurementBidPackageRecord): void {
+    if (this.state.procurementBidPackages.has(bidPackage.id)
+      || this.procurementBidPackageByNumber(bidPackage.projectId, bidPackage.number)) throw new ConflictError();
+    this.state.procurementBidPackages.set(bidPackage.id, cloneValue(bidPackage));
+  }
+
+  public updateProcurementBidPackage(bidPackage: ProcurementBidPackageRecord, expectedVersion: number): void {
+    const current = this.state.procurementBidPackages.get(bidPackage.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.procurementBidPackages.set(bidPackage.id, cloneValue(bidPackage));
+  }
+
+  public procurementCommitmentById(id: string): ProcurementCommitmentRecord | null {
+    const commitment = this.state.procurementCommitments.get(id);
+    return commitment ? cloneValue(commitment) : null;
+  }
+
+  public procurementCommitments(projectId: string): readonly ProcurementCommitmentRecord[] {
+    return cloneValue([...this.state.procurementCommitments.values()]
+      .filter((commitment) => commitment.projectId === projectId)
+      .sort((left, right) => left.purchaseOrderReference.localeCompare(right.purchaseOrderReference)));
+  }
+
+  public insertProcurementCommitment(commitment: ProcurementCommitmentRecord): void {
+    if (this.state.procurementCommitments.has(commitment.id)) throw new ConflictError();
+    this.state.procurementCommitments.set(commitment.id, cloneValue(commitment));
+  }
+
+  public updateProcurementCommitment(commitment: ProcurementCommitmentRecord, expectedVersion: number): void {
+    const current = this.state.procurementCommitments.get(commitment.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.procurementCommitments.set(commitment.id, cloneValue(commitment));
+  }
+
+  public scheduleProgramById(id: string): ScheduleProgramRecord | null {
+    const schedule = this.state.schedulePrograms.get(id);
+    return schedule ? cloneValue(schedule) : null;
+  }
+
+  public scheduleProgramByNumber(projectId: string, number: string): ScheduleProgramRecord | null {
+    const schedule = [...this.state.schedulePrograms.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return schedule ? cloneValue(schedule) : null;
+  }
+
+  public schedulePrograms(projectId: string): readonly ScheduleProgramRecord[] {
+    return cloneValue([...this.state.schedulePrograms.values()]
+      .filter((schedule) => schedule.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertScheduleProgram(schedule: ScheduleProgramRecord): void {
+    if (this.state.schedulePrograms.has(schedule.id)
+      || this.scheduleProgramByNumber(schedule.projectId, schedule.number)) throw new ConflictError();
+    this.state.schedulePrograms.set(schedule.id, cloneValue(schedule));
+  }
+
+  public updateScheduleProgram(schedule: ScheduleProgramRecord, expectedVersion: number): void {
+    const current = this.state.schedulePrograms.get(schedule.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.schedulePrograms.set(schedule.id, cloneValue(schedule));
+  }
+
+  public scheduleRevisionById(id: string): ScheduleRevisionRecord | null {
+    const revision = this.state.scheduleRevisions.get(id);
+    return revision ? cloneValue(revision) : null;
+  }
+
+  public scheduleRevisionByName(scheduleId: string, revision: string): ScheduleRevisionRecord | null {
+    const record = [...this.state.scheduleRevisions.values()].find((candidate) =>
+      candidate.scheduleId === scheduleId && candidate.revision === revision);
+    return record ? cloneValue(record) : null;
+  }
+
+  public scheduleRevisions(scheduleId: string): readonly ScheduleRevisionRecord[] {
+    return cloneValue([...this.state.scheduleRevisions.values()]
+      .filter((revision) => revision.scheduleId === scheduleId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertScheduleRevision(revision: ScheduleRevisionRecord): void {
+    if (this.state.scheduleRevisions.has(revision.id)
+      || this.scheduleRevisionByName(revision.scheduleId, revision.revision)) throw new ConflictError();
+    this.state.scheduleRevisions.set(revision.id, cloneValue(revision));
+  }
+
+  public updateScheduleRevision(revision: ScheduleRevisionRecord, expectedVersion: number): void {
+    const current = this.state.scheduleRevisions.get(revision.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.scheduleRevisions.set(revision.id, cloneValue(revision));
+  }
+
+  public scheduleImportById(id: string): ScheduleImportRecord | null {
+    const scheduleImport = this.state.scheduleImports.get(id);
+    return scheduleImport ? cloneValue(scheduleImport) : null;
+  }
+
+  public scheduleImportByKey(projectId: string, idempotencyKey: string): ScheduleImportRecord | null {
+    const scheduleImport = [...this.state.scheduleImports.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.idempotencyKey === idempotencyKey);
+    return scheduleImport ? cloneValue(scheduleImport) : null;
+  }
+
+  public scheduleImports(projectId: string): readonly ScheduleImportRecord[] {
+    return cloneValue([...this.state.scheduleImports.values()]
+      .filter((scheduleImport) => scheduleImport.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertScheduleImport(scheduleImport: ScheduleImportRecord): void {
+    if (this.state.scheduleImports.has(scheduleImport.id)
+      || this.scheduleImportByKey(scheduleImport.projectId, scheduleImport.idempotencyKey)) throw new ConflictError();
+    this.state.scheduleImports.set(scheduleImport.id, cloneValue(scheduleImport));
+  }
+
+  public updateScheduleImport(scheduleImport: ScheduleImportRecord, expectedVersion: number): void {
+    const current = this.state.scheduleImports.get(scheduleImport.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.scheduleImports.set(scheduleImport.id, cloneValue(scheduleImport));
   }
 
   public projectById(id: string): ProjectRecord | null {
@@ -1558,6 +1893,17 @@ export function createEmptyMemoryState(): MemoryState {
     estimateQuotes: new Map(),
     estimateProposals: new Map(),
     estimateHandoffs: new Map(),
+    projectControlsAuthorityPolicies: new Map(),
+    projectControlBaselines: new Map(),
+    projectChangeRequests: new Map(),
+    projectCostEntries: new Map(),
+    projectProgressClaims: new Map(),
+    procurementRequisitions: new Map(),
+    procurementBidPackages: new Map(),
+    procurementCommitments: new Map(),
+    schedulePrograms: new Map(),
+    scheduleRevisions: new Map(),
+    scheduleImports: new Map(),
     audits: [],
   };
 }

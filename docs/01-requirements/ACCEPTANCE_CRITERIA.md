@@ -68,6 +68,14 @@
 - Quote comparison preserves scope gaps, qualifications, source identity/hash, validity, and independently justified selection rather than implying lowest price is equivalent scope.
 - An independently approved/issued proposal freezes source and artifact hashes; award handoff reconciles exact direct and adjustment categories to a same-scope project without mutating the source.
 
+## AC-12 Project controls, procurement, and scheduling
+
+- An awarded estimate handoff produces an exact, independently approved project cost/quantity baseline; an approved change produces a successor without rewriting either source.
+- Period actuals, accruals, forecast, accepted earned progress, commitments, EAC, variance, contingency, and reserve remain distinct and reproducible, while progress does not imply quality or invoice acceptance.
+- Requisition, comparative offers, independent recommendation, thresholded award, PO revision, expediting, released source evidence, and controlled receiving linkage remain attributable and version checked.
+- An independently approved schedule baseline and at least two updates retain logic, actual/claim/accepted progress, constraints, source identifiers, and baseline variance; look-ahead is derived from the current approved revision.
+- P6 and Microsoft Project fixtures preview duplicate/conflict/mapping failures, commit exact retries idempotently, and cannot bypass independent schedule approval. Live provider credentials and sandbox acceptance remain production gates.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.
