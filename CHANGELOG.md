@@ -60,6 +60,11 @@ All notable controlled changes to the EIEP program definition and implementation
 - Added process-only `/livez` and dependency-backed `/readyz` probes plus dynamic,
   HTTPS-only browser API configuration, SPA/static security headers, source-map
   exclusion, and hosted container build/smoke evidence generation.
+- Clean hosted verification run `29865776583` built and smoke-tested the four Linux
+  production targets at `82aa645`, including the Chromium-equipped worker, then
+  passed PostgreSQL 18, tablet/axe, dependency-audit, and retained-evidence gates.
+  Registry promotion, scanning/signing, Azure deployment, and owner authorization
+  remain separate external controls.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 
