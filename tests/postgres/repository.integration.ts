@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  bootstrapInitialApplicationAdministrators,
   ConflictError,
   FoundationService,
   PlatformService,
@@ -19,6 +20,36 @@ try {
   assert.equal(initialHealth.schemaMigration, "0014_pmi_ncr_execution_detail.up.sql");
   assert.equal(initialHealth.repositoryRevision, 1);
   assert.equal(initialHealth.repositoryEntityCount, 0);
+  const bootstrapInput = {
+    authorizationReference: "CAB-2026-0042 / PostgreSQL bootstrap verification",
+    requesterAuthorityId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    approverAuthorityId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    businessScopeOrganizationId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    issuer: "https://identity.example.test/tenant/v2.0",
+    authorizedAt: new Date("2026-07-21T11:00:00.000Z"),
+    effectiveFrom: new Date("2026-07-21T11:30:00.000Z"),
+    effectiveTo: new Date("2026-10-19T12:00:00.000Z"),
+    administrators: [
+      {
+        userAccountId: "11111111-1111-4111-8111-111111111111",
+        personId: "22222222-2222-4222-8222-222222222222",
+        displayName: "PostgreSQL bootstrap administrator one",
+        externalIdentityId: "33333333-3333-4333-8333-333333333333",
+        subject: "postgres-entra-object-id-one",
+        accessAssignmentId: "44444444-4444-4444-8444-444444444444",
+      },
+      {
+        userAccountId: "55555555-5555-4555-8555-555555555555",
+        personId: "66666666-6666-4666-8666-666666666666",
+        displayName: "PostgreSQL bootstrap administrator two",
+        externalIdentityId: "77777777-7777-4777-8777-777777777777",
+        subject: "postgres-entra-object-id-two",
+        accessAssignmentId: "88888888-8888-4888-8888-888888888888",
+      },
+    ],
+  } as const;
+  assert.equal((await bootstrapInitialApplicationAdministrators(store, bootstrapInput, () => now)).status, "created");
+  assert.equal((await bootstrapInitialApplicationAdministrators(store, bootstrapInput, () => now)).status, "verified");
   const foundation = new FoundationService(store, () => now, ids);
   const project = await foundation.createProject(
     context("postgres-project-creator"),
@@ -82,6 +113,7 @@ try {
 
   store = await PostgresFoundationStore.connect(connectionString);
   const persisted = await store.transaction((transaction) => ({
+    applicationIdentityBootstrap: transaction.applicationIdentityBootstrapState(),
     project: transaction.projectById(project.id),
     audits: transaction.auditForProject(project.id),
     exportJob: transaction.exportJobById(queuedExport.id),
@@ -90,6 +122,12 @@ try {
     movements: transaction.materialMovementsForItem("postgres-material"),
     controlledReport: transaction.controlledReportById(persistentReport.id),
   }));
+  assert.equal(persisted.applicationIdentityBootstrap.identityAccounts.length, 2);
+  assert.equal(persisted.applicationIdentityBootstrap.externalIdentities.length, 2);
+  assert.equal(persisted.applicationIdentityBootstrap.managedAccessAssignments.length, 2);
+  assert.equal(persisted.applicationIdentityBootstrap.audits.filter(
+    (event) => event.action === "identity.bootstrap_completed",
+  ).length, 1);
   assert.equal(persisted.project?.number, "PG-001");
   assert.ok(persisted.project?.createdAt instanceof Date);
   assert.ok(persisted.audits.some((event) => event.action === "project.created"));

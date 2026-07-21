@@ -16,6 +16,9 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   const apiPackage = JSON.parse(await readFile(join(process.cwd(), "services", "api", "package.json"), "utf8"));
   const databaseConnection = await readFile(join(process.cwd(), "packages", "database", "connection.mjs"), "utf8");
   const databaseBootstrap = await readFile(join(process.cwd(), "packages", "database", "bootstrap-azure-identities.mjs"), "utf8");
+  const applicationIdentityBootstrap = await readFile(
+    join(process.cwd(), "services", "api", "src", "bootstrap-application-administrators.ts"), "utf8",
+  );
   const azureBlobStorage = await readFile(join(process.cwd(), "services", "document-processing", "src", "azure-blob-object-storage.ts"), "utf8");
   const appRuntime = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "app-runtime.bicep"), "utf8");
   const alerts = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "alerts.bicep"), "utf8");
@@ -26,6 +29,8 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   const keyVault = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "key-vault.bicep"), "utf8");
   const postgresql = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "postgresql.bicep"), "utf8");
   const traceabilityCheck = await readFile(join(process.cwd(), "scripts", "check-traceability.mjs"), "utf8");
+  const routeSchemaGenerator = await readFile(join(process.cwd(), "scripts", "generate-route-schemas.ts"), "utf8");
+  const postgresVerification = await readFile(join(process.cwd(), "scripts", "verify-postgres-foundation.mjs"), "utf8");
   assert.equal(packageJson.packageManager, "pnpm@11.9.0");
   assert.equal(packageJson.engines.node, ">=24 <25");
   for (const script of ["verify", "build", "runtime:verify", "database:verify", "infrastructure:verify", "sbom:generate"]) {
@@ -49,6 +54,11 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   assert.match(toolchain.linuxX64Sha256, /^[0-9a-f]{64}$/u);
   assert.equal(jobWorkerPackage.scripts.start, "node dist/main.js");
   assert.equal(apiPackage.scripts.dev, "tsx watch --conditions=development src/main.ts");
+  assert.equal(apiPackage.scripts["bootstrap:application-identities"], "node dist/bootstrap-application-administrators.js");
+  assert.equal(
+    packageJson.scripts["database:bootstrap-application-identities"],
+    "pnpm --filter @eiep/api bootstrap:application-identities",
+  );
   assert.equal(jobWorkerPackage.dependencies.playwright, "1.61.1");
   assert.equal(apiPackage.exports["."].default, "./dist/index.js");
   assert.equal(jobWorkerPackage.exports["."].default, "./dist/index.js");
@@ -59,6 +69,11 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   assert.match(databaseBootstrap, /pgaadauth_create_principal_with_oid/u);
   assert.match(databaseBootstrap, /pgaadauth_list_principals/u);
   assert.match(databaseBootstrap, /The API and job worker require distinct managed identities/u);
+  assert.match(applicationIdentityBootstrap, /APPLICATION_IDENTITY_BOOTSTRAP_AUTHORIZED/u);
+  assert.match(applicationIdentityBootstrap, /Production application-identity bootstrap requires DATABASE_AUTH_MODE=azure-managed-identity/u);
+  assert.match(applicationIdentityBootstrap, /PostgresFoundationStore\.connect\(databaseUrl, "eiep_runtime", authentication\)/u);
+  assert.match(applicationIdentityBootstrap, /input\.issuer !== oidcIssuer/u);
+  assert.doesNotMatch(applicationIdentityBootstrap, /process\.stdout\.write\([^)]*bootstrapJson/su);
   assert.match(azureBlobStorage, /ManagedIdentityCredential/u);
   assert.doesNotMatch(azureBlobStorage, /DefaultAzureCredential/u);
   assert.match(appRuntime, /name: 'eiep-\$\{environmentName\}-job-worker'/u);
@@ -92,6 +107,8 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   assert.doesNotMatch(network, /servicebus/iu);
   assert.match(traceabilityCheck, /no executable test title references/u);
   assert.match(traceabilityCheck, /evidence does not exist/u);
+  assert.match(routeSchemaGenerator, /getPropertiesOfType\(type\)\.sort\(propertyOrder\)/u);
+  assert.match(postgresVerification, /\[tsxCli, "--conditions=development", repositoryVerifier\]/u);
   assert.match(storage, /ba92f5b4-2d11-453d-a403-e96b0029c9fe/u);
   assert.match(storage, /principalId: workerPrincipalId/u);
   assert.match(storage, /principalId: apiPrincipalId/u);

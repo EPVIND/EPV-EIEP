@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "bootstrap:application-identities": "node dist/bootstrap-application-administrators.js",
     "dev": "tsx watch --conditions=development src/main.ts",
     "start": "node dist/main.js"
   },

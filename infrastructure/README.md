@@ -11,8 +11,8 @@ Status: Compiled review implementation; ADR-0009 remains Proposed and no cloud d
   controlled `runtimeAuthorizationReference`; runtime also requires an approved
   action-group resource ID, alert-configuration reference, evaluation windows,
   severities, and measured thresholds. The authorization references default closed,
-  so foundation deployment cannot start code before migrations, managed-identity
-  mappings, and alert routing are reviewed.
+  so foundation deployment cannot start code before migrations, workload-identity
+  mappings, first-application-authority bootstrap, and alert routing are reviewed.
 - Every environment requires API, web, portal, and job-worker images addressed by `@sha256:` digest. A mutable tag disables the proposed deployment.
 - `containers/Dockerfile` supplies the four corresponding rootless build targets
   from one Node 24 base pinned by digest; definition and compiled-runtime checks run
@@ -41,7 +41,7 @@ The check compiles all templates in memory, rejects compiler diagnostics, verifi
 
 ## Proposed deployment inputs
 
-Before an authorized what-if, supply environment, location, unique deployment stamp, registry server, four digest-qualified images, the metrics token through a protected secure-parameter channel, OIDC issuer/audience, exact HTTPS CORS origins, the PostgreSQL Entra administrator name/object/type, an active least-privilege worker account/organization, the approved action-group resource ID, alert-configuration reference, evaluation frequency/windows, paging/ticket severities, and measured timeout/restart/database-storage/storage-availability thresholds. The alert values have no defaults. Deploy the foundation with `runtimeAuthorized=false`, apply migrations and the exact-identity bootstrap, then review a second what-if before setting it true with the controlled runtime and alert evidence references. Do not put the metrics token or any other secret value in a parameter file or command history.
+Before an authorized what-if, supply environment, location, unique deployment stamp, registry server, four digest-qualified images, the metrics token through a protected secure-parameter channel, OIDC issuer/audience, exact HTTPS CORS origins, the PostgreSQL Entra administrator name/object/type, an active least-privilege worker account/organization, the approved action-group resource ID, alert-configuration reference, evaluation frequency/windows, paging/ticket severities, and measured timeout/restart/database-storage/storage-availability thresholds. The alert values have no defaults. Deploy the foundation with `runtimeAuthorized=false`, apply migrations, map the exact workload identities, and run the separate first-application-authority bootstrap before reviewing a second what-if and setting runtime true with the controlled runtime and alert evidence references. That one-time API-image command requires exactly two independent, time-bounded internal identity/access administrators under an external authorization reference and refuses nonempty or conflicting application state. Do not put the metrics token, bootstrap identity JSON, or any other protected value in a parameter file or command history.
 
 ## Missing authorization/evidence
 

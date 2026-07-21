@@ -14,6 +14,7 @@
     "traceability:check": "node scripts/check-traceability.mjs",
     "database:verify": "node scripts/verify-postgres-foundation.mjs",
     "database:bootstrap-azure": "pnpm --filter @eiep/database bootstrap:azure-identities",
+    "database:bootstrap-application-identities": "pnpm --filter @eiep/api bootstrap:application-identities",
     "infrastructure:verify": "node scripts/verify-infrastructure.mjs",
     "route-schemas:generate": "tsx --conditions=development scripts/generate-route-schemas.ts",
     "route-schemas:verify": "tsx --conditions=development scripts/generate-route-schemas.ts --check",

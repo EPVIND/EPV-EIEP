@@ -6,7 +6,7 @@ Workstation evidence: Windows, Node.js 24.14.0, pnpm 11.9.0, repository-local Po
 
 ## Result
 
-The controlled MVP vertical slice and supporting platform services build and pass the available local automated gates. The evidence includes governed identity mapping, scoped authorization, guided authoritative project setup/readiness, authenticated file upload, independent MTR review and material movement, complete PMI component/result capture, NCR responsibility/corrective action, all eleven controlled form/report snapshots, an operational dashboard, project/documents/material/PMI/inspection/NCR/punch/turnover/subcontractor workflows, interchange, background work, offline safety, recovery, provisional performance, browser accessibility, infrastructure compilation, and delivery controls.
+The controlled MVP vertical slice and supporting platform services build and pass the available local automated gates. The evidence includes governed first-application-authority bootstrap and identity mapping, scoped authorization, guided authoritative project setup/readiness, authenticated file upload, independent MTR review and material movement, complete PMI component/result capture, NCR responsibility/corrective action, all eleven controlled form/report snapshots, an operational dashboard, project/documents/material/PMI/inspection/NCR/punch/turnover/subcontractor workflows, interchange, background work, offline safety, recovery, provisional performance, browser accessibility, infrastructure compilation, and delivery controls.
 
 This report does not authorize live use. No deployable Azure subscription access,
 approved Entra applications/policies, managed database/storage/scanner/worker,
@@ -17,10 +17,10 @@ was supplied.
 
 | Command/check | Result | Evidence |
 |---|---|---|
-| `pnpm run verify` | Passed | Production/training boundary, secret scan, 40/25 requirement traceability, generated OpenAPI drift, 12 Bicep templates, four container-definition targets, strict TypeScript, 77 unit/integration/security/acceptance tests, and compiled API/worker/browser process checks |
+| `pnpm run verify` | Passed | Production/training boundary, secret scan, 40/25 requirement traceability, generated OpenAPI drift, 12 Bicep templates, four container-definition targets, strict TypeScript, 79 unit/integration/security/acceptance tests, and compiled API/worker/browser process checks |
 | `pnpm run build` | Passed | 12 build-bearing workspaces; internal web and partner portal production bundles without source maps; API, workers, recovery, contracts, shared packages |
 | `pnpm run containers:verify` | Passed within `verify` | One digest-pinned Node 24 base, four rootless production targets, portable compiled workspace deployment, runtime browser configuration/security headers, and Bicep environment wiring |
-| `pnpm run database:verify` | Passed | Fourteen reversible migration pairs applied on disposable PostgreSQL 18.4; 61 controlled constraints and runtime/worker role boundaries; immutable MTR/movement/report tables; required PMI/NCR execution detail; record-normalized restart, typed hydration, rollback, atomic outbox, 2,000-record behavior, concurrent stale updates, and competing leases |
+| `pnpm run database:verify` | Passed | Fourteen reversible migration pairs applied on disposable PostgreSQL 18.4; 61 controlled constraints and runtime/worker role boundaries; exact first-application-authority bootstrap/retry persistence; immutable MTR/movement/report tables; required PMI/NCR execution detail; record-normalized restart, typed hydration, rollback, atomic outbox, 2,000-record behavior, concurrent stale updates, and competing leases |
 | `pnpm run test:browser` | Passed | Five tablet-Chromium tests including the guided document-to-turnover chain; fail-closed states, scoped workflows, typed confirmation/current-version submission, 44-pixel actions, and zero serious/critical axe findings |
 | `pnpm audit --prod --audit-level high` | Passed | No known production dependency vulnerability reported by the configured registry |
 | `pnpm run infrastructure:verify` | Passed within `verify` | Pinned Bicep 0.45.15 compiled 12 templates; `main.bicep` remains zero-resource review-only; proposed deployment has separate foundation/runtime/alert guards, private services, an explicit Entra PostgreSQL administrator, scoped Blob/Key Vault roles, and 12 validated metric-alert rules with mandatory owner-supplied routing and thresholds |
@@ -32,7 +32,7 @@ was supplied.
 ## Automated coverage summary
 
 - AC-01: isolated environments, source/training exclusion, frozen dependency policy, CI/SBOM, pinned IaC compiler, guarded production proposal.
-- AC-02: signed OIDC-to-local-account resolution; lifecycle disable; deny-default organization/project/work-package/object scope; portal/search/export/file leakage checks; bounded grants/delegations.
+- AC-02: independently authorized first-account bootstrap; signed OIDC-to-local-account resolution; lifecycle disable; deny-default organization/project/work-package/object scope; portal/search/export/file leakage checks; bounded grants/delegations.
 - AC-03: attributable UTC audit, correlation, hashes, recursive redaction, controlled transitions, legal hold, retention, three-party disposition, and no normal physical delete.
 - AC-04: guided participant/structure/responsibility/configuration setup, server-derived activation readiness, independently approved effective-dated rules, authenticated exact-byte staging, exact controlled document revision, release/supersession/distribution/acknowledgement, and governed files.
 - AC-05: receipt bound to the exact active approved project rules, independent exact-revision MTR comparison, immutable receipt/split/release/issue/return/relocation/quarantine movements, heat/quantity/dimensions/evidence, genealogy, issue denial, and explainable release blockers.

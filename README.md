@@ -147,7 +147,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 traceability, OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-77 unit/integration/security/acceptance tests, and compiled runtime process smoke
+79 unit/integration/security/acceptance tests, and compiled runtime process smoke
 tests. `pnpm run build` builds the two web applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
 containers:build` additionally requires Docker with BuildKit; it builds and smokes
@@ -155,6 +155,10 @@ all four production targets and emits revision-linked image evidence. `pnpm run
 database:verify` creates a disposable PostgreSQL 18 cluster,
 applies fourteen migrations, checks the ledger, 61 representative constraints, runtime
 roles, and repository restart/rollback/concurrency, then removes all database files.
+That PostgreSQL path also creates, exactly retries, restarts, and verifies the guarded
+first-application-authority bootstrap; the production operator contract is in
+`docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
+
 `pnpm run test:browser` runs five internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 

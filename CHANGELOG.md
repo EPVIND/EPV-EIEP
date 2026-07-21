@@ -4,6 +4,15 @@ All notable controlled changes to the EIEP program definition and implementation
 
 ## 0.9.0 - Guided activation setup and complete PMI/NCR execution detail
 
+- Closed the circular first-application-identity gap with a separate guarded
+  operator command that creates exactly two independently authorized, time-bounded
+  identity/access administrators and no project or business authority. Exact retry
+  verifies the complete identity/access/audit boundary; partial or previously used
+  state fails without mutation. In-memory OIDC resolution and PostgreSQL restart
+  evidence cover the path while live Entra approval remains external.
+- Corrected disposable PostgreSQL verification to resolve current TypeScript
+  development exports explicitly, preventing stale compiled packages from masking
+  repository integration changes.
 - Added a guided project-setup workspace for participant organizations, project
   structure, effective responsibilities, governed configuration submission, and
   identity-separated configuration approval; readiness results are invalidated after
@@ -71,7 +80,7 @@ All notable controlled changes to the EIEP program definition and implementation
 - Corrected the API development watch command for the pinned `tsx` CLI so the local
   visible preview starts consistently on Windows and Linux.
 - Strengthened traceability from ID counting to executable-title, acceptance-link,
-  and 144 repository-evidence-path validation; corrected an invalid test range and
+  and 152 repository-evidence-path validation; corrected an invalid test range and
   made the transactional export/outbox evidence explicit for NFR-REL-003.
 - Removed the unapproved, unused Premium Service Bus namespace, queues, private
   endpoint, and DNS zone from the proposed MVP environment. The secure module remains

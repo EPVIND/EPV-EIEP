@@ -342,10 +342,10 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "actingOrganizationId": {
+            "userId": {
               "type": "string"
             },
-            "grantReason": {
+            "actingOrganizationId": {
               "type": "string"
             },
             "permissions": {
@@ -382,7 +382,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "workPackageId"
               ]
             },
-            "userId": {
+            "grantReason": {
               "type": "string"
             }
           },
@@ -476,6 +476,9 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "delegateUserId": {
+              "type": "string"
+            },
             "actingOrganizationId": {
               "type": "string"
             },
@@ -512,9 +515,6 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "projectId",
                 "workPackageId"
               ]
-            },
-            "delegateUserId": {
-              "type": "string"
             },
             "justification": {
               "type": "string"
@@ -1440,28 +1440,22 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "evidenceFileIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "componentLocation": {
-              "type": "string"
-            },
-            "equipmentId": {
-              "type": "string"
-            },
             "governingRule": {
+              "type": "string"
+            },
+            "requiredMaterial": {
+              "type": "string"
+            },
+            "observedMaterial": {
               "type": "string"
             },
             "method": {
               "type": "string"
             },
-            "notes": {
+            "componentLocation": {
               "type": "string"
             },
-            "observedMaterial": {
+            "equipmentId": {
               "type": "string"
             },
             "readings": {
@@ -1470,7 +1464,13 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "type": "string"
               }
             },
-            "requiredMaterial": {
+            "evidenceFileIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
               "type": "string"
             },
             "result": {
@@ -1480,20 +1480,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "fail"
               ]
             },
-            "containment": {
-              "type": "string"
-            },
-            "turnoverRequired": {
-              "type": "boolean"
-            },
             "failedNcrNumber": {
               "type": "string"
             },
             "failureDescription": {
               "type": "string"
             },
+            "containment": {
+              "type": "string"
+            },
             "failureResponsibleUserId": {
               "type": "string"
+            },
+            "turnoverRequired": {
+              "type": "boolean"
             }
           },
           "required": [
@@ -2307,12 +2307,6 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
             "revision": {
               "type": "string"
             },
-            "governingDocumentRevisionIds": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
             "settings": {
               "type": "object",
               "additionalProperties": {
@@ -2327,6 +2321,12 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                     "type": "boolean"
                   }
                 ]
+              }
+            },
+            "governingDocumentRevisionIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
               }
             }
           },
@@ -2574,10 +2574,10 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "evidenceFileId": {
+            "identifier": {
               "type": "string"
             },
-            "identifier": {
+            "serialNumber": {
               "type": "string"
             },
             "methodCapabilities": {
@@ -2586,15 +2586,15 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "type": "string"
               }
             },
-            "serialNumber": {
-              "type": "string"
-            },
             "verificationState": {
               "type": "string",
               "enum": [
                 "passed",
                 "failed"
               ]
+            },
+            "evidenceFileId": {
+              "type": "string"
             }
           },
           "required": [
@@ -2720,6 +2720,18 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
             "planRevisionId": {
               "type": "string"
             },
+            "targetType": {
+              "type": "string"
+            },
+            "targetId": {
+              "type": "string"
+            },
+            "fieldValues": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
             "evidenceFileIds": {
               "type": "array",
               "items": {
@@ -2732,18 +2744,6 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "pass",
                 "fail"
               ]
-            },
-            "targetId": {
-              "type": "string"
-            },
-            "targetType": {
-              "type": "string"
-            },
-            "fieldValues": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
             }
           },
           "required": [
@@ -3187,28 +3187,7 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
             "number": {
               "type": "string"
             },
-            "workPackageId": {
-              "type": "string",
-              "nullable": true
-            },
             "type": {
-              "type": "string"
-            },
-            "description": {
-              "type": "string"
-            },
-            "turnoverRequired": {
-              "type": "boolean"
-            },
-            "areaId": {
-              "type": "string",
-              "nullable": true
-            },
-            "assetId": {
-              "type": "string",
-              "nullable": true
-            },
-            "ownerUserId": {
               "type": "string"
             },
             "priority": {
@@ -3223,6 +3202,27 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
             "systemId": {
               "type": "string",
               "nullable": true
+            },
+            "areaId": {
+              "type": "string",
+              "nullable": true
+            },
+            "workPackageId": {
+              "type": "string",
+              "nullable": true
+            },
+            "assetId": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": {
+              "type": "string"
+            },
+            "ownerUserId": {
+              "type": "string"
+            },
+            "turnoverRequired": {
+              "type": "boolean"
             }
           },
           "required": [
@@ -3316,16 +3316,6 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "organizationId": {
-              "type": "string"
-            },
-            "personId": {
-              "type": "string",
-              "nullable": true
-            },
-            "targetId": {
-              "type": "string"
-            },
             "targetType": {
               "type": "string",
               "enum": [
@@ -3336,8 +3326,18 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "project"
               ]
             },
+            "targetId": {
+              "type": "string"
+            },
             "responsibilityType": {
               "type": "string"
+            },
+            "organizationId": {
+              "type": "string"
+            },
+            "personId": {
+              "type": "string",
+              "nullable": true
             }
           },
           "required": [
@@ -3980,15 +3980,6 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "code": {
-              "type": "string"
-            },
-            "issuer": {
-              "type": "string"
-            },
-            "evidenceFileId": {
-              "type": "string"
-            },
             "category": {
               "type": "string",
               "enum": [
@@ -4002,11 +3993,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "client"
               ]
             },
+            "code": {
+              "type": "string"
+            },
             "approvedScopes": {
               "type": "array",
               "items": {
                 "type": "string"
               }
+            },
+            "issuer": {
+              "type": "string"
+            },
+            "evidenceFileId": {
+              "type": "string"
             },
             "exceptionReason": {
               "type": "string",

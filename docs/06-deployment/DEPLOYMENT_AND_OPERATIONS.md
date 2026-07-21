@@ -64,6 +64,7 @@ Record these non-secret inputs in the controlled deployment request before what-
 | Authority | IaC operator plus the administrator who can approve/create managed-identity role assignments |
 | Location and cost | Approved region/data residency, service tiers/capacity/quotas, budget and cost-alert owner |
 | Identity | Tenant, approved OIDC issuer/audience, PostgreSQL Entra administrator name/object ID/type, MFA/Conditional Access/B2B policy |
+| Initial application authority | Controlled authorization reference; distinct requester/approver authority UUIDs; exactly two approved internal administrator local/person/external-identity/assignment UUIDs, immutable Entra subjects, organization scope, and bounded effective dates |
 | Network/name | DNS names, certificate owner, exact HTTPS CORS origins, private-connectivity/DNS owner |
 | Images | Approved ACR, GitHub OIDC deployment principal, pull identity/role, four scanned/signed image digests |
 | Work processing | Private malware-scanner hostname, active least-privilege worker user and organization IDs |
@@ -84,6 +85,38 @@ integration or scale decision and its own adapter/identity/contract evidence.
 
 `infrastructure/bicep/main.bicep` deploys nothing. The proposed environment is eligible for an authorized what-if only after ADR-0009, subscription, region/residency, capacity, budget, RPO/RTO, DNS/certificates, app registrations, role assignments, and action groups are approved. The proposal fails closed for production without a controlled authorization reference and for every environment unless API/web/portal/job-worker images use immutable `@sha256:` references. Runtime remains closed without both the migration/bootstrap authorization record and the separately controlled alert configuration/action route; alert thresholds, windows, evaluation frequency, and severities are required inputs and have no scaffold defaults.
 
+### One-time application identity bootstrap
+
+The database-principal bootstrap maps workload identities to PostgreSQL roles; it does
+not create the first human application authorities. Before any project, audit, seeded
+assignment, delegation, or other application identity state exists, an authorized
+operator must run the separate one-time application bootstrap from the reviewed API
+image. It creates exactly two active internal administrators with only identity and
+access administration qualifications and permissions. It grants no project,
+document, estimating, commercial, quality, release, or business-approval authority.
+
+Inject `APPLICATION_IDENTITY_BOOTSTRAP_JSON` through the approved protected one-off
+job channel. The JSON contract requires `authorizationReference`, distinct
+`requesterAuthorityId` and `approverAuthorityId`,
+`businessScopeOrganizationId`, the exact HTTPS `issuer`, UTC `authorizedAt`,
+`effectiveFrom`, future `effectiveTo`, and exactly two `administrators`. Each
+administrator requires distinct UUID values for `userAccountId`, `personId`,
+`externalIdentityId`, and `accessAssignmentId`, plus `displayName` and the immutable
+Entra `subject`. Requester and approver UUIDs identify the external controlled
+authorization authorities; they are deliberately distinct from the new local
+accounts.
+
+Run `pnpm run database:bootstrap-application-identities` with
+`APPLICATION_IDENTITY_BOOTSTRAP_AUTHORIZED=true`, `EIEP_ENV`, `DATABASE_URL`,
+`DATABASE_RUNTIME_ROLE=eiep_runtime`, `DATABASE_AUTH_MODE`, `OIDC_ISSUER`, and—for
+managed identity—`AZURE_CLIENT_ID`. Production refuses connection-string
+authentication. The issuer in the protected input must exactly match `OIDC_ISSUER`.
+The command emits only status, administrator count, authorization-reference SHA-256,
+and expiration. An exact retry verifies the complete expected identity/access/audit
+boundary without adding records; any partial, previously used, seeded, delegated,
+audited, or conflicting state fails without mutation. Preserve the sanitized result
+as deployment evidence, then remove the protected JSON and one-off job definition.
+
 Deployment sequence after those approvals:
 
 1. Confirm release/change window, migration and rollback plans, communications, on-call owner, backup currency, and authorization record.
@@ -93,7 +126,8 @@ Deployment sequence after those approvals:
 5. For an existing environment, capture a coordinated pre-change database/object/configuration/audit/package recovery point.
 6. Run the checksum migration runner using the approved Entra administrator/migrator identity; never use the API runtime identity for DDL or retain an access token.
 7. From the `postgres` administration database, run `pnpm run database:bootstrap-azure` with the exact API/worker identity names and object IDs emitted by the reviewed deployment. Verify each Entra mapping and its distinct `eiep_runtime`/`eiep_job_worker` membership.
-8. Run and approve the runtime what-if, confirm ACR pull authority and the same immutable image digests, supply the approved action-group ID and every measured alert parameter, then set `runtimeAuthorized=true` with the controlled migration/bootstrap and alert-configuration evidence references. Smoke test, inject each safe alert signal, confirm fire/route/acknowledge/resolve evidence, and either close or execute the rehearsed rollback.
+8. Using the API managed identity and the protected independently approved input, run the one-time application identity bootstrap. Verify its sanitized result, then prove both initial administrators can resolve only in the approved organization and remove the protected one-off input/job.
+9. Run and approve the runtime what-if, confirm ACR pull authority and the same immutable image digests, supply the approved action-group ID and every measured alert parameter, then set `runtimeAuthorized=true` with the controlled migration/bootstrap and alert-configuration evidence references. Smoke test, inject each safe alert signal, confirm fire/route/acknowledge/resolve evidence, and either close or execute the rehearsed rollback.
 
 ## Smoke checks
 

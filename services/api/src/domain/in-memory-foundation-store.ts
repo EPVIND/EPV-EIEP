@@ -115,6 +115,17 @@ function cloneValue<T>(value: T): T {
 class MemoryTransaction implements FoundationTransaction {
   public constructor(private readonly state: MemoryState) {}
 
+  public applicationIdentityBootstrapState() {
+    return cloneValue({
+      identityAccounts: [...this.state.identityAccounts.values()],
+      externalIdentities: [...this.state.externalIdentities.values()],
+      seededAssignments: this.state.assignments,
+      managedAccessAssignments: [...this.state.managedAccessAssignments.values()],
+      delegations: [...this.state.delegations.values()],
+      audits: this.state.audits,
+    });
+  }
+
   public identityAccountById(id: string): IdentityAccountRecord | null {
     const account = this.state.identityAccounts.get(id);
     return account ? cloneValue(account) : null;

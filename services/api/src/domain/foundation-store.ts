@@ -50,6 +50,14 @@ import type {
 } from "@eiep/shared-types";
 
 export interface FoundationTransaction {
+  applicationIdentityBootstrapState(): {
+    readonly identityAccounts: readonly IdentityAccountRecord[];
+    readonly externalIdentities: readonly ExternalIdentityRecord[];
+    readonly seededAssignments: readonly RoleAssignment[];
+    readonly managedAccessAssignments: readonly ManagedAccessAssignmentRecord[];
+    readonly delegations: readonly DelegationRecord[];
+    readonly audits: readonly AuditEvent[];
+  };
   identityAccountById(id: string): IdentityAccountRecord | null;
   insertIdentityAccount(account: IdentityAccountRecord): void;
   updateIdentityAccount(account: IdentityAccountRecord, expectedVersion: number): void;
