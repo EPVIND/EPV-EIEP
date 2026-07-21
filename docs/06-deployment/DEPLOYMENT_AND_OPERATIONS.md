@@ -17,7 +17,7 @@ pnpm audit --prod --audit-level high
 pnpm run sbom:generate
 ```
 
-Record source revision, lockfile SHA, workflow run/build ID, Bicep version, fourteen migration checksums, 61-constraint result, test reports, CycloneDX artifact, image digests/scans/signatures, approvals, deployment record, and smoke/observation results. `.github/workflows/verify.yml` supplies a read-only CI review implementation; live repository protection and environment approvals must be configured by an owner.
+Record source revision, lockfile SHA, workflow run/build ID, Bicep version, fourteen migration checksums, 61-constraint result, test reports, CycloneDX artifact, image digests/scans/signatures, approvals, deployment record, and smoke/observation results. `.github/workflows/verify.yml` supplies read-only hosted verification. The `EPVIND/EPV-EIEP` bootstrap restricts Actions to GitHub-owned actions, pins each action by commit, protects `main` with the `controlled-verification` check and pull-request review, and defines empty development/test/training/production environments. Production prevents self-review and has a wait gate; it remains blocked until an additional authorized reviewer and every cloud/release prerequisite below are supplied.
 
 The tracked `docs/02-architecture/openapi-v1.json` and runtime route-schema registry
 are generated from the API's TypeScript route contracts; `pnpm run verify` fails on

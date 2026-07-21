@@ -16,9 +16,10 @@ Codex execution toolchain verified 2026-07-20:
 - GitHub CLI 2.96.0 installed user-locally by winget with verified package hash
   (authenticated to github.com as EPVIND on 2026-07-21)
 
-Repository state as of 2026-07-21: branch main exists but has no commit; the local
-origin is configured as https://github.com/EPVIND/EPV-EIEP.git. Azure tenant login
-succeeded, but Azure CLI exposes no usable subscription;
+Repository state as of 2026-07-21: controlled commits are published from main to
+https://github.com/EPVIND/EPV-EIEP.git; clean hosted verification run 29859707003
+passed. Restricted Actions, four empty deployment environments, and protected-main
+controls were configured. Azure tenant login succeeded, but Azure CLI exposes no usable subscription;
 the sole account entry is tenant-level and cannot host resource-group deployments.
 
 Next step:

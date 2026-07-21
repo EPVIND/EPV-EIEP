@@ -22,6 +22,7 @@ This report does not authorize live use. No Azure subscription, Entra tenant, ma
 | `pnpm run infrastructure:verify` | Passed within `verify` | Pinned Bicep 0.45.15 compiled 11 templates; `main.bicep` remains zero-resource review-only; proposed deployment is production-guarded and uses private managed-service controls |
 | `pnpm run openapi:verify` | Passed within `verify` | TypeScript-derived runtime schemas match 112 active `/v1` routes; generated OpenAPI 3.0.3 publishes 89 request bodies, path/query validation, bearer security, and shared safe errors while excluding internal metrics/training/source-intake surfaces |
 | `pnpm run sbom:generate` | Passed | CycloneDX 1.6 production inventory contains 150 components, the lockfile SHA, and no local filesystem paths |
+| GitHub Actions `verify` run `29859707003` at `e571970` | Passed | Clean hosted Linux run completed source verification, build, PostgreSQL 18 verification, five tablet/axe workflows, production dependency audit, and a retained `controlled-verification-evidence` SBOM artifact |
 | Turnover renderer review fixture | Passed | Seven searchable letter-size pages; 72 exact source snapshots; JSON/CSV/log hash verification; no JavaScript; individual visual page inspection; PDF/A explicitly unclaimed |
 
 ## Automated coverage summary
@@ -64,4 +65,4 @@ Turnover generation now freezes the exact canonical source bytes behind every ma
 
 ## Conclusion
 
-The repository is reproducibly installable, type-safe, tested, buildable, migratable on disposable PostgreSQL 18, and browser-exercised on this workstation. Its health response intentionally reports `productionReady: false`. The requirements matrix records every remaining external acceptance boundary.
+The repository is reproducibly installable, type-safe, tested, buildable, migratable on disposable PostgreSQL 18, and browser-exercised both on this workstation and a clean GitHub-hosted Linux runner. Its health response intentionally reports `productionReady: false`. The requirements matrix records every remaining external acceptance boundary.
