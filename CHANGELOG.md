@@ -19,6 +19,9 @@ All notable controlled changes to the EIEP program definition and implementation
   112-route OpenAPI contract. Local database verification now covers fourteen
   migrations and 61 controlled constraints; external ADR approval, managed-service
   deployment, pilot acceptance, and production authorization remain required.
+- Approved only the pinned Linux x64 and Windows x64 embedded-PostgreSQL install
+  scripts (plus the pinned frontend compiler) so clean hosted CI and the supported
+  local verification platform apply the same explicit supply-chain policy.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 
