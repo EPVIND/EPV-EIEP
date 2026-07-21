@@ -1,0 +1,16 @@
+{
+  "profileVersion": 1,
+  "profileKind": "local-provisional-regression-guard",
+  "productionAccepted": false,
+  "rationale": "Temporary automated regression guard pending approved pilot devices, network profiles, project volumes, and concurrent-user targets.",
+  "dataset": {
+    "projectCount": 2000,
+    "concurrentUsers": 1,
+    "networkProfile": "in-process-no-network"
+  },
+  "measurements": {
+    "minimumSamples": 15,
+    "projectListP95Milliseconds": 750,
+    "projectDetailP95Milliseconds": 100
+  }
+}

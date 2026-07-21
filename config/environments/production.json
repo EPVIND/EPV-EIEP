@@ -1,0 +1,8 @@
+{
+  "environment": "production",
+  "authentication": "oidc",
+  "dataStore": "postgres",
+  "trainingBanner": false,
+  "allowSyntheticData": false,
+  "allowProductionData": true
+}

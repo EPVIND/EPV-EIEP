@@ -1,0 +1,1906 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:61678945-57da-44a5-ace1-6d7c0e733c0b",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-07-21T18:47:09.079Z",
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "eiep-sbom-generator",
+          "version": "1"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "bom-ref": "eiep-platform@0.1.0",
+      "name": "eiep-platform",
+      "version": "0.1.0"
+    },
+    "properties": [
+      {
+        "name": "eiep:pnpm-lock-sha256",
+        "value": "ed53fc22d99006f35f0c442cb807b8809315b03114f29c7d45177d7cdcf65173"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "@azure/abort-controller@2.2.0",
+      "name": "@azure/abort-controller",
+      "version": "2.2.0",
+      "purl": "pkg:npm/%40azure%2Fabort-controller@2.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-auth@1.11.0",
+      "name": "@azure/core-auth",
+      "version": "1.11.0",
+      "purl": "pkg:npm/%40azure%2Fcore-auth@1.11.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-client@1.11.0",
+      "name": "@azure/core-client",
+      "version": "1.11.0",
+      "purl": "pkg:npm/%40azure%2Fcore-client@1.11.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-http-compat@2.5.0",
+      "name": "@azure/core-http-compat",
+      "version": "2.5.0",
+      "purl": "pkg:npm/%40azure%2Fcore-http-compat@2.5.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-lro@2.7.2",
+      "name": "@azure/core-lro",
+      "version": "2.7.2",
+      "purl": "pkg:npm/%40azure%2Fcore-lro@2.7.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-paging@1.7.0",
+      "name": "@azure/core-paging",
+      "version": "1.7.0",
+      "purl": "pkg:npm/%40azure%2Fcore-paging@1.7.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-rest-pipeline@1.25.0",
+      "name": "@azure/core-rest-pipeline",
+      "version": "1.25.0",
+      "purl": "pkg:npm/%40azure%2Fcore-rest-pipeline@1.25.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-tracing@1.4.0",
+      "name": "@azure/core-tracing",
+      "version": "1.4.0",
+      "purl": "pkg:npm/%40azure%2Fcore-tracing@1.4.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-util@1.14.0",
+      "name": "@azure/core-util",
+      "version": "1.14.0",
+      "purl": "pkg:npm/%40azure%2Fcore-util@1.14.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/core-xml@1.6.0",
+      "name": "@azure/core-xml",
+      "version": "1.6.0",
+      "purl": "pkg:npm/%40azure%2Fcore-xml@1.6.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/identity@4.13.1",
+      "name": "@azure/identity",
+      "version": "4.13.1",
+      "purl": "pkg:npm/%40azure%2Fidentity@4.13.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/logger@1.4.0",
+      "name": "@azure/logger",
+      "version": "1.4.0",
+      "purl": "pkg:npm/%40azure%2Flogger@1.4.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/msal-browser@5.17.1",
+      "name": "@azure/msal-browser",
+      "version": "5.17.1",
+      "purl": "pkg:npm/%40azure%2Fmsal-browser@5.17.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/msal-common@16.11.2",
+      "name": "@azure/msal-common",
+      "version": "16.11.2",
+      "purl": "pkg:npm/%40azure%2Fmsal-common@16.11.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/msal-node@5.4.1",
+      "name": "@azure/msal-node",
+      "version": "5.4.1",
+      "purl": "pkg:npm/%40azure%2Fmsal-node@5.4.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/storage-blob@12.33.0",
+      "name": "@azure/storage-blob",
+      "version": "12.33.0",
+      "purl": "pkg:npm/%40azure%2Fstorage-blob@12.33.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@azure/storage-common@12.4.1",
+      "name": "@azure/storage-common",
+      "version": "12.4.1",
+      "purl": "pkg:npm/%40azure%2Fstorage-common@12.4.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/api@0.1.0",
+      "name": "@eiep/api",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fapi@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/database@0.1.0",
+      "name": "@eiep/database",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fdatabase@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/document-processing@0.1.0",
+      "name": "@eiep/document-processing",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fdocument-processing@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/integration@0.1.0",
+      "name": "@eiep/integration",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fintegration@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/job-worker@0.1.0",
+      "name": "@eiep/job-worker",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fjob-worker@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/portal@0.1.0",
+      "name": "@eiep/portal",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fportal@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/recovery@0.1.0",
+      "name": "@eiep/recovery",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Frecovery@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/rules-engine@0.1.0",
+      "name": "@eiep/rules-engine",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Frules-engine@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/shared-types@0.1.0",
+      "name": "@eiep/shared-types",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fshared-types@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/turnover-renderer@0.1.0",
+      "name": "@eiep/turnover-renderer",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fturnover-renderer@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/ui-components@0.1.0",
+      "name": "@eiep/ui-components",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fui-components@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@eiep/web@0.1.0",
+      "name": "@eiep/web",
+      "version": "0.1.0",
+      "purl": "pkg:npm/%40eiep%2Fweb@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/ajv-compiler@4.0.5",
+      "name": "@fastify/ajv-compiler",
+      "version": "4.0.5",
+      "purl": "pkg:npm/%40fastify%2Fajv-compiler@4.0.5"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/busboy@3.2.0",
+      "name": "@fastify/busboy",
+      "version": "3.2.0",
+      "purl": "pkg:npm/%40fastify%2Fbusboy@3.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/cors@11.2.0",
+      "name": "@fastify/cors",
+      "version": "11.2.0",
+      "purl": "pkg:npm/%40fastify%2Fcors@11.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/deepmerge@3.2.1",
+      "name": "@fastify/deepmerge",
+      "version": "3.2.1",
+      "purl": "pkg:npm/%40fastify%2Fdeepmerge@3.2.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/error@4.2.0",
+      "name": "@fastify/error",
+      "version": "4.2.0",
+      "purl": "pkg:npm/%40fastify%2Ferror@4.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/fast-json-stringify-compiler@5.1.0",
+      "name": "@fastify/fast-json-stringify-compiler",
+      "version": "5.1.0",
+      "purl": "pkg:npm/%40fastify%2Ffast-json-stringify-compiler@5.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/forwarded@3.0.1",
+      "name": "@fastify/forwarded",
+      "version": "3.0.1",
+      "purl": "pkg:npm/%40fastify%2Fforwarded@3.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/merge-json-schemas@0.2.1",
+      "name": "@fastify/merge-json-schemas",
+      "version": "0.2.1",
+      "purl": "pkg:npm/%40fastify%2Fmerge-json-schemas@0.2.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/multipart@10.1.0",
+      "name": "@fastify/multipart",
+      "version": "10.1.0",
+      "purl": "pkg:npm/%40fastify%2Fmultipart@10.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/proxy-addr@5.1.0",
+      "name": "@fastify/proxy-addr",
+      "version": "5.1.0",
+      "purl": "pkg:npm/%40fastify%2Fproxy-addr@5.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/rate-limit@11.1.0",
+      "name": "@fastify/rate-limit",
+      "version": "11.1.0",
+      "purl": "pkg:npm/%40fastify%2Frate-limit@11.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@fastify/swagger@9.8.1",
+      "name": "@fastify/swagger",
+      "version": "9.8.1",
+      "purl": "pkg:npm/%40fastify%2Fswagger@9.8.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@lukeed/ms@2.0.2",
+      "name": "@lukeed/ms",
+      "version": "2.0.2",
+      "purl": "pkg:npm/%40lukeed%2Fms@2.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@nodable/entities@3.0.0",
+      "name": "@nodable/entities",
+      "version": "3.0.0",
+      "purl": "pkg:npm/%40nodable%2Fentities@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@pinojs/redact@0.4.0",
+      "name": "@pinojs/redact",
+      "version": "0.4.0",
+      "purl": "pkg:npm/%40pinojs%2Fredact@0.4.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "@typespec/ts-http-runtime@0.3.7",
+      "name": "@typespec/ts-http-runtime",
+      "version": "0.3.7",
+      "purl": "pkg:npm/%40typespec%2Fts-http-runtime@0.3.7"
+    },
+    {
+      "type": "library",
+      "bom-ref": "abstract-logging@2.0.1",
+      "name": "abstract-logging",
+      "version": "2.0.1",
+      "purl": "pkg:npm/abstract-logging@2.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "agent-base@7.1.4",
+      "name": "agent-base",
+      "version": "7.1.4",
+      "purl": "pkg:npm/agent-base@7.1.4"
+    },
+    {
+      "type": "library",
+      "bom-ref": "ajv-formats@3.0.1",
+      "name": "ajv-formats",
+      "version": "3.0.1",
+      "purl": "pkg:npm/ajv-formats@3.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "ajv@8.20.0",
+      "name": "ajv",
+      "version": "8.20.0",
+      "purl": "pkg:npm/ajv@8.20.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "anynum@1.0.1",
+      "name": "anynum",
+      "version": "1.0.1",
+      "purl": "pkg:npm/anynum@1.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "atomic-sleep@1.0.0",
+      "name": "atomic-sleep",
+      "version": "1.0.0",
+      "purl": "pkg:npm/atomic-sleep@1.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "avvio@9.3.0",
+      "name": "avvio",
+      "version": "9.3.0",
+      "purl": "pkg:npm/avvio@9.3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "buffer-equal-constant-time@1.0.1",
+      "name": "buffer-equal-constant-time",
+      "version": "1.0.1",
+      "purl": "pkg:npm/buffer-equal-constant-time@1.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "bundle-name@4.1.0",
+      "name": "bundle-name",
+      "version": "4.1.0",
+      "purl": "pkg:npm/bundle-name@4.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "cookie@1.1.1",
+      "name": "cookie",
+      "version": "1.1.1",
+      "purl": "pkg:npm/cookie@1.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "debug@4.4.3",
+      "name": "debug",
+      "version": "4.4.3",
+      "purl": "pkg:npm/debug@4.4.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "default-browser-id@5.0.1",
+      "name": "default-browser-id",
+      "version": "5.0.1",
+      "purl": "pkg:npm/default-browser-id@5.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "default-browser@5.5.0",
+      "name": "default-browser",
+      "version": "5.5.0",
+      "purl": "pkg:npm/default-browser@5.5.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "define-lazy-prop@3.0.0",
+      "name": "define-lazy-prop",
+      "version": "3.0.0",
+      "purl": "pkg:npm/define-lazy-prop@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "dequal@2.0.3",
+      "name": "dequal",
+      "version": "2.0.3",
+      "purl": "pkg:npm/dequal@2.0.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "ecdsa-sig-formatter@1.0.11",
+      "name": "ecdsa-sig-formatter",
+      "version": "1.0.11",
+      "purl": "pkg:npm/ecdsa-sig-formatter@1.0.11"
+    },
+    {
+      "type": "library",
+      "bom-ref": "eiep-platform@0.1.0",
+      "name": "eiep-platform",
+      "version": "0.1.0",
+      "purl": "pkg:npm/eiep-platform@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "events@3.3.0",
+      "name": "events",
+      "version": "3.3.0",
+      "purl": "pkg:npm/events@3.3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-decode-uri-component@1.0.1",
+      "name": "fast-decode-uri-component",
+      "version": "1.0.1",
+      "purl": "pkg:npm/fast-decode-uri-component@1.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-deep-equal@3.1.3",
+      "name": "fast-deep-equal",
+      "version": "3.1.3",
+      "purl": "pkg:npm/fast-deep-equal@3.1.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-json-stringify@7.0.1",
+      "name": "fast-json-stringify",
+      "version": "7.0.1",
+      "purl": "pkg:npm/fast-json-stringify@7.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-querystring@1.1.2",
+      "name": "fast-querystring",
+      "version": "1.1.2",
+      "purl": "pkg:npm/fast-querystring@1.1.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-uri@3.1.4",
+      "name": "fast-uri",
+      "version": "3.1.4",
+      "purl": "pkg:npm/fast-uri@3.1.4"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-uri@4.1.1",
+      "name": "fast-uri",
+      "version": "4.1.1",
+      "purl": "pkg:npm/fast-uri@4.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-xml-builder@1.3.0",
+      "name": "fast-xml-builder",
+      "version": "1.3.0",
+      "purl": "pkg:npm/fast-xml-builder@1.3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fast-xml-parser@5.10.1",
+      "name": "fast-xml-parser",
+      "version": "5.10.1",
+      "purl": "pkg:npm/fast-xml-parser@5.10.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastify-plugin@5.1.0",
+      "name": "fastify-plugin",
+      "version": "5.1.0",
+      "purl": "pkg:npm/fastify-plugin@5.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastify-plugin@6.0.0",
+      "name": "fastify-plugin",
+      "version": "6.0.0",
+      "purl": "pkg:npm/fastify-plugin@6.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastify@5.10.0",
+      "name": "fastify",
+      "version": "5.10.0",
+      "purl": "pkg:npm/fastify@5.10.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fastq@1.20.1",
+      "name": "fastq",
+      "version": "1.20.1",
+      "purl": "pkg:npm/fastq@1.20.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "find-my-way@9.6.0",
+      "name": "find-my-way",
+      "version": "9.6.0",
+      "purl": "pkg:npm/find-my-way@9.6.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "fsevents@2.3.2",
+      "name": "fsevents",
+      "version": "2.3.2",
+      "purl": "pkg:npm/fsevents@2.3.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "http-proxy-agent@7.0.2",
+      "name": "http-proxy-agent",
+      "version": "7.0.2",
+      "purl": "pkg:npm/http-proxy-agent@7.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "https-proxy-agent@7.0.6",
+      "name": "https-proxy-agent",
+      "version": "7.0.6",
+      "purl": "pkg:npm/https-proxy-agent@7.0.6"
+    },
+    {
+      "type": "library",
+      "bom-ref": "ipaddr.js@2.4.0",
+      "name": "ipaddr.js",
+      "version": "2.4.0",
+      "purl": "pkg:npm/ipaddr.js@2.4.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "is-docker@3.0.0",
+      "name": "is-docker",
+      "version": "3.0.0",
+      "purl": "pkg:npm/is-docker@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "is-inside-container@1.0.0",
+      "name": "is-inside-container",
+      "version": "1.0.0",
+      "purl": "pkg:npm/is-inside-container@1.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "is-unsafe@2.0.0",
+      "name": "is-unsafe",
+      "version": "2.0.0",
+      "purl": "pkg:npm/is-unsafe@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "is-wsl@3.1.1",
+      "name": "is-wsl",
+      "version": "3.1.1",
+      "purl": "pkg:npm/is-wsl@3.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "jose@6.2.3",
+      "name": "jose",
+      "version": "6.2.3",
+      "purl": "pkg:npm/jose@6.2.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "json-schema-ref-resolver@3.0.0",
+      "name": "json-schema-ref-resolver",
+      "version": "3.0.0",
+      "purl": "pkg:npm/json-schema-ref-resolver@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "json-schema-resolver@3.0.0",
+      "name": "json-schema-resolver",
+      "version": "3.0.0",
+      "purl": "pkg:npm/json-schema-resolver@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "json-schema-traverse@1.0.0",
+      "name": "json-schema-traverse",
+      "version": "1.0.0",
+      "purl": "pkg:npm/json-schema-traverse@1.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "jsonwebtoken@9.0.3",
+      "name": "jsonwebtoken",
+      "version": "9.0.3",
+      "purl": "pkg:npm/jsonwebtoken@9.0.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "jwa@2.0.1",
+      "name": "jwa",
+      "version": "2.0.1",
+      "purl": "pkg:npm/jwa@2.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "jws@4.0.1",
+      "name": "jws",
+      "version": "4.0.1",
+      "purl": "pkg:npm/jws@4.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "light-my-request@6.6.0",
+      "name": "light-my-request",
+      "version": "6.6.0",
+      "purl": "pkg:npm/light-my-request@6.6.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.includes@4.3.0",
+      "name": "lodash.includes",
+      "version": "4.3.0",
+      "purl": "pkg:npm/lodash.includes@4.3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.isboolean@3.0.3",
+      "name": "lodash.isboolean",
+      "version": "3.0.3",
+      "purl": "pkg:npm/lodash.isboolean@3.0.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.isinteger@4.0.4",
+      "name": "lodash.isinteger",
+      "version": "4.0.4",
+      "purl": "pkg:npm/lodash.isinteger@4.0.4"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.isnumber@3.0.3",
+      "name": "lodash.isnumber",
+      "version": "3.0.3",
+      "purl": "pkg:npm/lodash.isnumber@3.0.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.isplainobject@4.0.6",
+      "name": "lodash.isplainobject",
+      "version": "4.0.6",
+      "purl": "pkg:npm/lodash.isplainobject@4.0.6"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.isstring@4.0.1",
+      "name": "lodash.isstring",
+      "version": "4.0.1",
+      "purl": "pkg:npm/lodash.isstring@4.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "lodash.once@4.1.1",
+      "name": "lodash.once",
+      "version": "4.1.1",
+      "purl": "pkg:npm/lodash.once@4.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "ms@2.1.3",
+      "name": "ms",
+      "version": "2.1.3",
+      "purl": "pkg:npm/ms@2.1.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "on-exit-leak-free@2.1.2",
+      "name": "on-exit-leak-free",
+      "version": "2.1.2",
+      "purl": "pkg:npm/on-exit-leak-free@2.1.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "open@10.2.0",
+      "name": "open",
+      "version": "10.2.0",
+      "purl": "pkg:npm/open@10.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "openapi-types@12.1.3",
+      "name": "openapi-types",
+      "version": "12.1.3",
+      "purl": "pkg:npm/openapi-types@12.1.3"
+    },
+    {
+      "type": "library",
+      "bom-ref": "path-expression-matcher@1.6.2",
+      "name": "path-expression-matcher",
+      "version": "1.6.2",
+      "purl": "pkg:npm/path-expression-matcher@1.6.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg-cloudflare@1.4.0",
+      "name": "pg-cloudflare",
+      "version": "1.4.0",
+      "purl": "pkg:npm/pg-cloudflare@1.4.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg-connection-string@2.14.0",
+      "name": "pg-connection-string",
+      "version": "2.14.0",
+      "purl": "pkg:npm/pg-connection-string@2.14.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg-int8@1.0.1",
+      "name": "pg-int8",
+      "version": "1.0.1",
+      "purl": "pkg:npm/pg-int8@1.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg-pool@3.14.0",
+      "name": "pg-pool",
+      "version": "3.14.0",
+      "purl": "pkg:npm/pg-pool@3.14.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg-protocol@1.15.0",
+      "name": "pg-protocol",
+      "version": "1.15.0",
+      "purl": "pkg:npm/pg-protocol@1.15.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg-types@2.2.0",
+      "name": "pg-types",
+      "version": "2.2.0",
+      "purl": "pkg:npm/pg-types@2.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pg@8.22.0",
+      "name": "pg",
+      "version": "8.22.0",
+      "purl": "pkg:npm/pg@8.22.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pgpass@1.0.5",
+      "name": "pgpass",
+      "version": "1.0.5",
+      "purl": "pkg:npm/pgpass@1.0.5"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pino-abstract-transport@3.0.0",
+      "name": "pino-abstract-transport",
+      "version": "3.0.0",
+      "purl": "pkg:npm/pino-abstract-transport@3.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pino-std-serializers@7.1.0",
+      "name": "pino-std-serializers",
+      "version": "7.1.0",
+      "purl": "pkg:npm/pino-std-serializers@7.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pino@10.3.1",
+      "name": "pino",
+      "version": "10.3.1",
+      "purl": "pkg:npm/pino@10.3.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "playwright-core@1.61.1",
+      "name": "playwright-core",
+      "version": "1.61.1",
+      "purl": "pkg:npm/playwright-core@1.61.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "playwright@1.61.1",
+      "name": "playwright",
+      "version": "1.61.1",
+      "purl": "pkg:npm/playwright@1.61.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "postgres-array@2.0.0",
+      "name": "postgres-array",
+      "version": "2.0.0",
+      "purl": "pkg:npm/postgres-array@2.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "postgres-bytea@1.0.1",
+      "name": "postgres-bytea",
+      "version": "1.0.1",
+      "purl": "pkg:npm/postgres-bytea@1.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "postgres-date@1.0.7",
+      "name": "postgres-date",
+      "version": "1.0.7",
+      "purl": "pkg:npm/postgres-date@1.0.7"
+    },
+    {
+      "type": "library",
+      "bom-ref": "postgres-interval@1.2.0",
+      "name": "postgres-interval",
+      "version": "1.2.0",
+      "purl": "pkg:npm/postgres-interval@1.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "process-warning@4.0.1",
+      "name": "process-warning",
+      "version": "4.0.1",
+      "purl": "pkg:npm/process-warning@4.0.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "process-warning@5.0.0",
+      "name": "process-warning",
+      "version": "5.0.0",
+      "purl": "pkg:npm/process-warning@5.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "quick-format-unescaped@4.0.4",
+      "name": "quick-format-unescaped",
+      "version": "4.0.4",
+      "purl": "pkg:npm/quick-format-unescaped@4.0.4"
+    },
+    {
+      "type": "library",
+      "bom-ref": "react-dom@19.2.7",
+      "name": "react-dom",
+      "version": "19.2.7",
+      "purl": "pkg:npm/react-dom@19.2.7"
+    },
+    {
+      "type": "library",
+      "bom-ref": "react@19.2.7",
+      "name": "react",
+      "version": "19.2.7",
+      "purl": "pkg:npm/react@19.2.7"
+    },
+    {
+      "type": "library",
+      "bom-ref": "real-require@0.2.0",
+      "name": "real-require",
+      "version": "0.2.0",
+      "purl": "pkg:npm/real-require@0.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "real-require@1.0.0",
+      "name": "real-require",
+      "version": "1.0.0",
+      "purl": "pkg:npm/real-require@1.0.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "require-from-string@2.0.2",
+      "name": "require-from-string",
+      "version": "2.0.2",
+      "purl": "pkg:npm/require-from-string@2.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "ret@0.5.0",
+      "name": "ret",
+      "version": "0.5.0",
+      "purl": "pkg:npm/ret@0.5.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "reusify@1.1.0",
+      "name": "reusify",
+      "version": "1.1.0",
+      "purl": "pkg:npm/reusify@1.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "rfdc@1.4.1",
+      "name": "rfdc",
+      "version": "1.4.1",
+      "purl": "pkg:npm/rfdc@1.4.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "run-applescript@7.1.0",
+      "name": "run-applescript",
+      "version": "7.1.0",
+      "purl": "pkg:npm/run-applescript@7.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "safe-buffer@5.2.1",
+      "name": "safe-buffer",
+      "version": "5.2.1",
+      "purl": "pkg:npm/safe-buffer@5.2.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "safe-regex2@5.1.1",
+      "name": "safe-regex2",
+      "version": "5.1.1",
+      "purl": "pkg:npm/safe-regex2@5.1.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "safe-stable-stringify@2.5.0",
+      "name": "safe-stable-stringify",
+      "version": "2.5.0",
+      "purl": "pkg:npm/safe-stable-stringify@2.5.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "scheduler@0.27.0",
+      "name": "scheduler",
+      "version": "0.27.0",
+      "purl": "pkg:npm/scheduler@0.27.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "secure-json-parse@4.1.0",
+      "name": "secure-json-parse",
+      "version": "4.1.0",
+      "purl": "pkg:npm/secure-json-parse@4.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "semver@7.8.5",
+      "name": "semver",
+      "version": "7.8.5",
+      "purl": "pkg:npm/semver@7.8.5"
+    },
+    {
+      "type": "library",
+      "bom-ref": "set-cookie-parser@2.7.2",
+      "name": "set-cookie-parser",
+      "version": "2.7.2",
+      "purl": "pkg:npm/set-cookie-parser@2.7.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "sonic-boom@4.2.1",
+      "name": "sonic-boom",
+      "version": "4.2.1",
+      "purl": "pkg:npm/sonic-boom@4.2.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "split2@4.2.0",
+      "name": "split2",
+      "version": "4.2.0",
+      "purl": "pkg:npm/split2@4.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "strnum@2.4.1",
+      "name": "strnum",
+      "version": "2.4.1",
+      "purl": "pkg:npm/strnum@2.4.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "thread-stream@4.2.0",
+      "name": "thread-stream",
+      "version": "4.2.0",
+      "purl": "pkg:npm/thread-stream@4.2.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "toad-cache@3.7.4",
+      "name": "toad-cache",
+      "version": "3.7.4",
+      "purl": "pkg:npm/toad-cache@3.7.4"
+    },
+    {
+      "type": "library",
+      "bom-ref": "tslib@2.8.1",
+      "name": "tslib",
+      "version": "2.8.1",
+      "purl": "pkg:npm/tslib@2.8.1"
+    },
+    {
+      "type": "library",
+      "bom-ref": "wsl-utils@0.1.0",
+      "name": "wsl-utils",
+      "version": "0.1.0",
+      "purl": "pkg:npm/wsl-utils@0.1.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "xml-naming@0.3.0",
+      "name": "xml-naming",
+      "version": "0.3.0",
+      "purl": "pkg:npm/xml-naming@0.3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "xtend@4.0.2",
+      "name": "xtend",
+      "version": "4.0.2",
+      "purl": "pkg:npm/xtend@4.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "yaml@2.9.0",
+      "name": "yaml",
+      "version": "2.9.0",
+      "purl": "pkg:npm/yaml@2.9.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "eiep-platform@0.1.0",
+      "dependsOn": [
+        "@eiep/api@0.1.0",
+        "@eiep/database@0.1.0",
+        "@eiep/document-processing@0.1.0",
+        "@eiep/integration@0.1.0",
+        "@eiep/job-worker@0.1.0",
+        "@eiep/portal@0.1.0",
+        "@eiep/recovery@0.1.0",
+        "@eiep/rules-engine@0.1.0",
+        "@eiep/shared-types@0.1.0",
+        "@eiep/turnover-renderer@0.1.0",
+        "@eiep/ui-components@0.1.0",
+        "@eiep/web@0.1.0",
+        "eiep-platform@0.1.0"
+      ]
+    },
+    {
+      "ref": "@azure/abort-controller@2.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@azure/core-auth@1.11.0",
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-util@1.14.0",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-client@1.11.0",
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-auth@1.11.0",
+        "@azure/core-rest-pipeline@1.25.0",
+        "@azure/core-tracing@1.4.0",
+        "@azure/core-util@1.14.0",
+        "@azure/logger@1.4.0",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-http-compat@2.5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@azure/core-lro@2.7.2",
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-util@1.14.0",
+        "@azure/logger@1.4.0",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-paging@1.7.0",
+      "dependsOn": [
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-rest-pipeline@1.25.0",
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-auth@1.11.0",
+        "@azure/core-tracing@1.4.0",
+        "@azure/core-util@1.14.0",
+        "@azure/logger@1.4.0",
+        "@typespec/ts-http-runtime@0.3.7",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-tracing@1.4.0",
+      "dependsOn": [
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-util@1.14.0",
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@typespec/ts-http-runtime@0.3.7",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/core-xml@1.6.0",
+      "dependsOn": [
+        "fast-xml-parser@5.10.1",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/identity@4.13.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "@azure/logger@1.4.0",
+      "dependsOn": [
+        "@typespec/ts-http-runtime@0.3.7",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@azure/msal-browser@5.17.1",
+      "dependsOn": [
+        "@azure/msal-common@16.11.2"
+      ]
+    },
+    {
+      "ref": "@azure/msal-common@16.11.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "@azure/msal-node@5.4.1",
+      "dependsOn": [
+        "@azure/msal-common@16.11.2",
+        "jsonwebtoken@9.0.3"
+      ]
+    },
+    {
+      "ref": "@azure/storage-blob@12.33.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@azure/storage-common@12.4.1",
+      "dependsOn": [
+        "@azure/abort-controller@2.2.0",
+        "@azure/core-auth@1.11.0",
+        "@azure/core-http-compat@2.5.0",
+        "@azure/core-rest-pipeline@1.25.0",
+        "@azure/core-tracing@1.4.0",
+        "@azure/core-util@1.14.0",
+        "@azure/logger@1.4.0",
+        "events@3.3.0",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "@eiep/api@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@eiep/database@0.1.0",
+      "dependsOn": [
+        "pg@8.22.0"
+      ]
+    },
+    {
+      "ref": "@eiep/document-processing@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@eiep/integration@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@eiep/job-worker@0.1.0",
+      "dependsOn": [
+        "@eiep/api@0.1.0",
+        "@eiep/document-processing@0.1.0",
+        "@eiep/integration@0.1.0",
+        "@eiep/shared-types@0.1.0",
+        "@eiep/turnover-renderer@0.1.0"
+      ]
+    },
+    {
+      "ref": "@eiep/portal@0.1.0",
+      "dependsOn": [
+        "@eiep/ui-components@0.1.0",
+        "react-dom@19.2.7",
+        "react@19.2.7"
+      ]
+    },
+    {
+      "ref": "@eiep/recovery@0.1.0",
+      "dependsOn": [
+        "@eiep/api@0.1.0"
+      ]
+    },
+    {
+      "ref": "@eiep/rules-engine@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@eiep/shared-types@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@eiep/turnover-renderer@0.1.0",
+      "dependsOn": [
+        "@eiep/shared-types@0.1.0",
+        "playwright@1.61.1"
+      ]
+    },
+    {
+      "ref": "@eiep/ui-components@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@eiep/web@0.1.0",
+      "dependsOn": [
+        "@eiep/ui-components@0.1.0",
+        "react-dom@19.2.7",
+        "react@19.2.7"
+      ]
+    },
+    {
+      "ref": "@fastify/ajv-compiler@4.0.5",
+      "dependsOn": [
+        "ajv-formats@3.0.1",
+        "ajv@8.20.0",
+        "fast-uri@3.1.4"
+      ]
+    },
+    {
+      "ref": "@fastify/busboy@3.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/cors@11.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/deepmerge@3.2.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/error@4.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/fast-json-stringify-compiler@5.1.0",
+      "dependsOn": [
+        "fast-json-stringify@7.0.1"
+      ]
+    },
+    {
+      "ref": "@fastify/forwarded@3.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/merge-json-schemas@0.2.1",
+      "dependsOn": [
+        "dequal@2.0.3"
+      ]
+    },
+    {
+      "ref": "@fastify/multipart@10.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/proxy-addr@5.1.0",
+      "dependsOn": [
+        "@fastify/forwarded@3.0.1",
+        "ipaddr.js@2.4.0"
+      ]
+    },
+    {
+      "ref": "@fastify/rate-limit@11.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@fastify/swagger@9.8.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "@lukeed/ms@2.0.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "@nodable/entities@3.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@pinojs/redact@0.4.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "@typespec/ts-http-runtime@0.3.7",
+      "dependsOn": [
+        "http-proxy-agent@7.0.2",
+        "https-proxy-agent@7.0.6",
+        "tslib@2.8.1"
+      ]
+    },
+    {
+      "ref": "abstract-logging@2.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "agent-base@7.1.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "ajv-formats@3.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "ajv@8.20.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "anynum@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "atomic-sleep@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "avvio@9.3.0",
+      "dependsOn": [
+        "@fastify/error@4.2.0",
+        "fastq@1.20.1"
+      ]
+    },
+    {
+      "ref": "buffer-equal-constant-time@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "bundle-name@4.1.0",
+      "dependsOn": [
+        "run-applescript@7.1.0"
+      ]
+    },
+    {
+      "ref": "cookie@1.1.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "debug@4.4.3",
+      "dependsOn": [
+        "ms@2.1.3"
+      ]
+    },
+    {
+      "ref": "default-browser-id@5.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "default-browser@5.5.0",
+      "dependsOn": [
+        "bundle-name@4.1.0",
+        "default-browser-id@5.0.1"
+      ]
+    },
+    {
+      "ref": "define-lazy-prop@3.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "dequal@2.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "ecdsa-sig-formatter@1.0.11",
+      "dependsOn": [
+        "safe-buffer@5.2.1"
+      ]
+    },
+    {
+      "ref": "eiep-platform@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "events@3.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "fast-decode-uri-component@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "fast-deep-equal@3.1.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "fast-json-stringify@7.0.1",
+      "dependsOn": [
+        "@fastify/merge-json-schemas@0.2.1",
+        "ajv-formats@3.0.1",
+        "ajv@8.20.0",
+        "fast-uri@4.1.1",
+        "json-schema-ref-resolver@3.0.0",
+        "rfdc@1.4.1"
+      ]
+    },
+    {
+      "ref": "fast-querystring@1.1.2",
+      "dependsOn": [
+        "fast-decode-uri-component@1.0.1"
+      ]
+    },
+    {
+      "ref": "fast-uri@3.1.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "fast-uri@4.1.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "fast-xml-builder@1.3.0",
+      "dependsOn": [
+        "path-expression-matcher@1.6.2",
+        "xml-naming@0.3.0"
+      ]
+    },
+    {
+      "ref": "fast-xml-parser@5.10.1",
+      "dependsOn": [
+        "@nodable/entities@3.0.0",
+        "fast-xml-builder@1.3.0",
+        "is-unsafe@2.0.0",
+        "path-expression-matcher@1.6.2",
+        "strnum@2.4.1",
+        "xml-naming@0.3.0"
+      ]
+    },
+    {
+      "ref": "fastify-plugin@5.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "fastify-plugin@6.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "fastify@5.10.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "fastq@1.20.1",
+      "dependsOn": [
+        "reusify@1.1.0"
+      ]
+    },
+    {
+      "ref": "find-my-way@9.6.0",
+      "dependsOn": [
+        "fast-deep-equal@3.1.3",
+        "fast-querystring@1.1.2",
+        "safe-regex2@5.1.1"
+      ]
+    },
+    {
+      "ref": "fsevents@2.3.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "http-proxy-agent@7.0.2",
+      "dependsOn": [
+        "agent-base@7.1.4",
+        "debug@4.4.3"
+      ]
+    },
+    {
+      "ref": "https-proxy-agent@7.0.6",
+      "dependsOn": [
+        "agent-base@7.1.4",
+        "debug@4.4.3"
+      ]
+    },
+    {
+      "ref": "ipaddr.js@2.4.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "is-docker@3.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "is-inside-container@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "is-unsafe@2.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "is-wsl@3.1.1",
+      "dependsOn": [
+        "is-inside-container@1.0.0"
+      ]
+    },
+    {
+      "ref": "jose@6.2.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "json-schema-ref-resolver@3.0.0",
+      "dependsOn": [
+        "dequal@2.0.3"
+      ]
+    },
+    {
+      "ref": "json-schema-resolver@3.0.0",
+      "dependsOn": [
+        "debug@4.4.3",
+        "fast-uri@3.1.4",
+        "rfdc@1.4.1"
+      ]
+    },
+    {
+      "ref": "json-schema-traverse@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "jsonwebtoken@9.0.3",
+      "dependsOn": [
+        "jws@4.0.1",
+        "lodash.includes@4.3.0",
+        "lodash.isboolean@3.0.3",
+        "lodash.isinteger@4.0.4",
+        "lodash.isnumber@3.0.3",
+        "lodash.isplainobject@4.0.6",
+        "lodash.isstring@4.0.1",
+        "lodash.once@4.1.1",
+        "ms@2.1.3",
+        "semver@7.8.5"
+      ]
+    },
+    {
+      "ref": "jwa@2.0.1",
+      "dependsOn": [
+        "buffer-equal-constant-time@1.0.1",
+        "ecdsa-sig-formatter@1.0.11",
+        "safe-buffer@5.2.1"
+      ]
+    },
+    {
+      "ref": "jws@4.0.1",
+      "dependsOn": [
+        "jwa@2.0.1",
+        "safe-buffer@5.2.1"
+      ]
+    },
+    {
+      "ref": "light-my-request@6.6.0",
+      "dependsOn": [
+        "cookie@1.1.1",
+        "process-warning@4.0.1",
+        "set-cookie-parser@2.7.2"
+      ]
+    },
+    {
+      "ref": "lodash.includes@4.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "lodash.isboolean@3.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "lodash.isinteger@4.0.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "lodash.isnumber@3.0.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "lodash.isplainobject@4.0.6",
+      "dependsOn": []
+    },
+    {
+      "ref": "lodash.isstring@4.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "lodash.once@4.1.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "ms@2.1.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "on-exit-leak-free@2.1.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "open@10.2.0",
+      "dependsOn": [
+        "default-browser@5.5.0",
+        "define-lazy-prop@3.0.0",
+        "is-inside-container@1.0.0",
+        "wsl-utils@0.1.0"
+      ]
+    },
+    {
+      "ref": "openapi-types@12.1.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "path-expression-matcher@1.6.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pg-cloudflare@1.4.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pg-connection-string@2.14.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pg-int8@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pg-pool@3.14.0",
+      "dependsOn": [
+        "pg@8.22.0"
+      ]
+    },
+    {
+      "ref": "pg-protocol@1.15.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pg-types@2.2.0",
+      "dependsOn": [
+        "pg-int8@1.0.1",
+        "postgres-array@2.0.0",
+        "postgres-bytea@1.0.1",
+        "postgres-date@1.0.7",
+        "postgres-interval@1.2.0"
+      ]
+    },
+    {
+      "ref": "pg@8.22.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pgpass@1.0.5",
+      "dependsOn": [
+        "split2@4.2.0"
+      ]
+    },
+    {
+      "ref": "pino-abstract-transport@3.0.0",
+      "dependsOn": [
+        "split2@4.2.0"
+      ]
+    },
+    {
+      "ref": "pino-std-serializers@7.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pino@10.3.1",
+      "dependsOn": [
+        "@pinojs/redact@0.4.0",
+        "atomic-sleep@1.0.0",
+        "on-exit-leak-free@2.1.2",
+        "pino-abstract-transport@3.0.0",
+        "pino-std-serializers@7.1.0",
+        "process-warning@5.0.0",
+        "quick-format-unescaped@4.0.4",
+        "real-require@0.2.0",
+        "safe-stable-stringify@2.5.0",
+        "sonic-boom@4.2.1",
+        "thread-stream@4.2.0"
+      ]
+    },
+    {
+      "ref": "playwright-core@1.61.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "playwright@1.61.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "postgres-array@2.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "postgres-bytea@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "postgres-date@1.0.7",
+      "dependsOn": []
+    },
+    {
+      "ref": "postgres-interval@1.2.0",
+      "dependsOn": [
+        "xtend@4.0.2"
+      ]
+    },
+    {
+      "ref": "process-warning@4.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "process-warning@5.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "quick-format-unescaped@4.0.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "react-dom@19.2.7",
+      "dependsOn": []
+    },
+    {
+      "ref": "react@19.2.7",
+      "dependsOn": []
+    },
+    {
+      "ref": "real-require@0.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "real-require@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "require-from-string@2.0.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "ret@0.5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "reusify@1.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "rfdc@1.4.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "run-applescript@7.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "safe-buffer@5.2.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "safe-regex2@5.1.1",
+      "dependsOn": [
+        "ret@0.5.0"
+      ]
+    },
+    {
+      "ref": "safe-stable-stringify@2.5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "scheduler@0.27.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "secure-json-parse@4.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "semver@7.8.5",
+      "dependsOn": []
+    },
+    {
+      "ref": "set-cookie-parser@2.7.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "sonic-boom@4.2.1",
+      "dependsOn": [
+        "atomic-sleep@1.0.0"
+      ]
+    },
+    {
+      "ref": "split2@4.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "strnum@2.4.1",
+      "dependsOn": [
+        "anynum@1.0.1"
+      ]
+    },
+    {
+      "ref": "thread-stream@4.2.0",
+      "dependsOn": [
+        "real-require@1.0.0"
+      ]
+    },
+    {
+      "ref": "toad-cache@3.7.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "tslib@2.8.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "wsl-utils@0.1.0",
+      "dependsOn": [
+        "is-wsl@3.1.1"
+      ]
+    },
+    {
+      "ref": "xml-naming@0.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "xtend@4.0.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "yaml@2.9.0",
+      "dependsOn": []
+    }
+  ]
+}

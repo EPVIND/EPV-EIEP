@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "eiep.turnover-generation-log.v1",
+  "packageVersionId": "review-package-version-0003",
+  "generatedAtUtc": "2026-07-21T18:30:00.000Z",
+  "generatedBy": "local-acceptance-fixture",
+  "rendererVersion": "eiep-turnover-playwright/1",
+  "templateVersion": "eiep-turnover-template/1",
+  "configurationVersion": "eiep-turnover-config/1",
+  "networkAccess": "blocked",
+  "activeScript": "disabled",
+  "preservationConformance": "not_claimed",
+  "artifacts": {
+    "pdfSha256": "9392d36e04441ccfe09affe72cb9574aca580ea71453a63b8c83b874fb4897b0",
+    "manifestJsonSha256": "4d6aea67520ae5e669518d428f2acc70091041d752a5af18c4cd7bac8450db06",
+    "manifestCsvSha256": "e5175614911fe2649885b75fa3284d451d83d9234e12b2009dd2c36683ed08ca"
+  }
+}

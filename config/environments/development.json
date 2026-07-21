@@ -1,0 +1,9 @@
+{
+  "environment": "development",
+  "authentication": "development",
+  "dataStore": "memory",
+  "trainingBanner": false,
+  "allowSyntheticData": true,
+  "allowProductionData": false
+}
+

@@ -1,0 +1,18 @@
+{
+  "name": "@eiep/turnover-renderer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@eiep/shared-types": "workspace:*",
+    "playwright": "1.61.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.0"
+  }
+}

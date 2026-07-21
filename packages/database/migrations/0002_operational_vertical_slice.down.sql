@@ -1,0 +1,4 @@
+DROP SCHEMA turnover CASCADE;
+DROP SCHEMA deficiency CASCADE;
+DROP SCHEMA inspection CASCADE;
+DROP SCHEMA material CASCADE;

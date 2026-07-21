@@ -1,0 +1,59 @@
+import { DevelopmentAuthenticator } from "./auth/development-authenticator.js";
+import { resolve } from "node:path";
+import { AzureBlobStagedUploadStorage, LocalFilesystemObjectStorage } from "@eiep/document-processing";
+import { OidcAuthenticator } from "./auth/oidc-authenticator.js";
+import { StoreIdentityResolver } from "./auth/store-identity-resolver.js";
+import { loadRuntimeConfig } from "./config.js";
+import { FoundationService } from "./domain/foundation-service.js";
+import { InMemoryFoundationStore } from "./domain/in-memory-foundation-store.js";
+import { OperationalService } from "./domain/operational-service.js";
+import { PlatformService } from "./domain/platform-service.js";
+import { PostgresFoundationStore } from "./domain/postgres-foundation-store.js";
+import { ReportingService } from "./domain/reporting-service.js";
+import { buildServer } from "./server.js";
+
+const config = await loadRuntimeConfig();
+
+const postgresStore = config.environment.dataStore === "postgres"
+  ? await PostgresFoundationStore.connect(process.env.DATABASE_URL!, config.databaseRuntimeRole)
+  : null;
+const store = postgresStore ?? new InMemoryFoundationStore();
+const service = new FoundationService(store);
+const operations = new OperationalService(store);
+const platform = new PlatformService(store);
+const reporting = new ReportingService(store, config.environment.trainingBanner);
+const stagedUpload = config.storageAccountName
+  ? await AzureBlobStagedUploadStorage.createWithManagedIdentity({
+    accountName: config.storageAccountName,
+    ...(config.managedIdentityClientId ? { managedIdentityClientId: config.managedIdentityClientId } : {}),
+  })
+  : new LocalFilesystemObjectStorage(resolve(config.fileStorageRoot ?? ".eiep-file-storage", config.environment.environment));
+const authenticator =
+  config.environment.authentication === "oidc"
+    ? await OidcAuthenticator.create(config.oidcIssuer!, config.oidcAudience!, new StoreIdentityResolver(store))
+    : new DevelopmentAuthenticator();
+const server = await buildServer({
+  service,
+  operations,
+  platform,
+  reporting,
+  stagedUpload,
+  store,
+  authenticator,
+  environment: config.environment.environment,
+  trainingBanner: config.environment.trainingBanner,
+  allowedOrigins: config.allowedOrigins,
+  rateLimitMax: config.rateLimitMax,
+  metricsToken: config.metricsToken,
+});
+
+await server.listen({ host: config.host, port: config.port });
+
+if (postgresStore) {
+  const close = async () => {
+    await server.close();
+    await postgresStore.close();
+  };
+  process.once("SIGINT", () => void close());
+  process.once("SIGTERM", () => void close());
+}

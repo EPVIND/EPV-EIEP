@@ -1,0 +1,5 @@
+DROP TRIGGER repository_immutable_material_history ON platform.repository_entity;
+DROP FUNCTION platform.reject_immutable_material_history_change();
+DROP INDEX platform.repository_material_movement_project_lookup;
+DROP INDEX platform.repository_mtr_review_project_lookup;
+

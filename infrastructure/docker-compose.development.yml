@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: eiep_development
+      POSTGRES_USER: eiep_developer
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a nonproduction POSTGRES_PASSWORD outside source control}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - eiep_development_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eiep_developer -d eiep_development"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  eiep_development_postgres:
+

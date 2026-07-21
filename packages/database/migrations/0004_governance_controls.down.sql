@@ -1,0 +1,15 @@
+DROP TABLE platform.retention_disposition;
+DROP TABLE platform.legal_hold;
+DROP TABLE platform.retention_policy;
+DROP TABLE platform.audit_change;
+DROP TABLE document.governing_document_link;
+DROP TABLE document.acknowledgement;
+DROP TABLE document.distribution;
+DROP TABLE project.project_rule_governing_revision;
+DROP TABLE project.project_rule_version;
+DROP TABLE project.project_rule_set;
+DROP TABLE project.project_organization;
+ALTER TABLE project.work_package DROP COLUMN wbs_element_id;
+DROP TABLE project.wbs_element;
+DROP TABLE project.area;
+DROP TABLE project.system;

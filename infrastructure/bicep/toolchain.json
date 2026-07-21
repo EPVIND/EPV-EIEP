@@ -1,0 +1,6 @@
+{
+  "version": "0.45.15",
+  "release": "https://github.com/Azure/bicep/releases/tag/v0.45.15",
+  "windowsX64Sha256": "cae4539a30fd496d126d1cb6fbc077b9c259c79a73306be767ad90fc8d190150",
+  "linuxX64Sha256": "ff5b194b042c220df4a50d6768ed1d6c39a32894bfdc4ff83d62b115d966a7ce"
+}

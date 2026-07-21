@@ -1,0 +1,9 @@
+{
+  "environment": "test",
+  "authentication": "test",
+  "dataStore": "memory",
+  "trainingBanner": false,
+  "allowSyntheticData": true,
+  "allowProductionData": false
+}
+

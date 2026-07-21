@@ -1,0 +1,4 @@
+DROP TRIGGER repository_immutable_controlled_report ON platform.repository_entity;
+DROP FUNCTION platform.reject_immutable_controlled_report_change();
+DROP INDEX platform.repository_controlled_report_project_lookup;
+

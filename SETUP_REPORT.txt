@@ -1,0 +1,29 @@
+EPV Industrial Enterprise Platform - Codex Handoff Setup Report
+================================================================
+Created (UTC): 2026-07-20T23:40:25Z
+Destination: C:\Users\5427r\OneDrive\Documents\EPV\EIEP-Platform
+Git: Initialized on main using C:\Users\5427r\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe
+
+Codex execution toolchain verified 2026-07-20:
+- Node.js 24.14.0 and pnpm 11.9.0 from the Codex workspace runtime
+- Repository-local PostgreSQL 18.4 verification runtime
+- Playwright 1.61.1 / Chromium 149.0.7827.55
+- Bicep 0.45.15 at C:\Users\5427r\.bicep\bicep.exe (publisher SHA-256 verified)
+- Portable Git for Windows 2.55.0.3 at C:\Users\5427r\.local\git-2.55.0.3\cmd\git.exe
+  (official MinGit asset SHA-256 f48e2d2dc74a24454adc6d8fd0ac25bf9c2386f19cfb06202b9465aaad4f9f05)
+- Azure CLI 2.88.0 in the isolated user environment at C:\Users\5427r\.local\azure-cli
+  (installed from the Python package distribution; user PATH updated)
+- GitHub CLI 2.96.0 installed user-locally by winget with verified package hash
+  (authenticated to github.com as EPVIND on 2026-07-21)
+
+Repository state as of 2026-07-21: branch main exists but has no commit; the local
+origin is configured as https://github.com/EPVIND/EPV-EIEP.git. Azure tenant login
+succeeded, but Azure CLI exposes no usable subscription;
+the sole account entry is tenant-level and cannot host resource-group deployments.
+
+Next step:
+Open this folder as a Codex project, read AGENTS.md, then use FIRST_RUN_CODEX_INSTRUCTION.md.
+
+Safety:
+source-intake contains unapproved reference material; training-demo contains nonproduction data.
+Neither area is an approved source for production code or production seed data.

@@ -1,0 +1,22 @@
+{
+  "name": "@eiep/job-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@eiep/api": "workspace:*",
+    "@eiep/document-processing": "workspace:*",
+    "@eiep/integration": "workspace:*",
+    "@eiep/shared-types": "workspace:*",
+    "@eiep/turnover-renderer": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.0"
+  }
+}

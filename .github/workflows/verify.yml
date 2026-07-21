@@ -1,0 +1,57 @@
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  controlled-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Enable pinned package manager
+        run: corepack enable
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install pinned Bicep compiler
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/eiep-tools"
+          curl --fail --location --silent --show-error \
+            --output "$RUNNER_TEMP/eiep-tools/bicep" \
+            https://github.com/Azure/bicep/releases/download/v0.45.15/bicep-linux-x64
+          echo "ff5b194b042c220df4a50d6768ed1d6c39a32894bfdc4ff83d62b115d966a7ce  $RUNNER_TEMP/eiep-tools/bicep" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/eiep-tools/bicep"
+          echo "BICEP_PATH=$RUNNER_TEMP/eiep-tools/bicep" >> "$GITHUB_ENV"
+      - name: Verify controlled source
+        run: pnpm run verify
+      - name: Build workspaces
+        run: pnpm run build
+      - name: Verify PostgreSQL 18 migrations and repository
+        run: pnpm run database:verify
+      - name: Install browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify tablet and accessibility workflows
+        run: pnpm run test:browser
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level high
+      - name: Generate dependency evidence
+        run: pnpm run sbom:generate
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: controlled-verification-evidence
+          path: artifacts/sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 90

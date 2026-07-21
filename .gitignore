@@ -1,0 +1,39 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+
+# Build and dependency outputs
+node_modules/
+bin/
+obj/
+dist/
+build/
+coverage/
+.cache/
+.tmp/
+.pnpm-store/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Editors and operating systems
+.vs/
+.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+
+# Logs and local databases
+*.log
+*.sqlite
+*.sqlite3
+
+# Source intake payloads may contain confidential material.
+# Track the controlled README and inventory, then add individual artifacts deliberately.
+source-intake/**/*.zip
+source-intake/**/*.7z

@@ -1,0 +1,16 @@
+{
+  "name": "@eiep/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node --check migrate.mjs && node --check verify-foundation.mjs",
+    "typecheck": "node --check migrate.mjs && node --check verify-foundation.mjs",
+    "migrate": "node migrate.mjs",
+    "migrate:status": "node migrate.mjs --status",
+    "verify:foundation": "node verify-foundation.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.0.0"
+  }
+}

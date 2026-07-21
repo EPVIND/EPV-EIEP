@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+coverage
+dist
+build
+.cache
+.tmp
+source-intake
+training-demo
+SETUP_REPORT.txt
+
