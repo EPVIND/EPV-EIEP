@@ -68,6 +68,8 @@ All notable controlled changes to the EIEP program definition and implementation
 - Sealed each hosted retained-evidence bundle with a SHA-256 manifest covering the
   CycloneDX inventory and source-revision/image-ID build record, and verify that
   manifest before upload.
+- Corrected the API development watch command for the pinned `tsx` CLI so the local
+  visible preview starts consistently on Windows and Linux.
 - Strengthened traceability from ID counting to executable-title, acceptance-link,
   and 144 repository-evidence-path validation; corrected an invalid test range and
   made the transactional export/outbox evidence explicit for NFR-REL-003.

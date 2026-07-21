@@ -48,6 +48,7 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   assert.match(toolchain.windowsX64Sha256, /^[0-9a-f]{64}$/u);
   assert.match(toolchain.linuxX64Sha256, /^[0-9a-f]{64}$/u);
   assert.equal(jobWorkerPackage.scripts.start, "node dist/main.js");
+  assert.equal(apiPackage.scripts.dev, "tsx watch --conditions=development src/main.ts");
   assert.equal(jobWorkerPackage.dependencies.playwright, "1.61.1");
   assert.equal(apiPackage.exports["."].default, "./dist/index.js");
   assert.equal(jobWorkerPackage.exports["."].default, "./dist/index.js");
