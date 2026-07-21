@@ -25,6 +25,8 @@ All notable controlled changes to the EIEP program definition and implementation
 - Moved the pinned Chromium installation before the renderer-bearing verification
   suite and updated the three GitHub-owned workflow actions to their current
   full-commit-pinned Node 24-compatible releases.
+- Made the compact tablet sidebar a bounded sticky layer beneath the header so long
+  project/workflow content cannot intercept module-navigation taps.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 
