@@ -22,7 +22,7 @@ This report does not authorize live use. No Azure subscription, Entra tenant, ma
 | `pnpm run infrastructure:verify` | Passed within `verify` | Pinned Bicep 0.45.15 compiled 11 templates; `main.bicep` remains zero-resource review-only; proposed deployment has separate foundation/runtime authorization guards, private services, an explicit Entra PostgreSQL administrator, and scoped Blob/Key Vault roles |
 | `pnpm run openapi:verify` | Passed within `verify` | TypeScript-derived runtime schemas match 112 active `/v1` routes; generated OpenAPI 3.0.3 publishes 89 request bodies, path/query validation, bearer security, and shared safe errors while excluding internal metrics/training/source-intake surfaces |
 | `pnpm run sbom:generate` | Passed | CycloneDX 1.6 production inventory contains 150 components, a merged transitive dependency graph across workspaces, the lockfile SHA, and no local filesystem paths |
-| GitHub Actions `verify` run `29859707003` at `e571970` | Passed | Clean hosted Linux run completed source verification, build, PostgreSQL 18 verification, five tablet/axe workflows, production dependency audit, and a retained `controlled-verification-evidence` SBOM artifact |
+| GitHub Actions `verify` run `29862697475` at `355dfca` | Passed | Clean hosted Linux run completed source verification, build, PostgreSQL 18 verification, five tablet/axe workflows, production dependency audit, and a retained `controlled-verification-evidence` SBOM artifact |
 | Turnover renderer review fixture | Passed | Seven searchable letter-size pages; 72 exact source snapshots; JSON/CSV/log hash verification; no JavaScript; individual visual page inspection; PDF/A explicitly unclaimed |
 
 ## Automated coverage summary

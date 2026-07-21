@@ -28,7 +28,7 @@ All notable controlled changes to the EIEP program definition and implementation
 - Made the compact tablet sidebar a bounded sticky layer beneath the header so long
   project/workflow content cannot intercept module-navigation taps.
 - Published the controlled baseline to `EPVIND/EPV-EIEP`; clean hosted verification
-  run `29859707003` passed every gate and retained the SBOM artifact. Restricted
+  run `29862697475` passed every gate and retained the SBOM artifact. Restricted
   GitHub-owned Actions, protected `main`, and empty development/test/training/
   fail-closed production environments establish the live repository boundary without
   claiming cloud or production authorization.
