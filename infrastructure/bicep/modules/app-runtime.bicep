@@ -268,3 +268,7 @@ resource jobWorker 'Microsoft.App/containerApps@2026-01-01' = {
 output apiFqdn string = api.properties.configuration.ingress.fqdn
 output webFqdn string = web.properties.configuration.ingress.fqdn
 output portalFqdn string = portal.properties.configuration.ingress.fqdn
+output apiId string = api.id
+output webId string = web.id
+output portalId string = portal.id
+output jobWorkerId string = jobWorker.id

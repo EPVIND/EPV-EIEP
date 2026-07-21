@@ -8,7 +8,7 @@ import test from "node:test";
 
 const execute = promisify(execFile);
 
-test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dependencies, and run protected gates", async () => {
+test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dependencies, and run protected gates", async () => {
   const packageJson = JSON.parse(await readFile(join(process.cwd(), "package.json"), "utf8"));
   const workflow = await readFile(join(process.cwd(), ".github", "workflows", "verify.yml"), "utf8");
   const toolchain = JSON.parse(await readFile(join(process.cwd(), "infrastructure", "bicep", "toolchain.json"), "utf8"));
@@ -18,6 +18,7 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   const databaseBootstrap = await readFile(join(process.cwd(), "packages", "database", "bootstrap-azure-identities.mjs"), "utf8");
   const azureBlobStorage = await readFile(join(process.cwd(), "services", "document-processing", "src", "azure-blob-object-storage.ts"), "utf8");
   const appRuntime = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "app-runtime.bicep"), "utf8");
+  const alerts = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "alerts.bicep"), "utf8");
   const proposedEnvironment = await readFile(join(process.cwd(), "infrastructure", "bicep", "proposed-environment.bicep"), "utf8");
   const privateEndpoints = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "private-endpoints.bicep"), "utf8");
   const network = await readFile(join(process.cwd(), "infrastructure", "bicep", "modules", "network.bicep"), "utf8");
@@ -72,8 +73,16 @@ test("NFR-SEC-003, NFR-MNT-003 / AC-01-10: delivery controls pin tools, lock dep
   assert.match(appRuntime, /userAssignedIdentities:\s*\{\s*'\$\{jobWorkerIdentityId\}'/u);
   assert.match(proposedEnvironment, /module jobWorkerIdentity /u);
   assert.match(proposedEnvironment, /module apiIdentity /u);
-  assert.match(proposedEnvironment, /var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty\(runtimeAuthorizationReference\)/u);
+  assert.match(proposedEnvironment, /var alertConfigurationPresent = !empty\(alertConfigurationReference\).*microsoft\.insights\/actiongroups/u);
+  assert.match(proposedEnvironment, /var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty\(runtimeAuthorizationReference\) && alertConfigurationPresent/u);
   assert.match(proposedEnvironment, /module runtime .* = if \(runtimeEnabled\)/u);
+  assert.match(proposedEnvironment, /module alerts .* = if \(runtimeEnabled\)/u);
+  assert.match(alerts, /Microsoft\.Insights\/metricAlerts@2026-01-01/u);
+  for (const metric of ["Replicas", "RestartCount", "ResiliencyRequestTimeouts", "is_db_alive", "storage_percent", "Availability"]) {
+    assert.match(alerts, new RegExp(`metricName: '${metric}'`, "u"));
+  }
+  assert.equal((alerts.match(/skipMetricValidation: false/gu) ?? []).length, 6);
+  assert.equal((alerts.match(/actionGroupId: actionGroupResourceId/gu) ?? []).length, 1);
   assert.doesNotMatch(proposedEnvironment, /module messaging /u);
   assert.doesNotMatch(privateEndpoints, /servicebus/iu);
   assert.doesNotMatch(network, /servicebus/iu);

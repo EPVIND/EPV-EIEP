@@ -24,6 +24,30 @@ param workerUserId string
 param workerOrganizationId string
 @minLength(1)
 param malwareScannerHost string
+param actionGroupResourceId string
+@allowed([1, 5, 15, 30, 60])
+param alertEvaluationFrequencyMinutes int
+@allowed([1, 5, 15, 30, 60, 360, 720, 1440])
+param alertAvailabilityWindowMinutes int
+@allowed([1, 5, 15, 30, 60, 360, 720, 1440])
+param alertDegradationWindowMinutes int
+@minValue(1)
+param apiRequestTimeoutCountThreshold int
+@minValue(1)
+param containerRestartCountThreshold int
+@minValue(1)
+@maxValue(99)
+param postgresqlStoragePercentThreshold int
+@minValue(1)
+@maxValue(100)
+param storageAvailabilityPercentThreshold int
+@minValue(0)
+@maxValue(4)
+param pagingAlertSeverity int
+@minValue(0)
+@maxValue(4)
+param ticketAlertSeverity int
+param alertConfigurationReference string = ''
 param runtimeAuthorized bool = false
 param runtimeAuthorizationReference string = ''
 param productionAuthorized bool = false
@@ -33,7 +57,8 @@ var suffix = take(uniqueString(resourceGroup().id, environmentName), 8)
 var prefix = 'eiep-${environmentName}-${suffix}'
 var imageReferencesAreImmutable = contains(apiImage, '@sha256:') && contains(webImage, '@sha256:') && contains(portalImage, '@sha256:') && contains(jobWorkerImage, '@sha256:')
 var deploymentEnabled = imageReferencesAreImmutable && (environmentName != 'production' || (productionAuthorized && !empty(productionAuthorizationReference)))
-var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty(runtimeAuthorizationReference)
+var alertConfigurationPresent = !empty(alertConfigurationReference) && contains(toLower(actionGroupResourceId), '/providers/microsoft.insights/actiongroups/') && alertAvailabilityWindowMinutes >= alertEvaluationFrequencyMinutes && alertDegradationWindowMinutes >= alertEvaluationFrequencyMinutes
+var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty(runtimeAuthorizationReference) && alertConfigurationPresent
 var tags = {
   application: 'eiep'
   environment: environmentName
@@ -41,6 +66,7 @@ var tags = {
   managedBy: 'bicep'
   runtimeAuthorized: string(runtimeAuthorized)
   runtimeAuthorizationReference: runtimeAuthorizationReference
+  alertConfigurationReference: alertConfigurationReference
   productionAuthorized: string(productionAuthorized)
   productionAuthorizationReference: productionAuthorizationReference
 }
@@ -179,6 +205,33 @@ module runtime 'modules/app-runtime.bicep' = if (runtimeEnabled) {
   }
 }
 
+module alerts 'modules/alerts.bicep' = if (runtimeEnabled) {
+  name: '${deployment().name}-alerts'
+  params: {
+    namePrefix: prefix
+    tags: tags
+    actionGroupResourceId: actionGroupResourceId
+    containerApps: [
+      { code: 'api', id: runtime!.outputs.apiId }
+      { code: 'web', id: runtime!.outputs.webId }
+      { code: 'portal', id: runtime!.outputs.portalId }
+      { code: 'job-worker', id: runtime!.outputs.jobWorkerId }
+    ]
+    apiContainerAppId: runtime!.outputs.apiId
+    postgresqlServerId: postgresql!.outputs.id
+    storageAccountId: storage!.outputs.id
+    evaluationFrequencyMinutes: alertEvaluationFrequencyMinutes
+    availabilityWindowMinutes: alertAvailabilityWindowMinutes
+    degradationWindowMinutes: alertDegradationWindowMinutes
+    apiRequestTimeoutCountThreshold: apiRequestTimeoutCountThreshold
+    containerRestartCountThreshold: containerRestartCountThreshold
+    postgresqlStoragePercentThreshold: postgresqlStoragePercentThreshold
+    storageAvailabilityPercentThreshold: storageAvailabilityPercentThreshold
+    pagingSeverity: pagingAlertSeverity
+    ticketSeverity: ticketAlertSeverity
+  }
+}
+
 output environmentBoundary string = environmentName
 output deploymentEnabled bool = deploymentEnabled
 output imageReferencesAreImmutable bool = imageReferencesAreImmutable
@@ -196,3 +249,4 @@ output apiFqdn string = runtimeEnabled ? runtime!.outputs.apiFqdn : ''
 output webFqdn string = runtimeEnabled ? runtime!.outputs.webFqdn : ''
 output portalFqdn string = runtimeEnabled ? runtime!.outputs.portalFqdn : ''
 output privateEndpointIds array = deploymentEnabled ? privateEndpoints!.outputs.privateEndpointIds : []
+output alertRuleCount int = runtimeEnabled ? alerts!.outputs.alertRuleCount : 0

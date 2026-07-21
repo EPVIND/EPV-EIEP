@@ -60,17 +60,21 @@ if (!Array.isArray(proposed.resources) || proposed.resources.length < 8) {
   throw new Error("Proposed environment modules are incomplete.");
 }
 const runtimeModule = proposed.resources.find((resource) => resource.name === "[format('{0}-runtime', deployment().name)]");
-const foundationModules = proposed.resources.filter((resource) => resource !== runtimeModule);
+const alertsModule = proposed.resources.find((resource) => resource.name === "[format('{0}-alerts', deployment().name)]");
+const foundationModules = proposed.resources.filter((resource) => resource !== runtimeModule && resource !== alertsModule);
 if (!runtimeModule || runtimeModule.condition !== "[variables('runtimeEnabled')]"
+  || !alertsModule || alertsModule.condition !== "[variables('runtimeEnabled')]"
   || foundationModules.some((resource) => resource.condition !== "[variables('deploymentEnabled')]")) {
-  throw new Error("Foundation and application runtime must retain separate authorization guards.");
+  throw new Error("Foundation, application runtime, and alerting must retain their authorization guards.");
 }
 const compiled = JSON.stringify(proposed);
 if (!compiled.includes("@sha256:") || !compiled.includes("imageReferencesAreImmutable")) {
   throw new Error("Proposed deployments must fail closed unless every image is addressed by digest.");
 }
-if (!compiled.includes("runtimeAuthorizationReference") || !compiled.includes("runtimeEnabled")) {
-  throw new Error("Application startup requires a controlled post-migration authorization reference.");
+if (!compiled.includes("runtimeAuthorizationReference") || !compiled.includes("runtimeEnabled")
+  || !compiled.includes("alertConfigurationReference") || !compiled.includes("alertConfigurationPresent")
+  || !compiled.includes("microsoft.insights/actiongroups")) {
+  throw new Error("Application startup requires controlled post-migration and alert-routing authorization references.");
 }
 if (proposed.resources.some((resource) => JSON.stringify(resource).includes("-messaging"))
   || compiled.includes("Microsoft.ServiceBus/namespaces")
@@ -103,6 +107,7 @@ const requiredControls = [
   'api-identity',
   '4633458b-17de-408a-b874-0445c86b69e6',
   'Microsoft.DBforPostgreSQL/flexibleServers/administrators',
+  'Microsoft.Insights/metricAlerts',
 ];
 for (const control of requiredControls) {
   if (!compiled.includes(control)) throw new Error(`Compiled infrastructure is missing control ${control}.`);
@@ -139,6 +144,43 @@ if (!messagingCompiled.includes("Microsoft.ServiceBus/namespaces")
   || !messagingCompiled.includes('"requiresDuplicateDetection":true')) {
   throw new Error("The uninstantiated optional Service Bus blueprint must retain secure managed-queue controls.");
 }
+const alerts = templates.get(join(bicepRoot, "modules", "alerts.bicep"));
+const alertResources = alerts?.resources?.filter((resource) => resource.type === "Microsoft.Insights/metricAlerts") ?? [];
+const alertMetrics = new Set(alertResources.flatMap((resource) => (
+  resource.properties?.criteria?.allOf ?? []
+).map((criterion) => criterion.metricName)));
+const requiredAlertMetrics = [
+  "Replicas", "RestartCount", "ResiliencyRequestTimeouts", "is_db_alive", "storage_percent", "Availability",
+];
+const allowedEvaluationMinutes = [1, 5, 15, 30, 60];
+const allowedWindowMinutes = [1, 5, 15, 30, 60, 360, 720, 1440];
+const configuredContainerApps = alertsModule.properties?.parameters?.containerApps?.value ?? [];
+if (alertResources.length !== 6
+  || requiredAlertMetrics.some((metric) => !alertMetrics.has(metric))
+  || configuredContainerApps.map((app) => app.code).join(",") !== "api,web,portal,job-worker"
+  || alerts?.outputs?.alertRuleCount?.value !== "[add(mul(length(parameters('containerApps')), 2), 4)]"
+  || alerts?.variables?.actions?.[0]?.actionGroupId !== "[parameters('actionGroupResourceId')]"
+  || alertResources.some((resource) => resource.apiVersion !== "2026-01-01"
+    || resource.properties?.enabled !== true
+    || resource.properties?.autoMitigate !== true
+    || resource.properties?.actions !== "[variables('actions')]"
+    || resource.properties?.criteria?.allOf?.some((criterion) => criterion.skipMetricValidation !== false))) {
+  throw new Error("Runtime alerts must route approved, validated availability, restart, timeout, database, and storage metrics.");
+}
+if (JSON.stringify(alerts?.parameters?.evaluationFrequencyMinutes?.allowedValues) !== JSON.stringify(allowedEvaluationMinutes)
+  || JSON.stringify(alerts?.parameters?.availabilityWindowMinutes?.allowedValues) !== JSON.stringify(allowedWindowMinutes)
+  || JSON.stringify(alerts?.parameters?.degradationWindowMinutes?.allowedValues) !== JSON.stringify(allowedWindowMinutes)) {
+  throw new Error("Alert evaluation and aggregation periods must use Azure Monitor-supported durations.");
+}
+for (const parameter of [
+  "evaluationFrequencyMinutes", "availabilityWindowMinutes", "degradationWindowMinutes",
+  "apiRequestTimeoutCountThreshold", "containerRestartCountThreshold", "postgresqlStoragePercentThreshold",
+  "storageAvailabilityPercentThreshold", "pagingSeverity", "ticketSeverity",
+]) {
+  if (alerts?.parameters?.[parameter]?.defaultValue !== undefined) {
+    throw new Error(`Alert parameter ${parameter} must require an approved value rather than an invented default.`);
+  }
+}
 const appRuntime = templates.get(join(bicepRoot, "modules", "app-runtime.bicep"));
 const managedEnvironmentDiagnostics = appRuntime?.resources?.find(
   (resource) => resource.type === "Microsoft.Insights/diagnosticSettings",
@@ -157,5 +199,5 @@ for (const dependency of ["-vault", "-postgresql", "-private-endpoints", "-obser
 }
 
 process.stdout.write(
-  `Bicep ${toolchain.version} compiled ${templates.size} templates; guarded private-service baseline verified with the optional Service Bus boundary uninstantiated.\n`,
+  `Bicep ${toolchain.version} compiled ${templates.size} templates; guarded private-service and approved-alert baseline verified with the optional Service Bus boundary uninstantiated.\n`,
 );

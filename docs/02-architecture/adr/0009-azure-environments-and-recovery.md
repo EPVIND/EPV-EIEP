@@ -5,7 +5,7 @@ Date: 2026-07-20
 Decision owners: Executive sponsor, product owner, security/privacy authority,
 solution architect, operations owner  
 Requirements affected: NFR-SEC-001 through NFR-SEC-003, NFR-REL-001,
-NFR-REL-002, NFR-MNT-003, AC-01, AC-10
+NFR-REL-002, NFR-MNT-001, NFR-MNT-003, AC-01, AC-10
 
 ## Context
 
@@ -78,7 +78,10 @@ tests, managed-identity tests, image promotion evidence, capacity/alert tests,
 coordinated restore meeting approved RPO/RTO, region-failure exercise, and rollback.
 The guarded Bicep and four rootless image definitions compile and pass local static
 and process checks; no Azure what-if, registry digest, live identity, restore, or
-capacity evidence exists yet. The optional secure Service Bus module also compiles,
+capacity evidence exists yet. The proposal compiles twelve Azure Monitor metric
+rules, but deliberately supplies no action destination, thresholds, windows, or
+severity defaults; owners must approve those values and validate live signal/action
+routing. The optional secure Service Bus module also compiles,
 but the MVP proposal intentionally does not instantiate it because ADR-0006 selects
 the PostgreSQL outbox/worker until a separate integration or scale boundary is approved.
 

@@ -72,6 +72,13 @@ All notable controlled changes to the EIEP program definition and implementation
   endpoint, and DNS zone from the proposed MVP environment. The secure module remains
   compiled but uninstantiated until ADR-0006's separate integration/scale condition
   is approved and implemented.
+- Added a fail-closed Azure Monitor alert boundary as the twelfth compiled Bicep
+  template. Twelve validated metric rules cover missing/restarting Container Apps,
+  API timeouts, PostgreSQL availability/storage, and managed-storage availability;
+  runtime cannot start without an approved action-group type and alert-configuration
+  reference. Thresholds, windows, evaluation frequency, and severities remain
+  mandatory owner inputs with no invented defaults, and live signal/routing evidence
+  remains required.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 
