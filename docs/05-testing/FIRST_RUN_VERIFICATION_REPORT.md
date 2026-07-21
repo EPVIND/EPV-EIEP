@@ -26,7 +26,7 @@ was supplied.
 | `pnpm run infrastructure:verify` | Passed within `verify` | Pinned Bicep 0.45.15 compiled 12 templates; `main.bicep` remains zero-resource review-only; proposed deployment has separate foundation/runtime/alert guards, private services, an explicit Entra PostgreSQL administrator, scoped Blob/Key Vault roles, and 12 validated metric-alert rules with mandatory owner-supplied routing and thresholds |
 | `pnpm run openapi:verify` | Passed within `verify` | TypeScript-derived runtime schemas match 112 active `/v1` routes; generated OpenAPI 3.0.3 publishes 89 request bodies, path/query validation, bearer security, and shared safe errors while excluding internal metrics/training/source-intake surfaces |
 | `pnpm run sbom:generate` | Passed | CycloneDX 1.6 production inventory contains 150 components, a merged transitive dependency graph across workspaces, the lockfile SHA, and no local filesystem paths |
-| GitHub Actions `verify` run `29865776583` at `82aa645` | Passed | Clean hosted Linux run completed source verification, built/smoked all four rootless production images, verified PostgreSQL 18, passed five tablet/axe workflows and the production dependency audit, and retained the 150-component SBOM plus source-revision/image-ID evidence |
+| GitHub Actions `verify` run `29869283029` at `efda118` | Passed | Clean hosted Linux run completed source verification including the 12-template alert baseline, built/smoked all four rootless production images, verified PostgreSQL 18, passed five tablet/axe workflows and the production dependency audit, and retained the 150-component SBOM plus source-revision/image-ID evidence and its verified SHA-256 manifest |
 | Turnover renderer review fixture | Passed | Seven searchable letter-size pages; 72 exact source snapshots; JSON/CSV/log hash verification; no JavaScript; individual visual page inspection; PDF/A explicitly unclaimed |
 
 ## Automated coverage summary
@@ -63,9 +63,10 @@ exact API origin at startup, injects it at request time, emits a restrictive CSP
 other browser protections, and exposes a separate health endpoint. All targets run as
 the unprivileged `node` user and carry the full source revision. Local compiled
 artifact and server smoke tests pass. Docker is not installed on this workstation;
-clean hosted run `29865776583` nevertheless built and smoke-tested all four Linux
+clean hosted run `29869283029` nevertheless built and smoke-tested all four Linux
 targets, including the Chromium-equipped worker, and retained their image IDs tied to
-commit `82aa645`. Those runner-local image IDs are not registry promotion evidence;
+commit `efda118` together with a verified SHA-256 manifest. Those runner-local image
+IDs are not registry promotion evidence;
 ACR digests, image vulnerability results, and signatures remain external release
 requirements.
 
