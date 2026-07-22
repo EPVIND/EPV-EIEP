@@ -21,6 +21,23 @@ test("NFR-USE-001-002 / AC-09-10: internal shell is usable at tablet size and fa
   await expect(page.getByRole("heading", { level: 1, name: "Controlled project execution" })).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("No record actions are enabled");
   await expect(page.locator(".environment-banner")).toContainText("UNCONNECTED");
+  await expect(page.getByRole("region", { name: "Capability directory" })).toBeVisible();
+
+  await page.getByRole("navigation").getByRole("link", { name: /^Materials/ }).click();
+  await expect(page).toHaveURL(/#materials$/u);
+  await expect(page.getByRole("heading", { level: 1, name: "Materials workspace" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Explore Materials" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Working documents and execution" })).toBeVisible();
+  await page.getByRole("button", { name: /Material Receipt Report/u }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "Material Receipt Report" })).toBeVisible();
+  await page.getByRole("button", { name: "Start review copy" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Working copy opened" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Workspace summary" })).toHaveCount(0);
+
+  await page.getByRole("navigation").getByRole("link", { name: /^Overview/ }).click();
+  await expect(page.getByRole("region", { name: "Capability directory" })).toBeVisible();
+  await page.getByRole("button", { name: "Open Engineering Database" }).click();
+  await expect(page.getByRole("heading", { name: "Multidisciplinary engineering registers" })).toBeVisible();
 
   for (const link of await page.getByRole("navigation").getByRole("link").all()) {
     const box = await link.boundingBox();

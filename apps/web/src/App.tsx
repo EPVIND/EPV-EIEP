@@ -10,6 +10,7 @@ import { CommandCenterWorkspace } from "./CommandCenterWorkspace.js";
 import { FabricationWorkspace } from "./FabricationWorkspace.js";
 import { CncWorkspace } from "./CncWorkspace.js";
 import { EngineeringRegisterWorkspace } from "./EngineeringRegisterWorkspace.js";
+import { ModuleReviewWorkspace } from "./ModuleReviewWorkspace.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -87,6 +88,36 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "integrations", label: "Integrations", eyebrow: "Jobs & interchange" },
   { key: "administration", label: "Administration", eyebrow: "Access & governance" },
 ];
+
+const moduleCapabilityItems: Readonly<Partial<Record<ModuleKey, readonly (readonly [string, string])[]>>> = {
+  estimating: [["Estimate build-up", "Assemblies, labor/productivity factors, direct cost, adjustments, and exact revision deltas."], ["Quote leveling", "Released-source vendor quotes, comparison gaps, selection authority, and audit."], ["Proposal & handoff", "Approved printable proposal, issue/download integrity, award, and reconciled project-controls handoff."]],
+  controls: [["Cost & quantity baseline", "Immutable estimate-handoff mapping to WBS, control accounts, work packages, budget, and quantities."], ["Change & forecast", "Thresholded change, actuals, accruals, forecast remaining, EAC, and variance."], ["Progress evidence", "Accepted quantity progress remains separate from quality, invoice, and completion acceptance."]],
+  procurement: [["Requisition & bid package", "Exact released-document scope, comparative offers, exclusions, and source hashes."], ["Award & commitment", "Independent recommendation, monetary authority, commitment, and controlled change history."], ["Expediting & receiving", "Milestones, vendor status, evidence, and same-project controlled receipt linkage."]],
+  scheduling: [["Logic & baselines", "Calendars, stable activities, relationships, constraints, independent baseline approval, and history."], ["Updates & look-ahead", "Progress, forecast, variance, blockers, and authorized short-interval planning."], ["Controlled exchange", "Validated idempotent P6 and Microsoft Project imports remain unapproved drafts until review."]],
+  welding: [["WPS / PQR / WPQ", "Exact approved procedure applicability, welder qualification ranges, and continuity."], ["Weld map & execution", "Material, drawing, joint identity, fit-up, consumables, heat input, visual results, and attribution."], ["Repair & release", "Append-only repair cycles, examination prerequisites, independent acceptance, and turnover linkage."]],
+  nde: [["Requests & techniques", "Repair-cycle requests with qualified personnel, procedures, methods, equipment, and calibration."], ["Reports & indications", "Versioned media, conditions, findings, disposition, and independent review."], ["PWHT evidence", "Procedure, cycle parameters, thermocouples, charts, interruptions, equipment, and acceptance."]],
+  testing: [["Boundary packages", "Exact system/completion boundary, documents, welds, safety, isolation, and restoration scope."], ["Readiness & execution", "Prerequisites, valid instruments, participants, witnesses, evidence, deficiencies, and results."], ["Independent acceptance", "Release remains distinct from execution and feeds completion and turnover without replacing authority judgment."]],
+  bluebeam: [["Protected preview", "Released source/export identity, page/region content, user/organization/status mapping, and validation issues."], ["Import & reconciliation", "Idempotent atomic commit, changed-source collision, unsupported-content issues, and exact lineage."], ["Evidence review", "Independent review, audit, scoped search/export, and an explicit no-outbound-write boundary."]],
+  projects: [["Project setup", "Project/customer/facility identity, scope, dates, time zone, and governing references."], ["Structure & responsibility", "Organizations, systems, areas, WBS, work packages, responsibilities, and governed configuration."], ["Readiness & activation", "Server-derived blockers, independent authorities, exact version, typed confirmation, and audit."]],
+  documents: [["Controlled registration", "Document identity, classifications, governing references, and protected file linkage."], ["Revision lifecycle", "Submit, approve, release, supersede, distribution, acknowledgement, and current-for-work invariants."], ["Exact access", "Permission-scoped search/download with file validation, hashes, audit, and no stale-current claim."]],
+  materials: [["Receipt & MTR", "Purchase/receipt context, heat and lot identity, exact released MTR comparison, and evidence."], ["Traceable genealogy", "Quantities, dimensions, locations, movements, cuts, pieces, remnants, issue, return, and quarantine."], ["PMI & release", "Project-rule applicability, qualified instrument results, independent acceptance, NCR linkage, and release blockers."]],
+  quality: [["Inspection & PMI", "Approved plans, qualified execution, evidence, signature meaning, and independent acceptance."], ["NCR control", "Containment, responsibility, corrective action, disposition, approval, reinspection, and closure."], ["Punch & release", "Ownership, evidence, independent verification, closure, completion, and turnover blocking/inclusion."]],
+  turnover: [["Completion boundaries", "Configured systems/packages, exact requirements, source state, deficiencies, and readiness."], ["Immutable package", "Versioned exact-source manifest, searchable PDF, JSON, CSV, generation log, hashes, and audit."], ["Review & handover", "Regeneration/deltas, recipient scope, acceptance evidence, preservation, and explicit production gates."]],
+  reports: [["Operational dashboards", "Permission-scoped derived readiness, quality, material, schedule, exceptions, and progress."], ["Controlled reports", "Immutable project/document/material/inspection/NCR/punch/subcontractor/turnover snapshots."], ["Exports & analytics", "Authorized asynchronous CSV/JSON Lines exports with stable IDs, manifests, and recipient reauthorization."]],
+  integrations: [["Controlled imports", "Versioned schema validation, preview, atomic commit, source IDs, and exact idempotency."], ["Jobs & delivery", "Transactional outbox, worker leases, bounded retry, dead letter, recipient reauthorization, and audit."], ["Reconciliation", "Explicit permanent/transient outcomes and governed reconciliation without silent external-state claims."]],
+  administration: [["Identity & assignments", "OIDC resolution, account lifecycle, organization/project/work-package scope, qualifications, and assurance."], ["Governed authority", "Effective/revoked assignments, delegation, step-up, separation of duty, and break-glass review."], ["Audit & operations", "Retention, legal hold, three-party disposition, health, recovery, configuration, and release boundaries."]],
+};
+
+function ModuleCapabilityLanding({ module }: { readonly module: (typeof modules)[number] }) {
+  const items = moduleCapabilityItems[module.key] ?? [];
+  return <section className="module-access-preview" aria-labelledby={`${module.key}-access-heading`}>
+    <div className="workspace-hero module-access-hero"><div><p className="section-label">Module workspace</p><h2 id={`${module.key}-access-heading`}>Explore {module.label}</h2>
+      <p>{module.eyebrow}. The functional surface is available here; controlled project records remain hidden until an authorized identity and project are selected.</p></div><span className="policy-chip">Access boundary active</span></div>
+    <div className="module-access-grid">{items.map(([title, description], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>
+    <div className="module-access-note"><strong>Two execution layers</strong><p>Use the review workbench below to inspect and exercise document design now. Authoritative project actions load only after a controlled API identity and project are selected.</p></div>
+    <ModuleReviewWorkspace key={module.key} moduleKey={module.key} moduleLabel={module.label} />
+  </section>;
+}
 
 function initialModule(): ModuleKey {
   const requested = window.location.hash.replace(/^#/u, "") as ModuleKey;
@@ -298,6 +329,10 @@ export function App() {
     search: searchResults.length,
     blockers: health?.blockers.length ?? 0,
   }), [health?.blockers.length, projects.length, searchResults.length, session?.assignmentCount]);
+  const activeModuleDefinition = modules.find((module) => module.key === activeModule) ?? modules[0]!;
+  const requiresProjectContext = activeModule !== "estimating";
+  const showGenericCapabilityLanding = activeModule !== "overview"
+    && (activeModule === "integrations" || activeModule === "administration" || !session || (requiresProjectContext && !selectedProject));
 
   function saveIdentity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -435,17 +470,25 @@ export function App() {
           {apiUnavailable ? <p className="alert alert-error" role="alert">The API is unavailable. No record actions are enabled.</p> : null}
           {message ? <p className={`alert alert-${message.tone}`} role={message.tone === "error" ? "alert" : "status"}>{message.text}</p> : null}
           <div className="page-heading">
-            <div><p className="eyebrow">{modules.find((module) => module.key === activeModule)?.eyebrow}</p><h1>Controlled project execution</h1>
-              <p className="lede">One governed workspace for material traceability, quality decisions, subcontractor claims, and turnover evidence.</p></div>
-            <button className="primary-button" type="button" onClick={() => setShowCreateProject(true)} disabled={!session || working}>New project</button>
+            <div><p className="eyebrow">{activeModuleDefinition.eyebrow}</p><h1>{activeModule === "overview" ? "Controlled project execution" : `${activeModuleDefinition.label} workspace`}</h1>
+              <p className="lede">{activeModule === "overview" ? "One governed workspace for material traceability, quality decisions, subcontractor claims, and turnover evidence." : `Explore ${activeModuleDefinition.label} functions and open controlled records when an authorized project context is available.`}</p></div>
+            {activeModule === "overview" || activeModule === "projects" ? <button className="primary-button" type="button" onClick={() => setShowCreateProject(true)} disabled={!session || working}>New project</button> : null}
           </div>
 
-          <section className="metrics" aria-label="Workspace summary">
+          {activeModule === "overview" || activeModule === "projects" ? <><section className="metrics" aria-label="Workspace summary">
             <article><span>Visible projects</span><strong>{moduleCounts.projects}</strong><small>Server-scoped</small></article>
             <article><span>Active assignments</span><strong>{moduleCounts.assignments}</strong><small>{session ? session.assurance : "No session"}</small></article>
             <article><span>Search results</span><strong>{moduleCounts.search}</strong><small>Exact permission filter</small></article>
             <article className={moduleCounts.blockers ? "metric-warning" : ""}><span>Release blockers</span><strong>{moduleCounts.blockers}</strong><small>Production boundary</small></article>
           </section>
+
+          {activeModule === "overview" ? <section className="module-directory" aria-label="Capability directory">
+            <div className="module-directory-heading"><div><p className="section-label">Enterprise capability directory</p><h2>Open a module</h2></div>
+              <p>Every bucket is interactive. Modules requiring controlled records will show their access boundary until an authorized identity and project are selected.</p></div>
+            <div className="module-directory-grid">{modules.filter((module) => module.key !== "overview").map((module) => <button
+              key={module.key} type="button" className="capability-bucket" onClick={() => openModule(module.key)} aria-label={`Open ${module.label}`}
+            ><span><strong>{module.label}</strong><small>{module.eyebrow}</small></span><b aria-hidden="true">Open →</b></button>)}</div>
+          </section> : null}
 
           <div className="content-grid">
             <section className="panel project-panel" aria-labelledby="project-heading">
@@ -491,7 +534,9 @@ export function App() {
               <p className="section-label">Safety boundary</p><h2 id="controls-heading">Connectivity & release</h2>
               <ul className="control-list"><li><span className="control-icon">O</span><div><strong>Authoritative actions</strong><small>Release, acceptance, current-for-work, issue, and turnover generation require online state.</small></div></li><li><span className="control-icon">Q</span><div><strong>Queued offline capture</strong><small>Punch observations retain actor, device, original time, idempotency, and conflicts.</small></div></li><li><span className="control-icon">R</span><div><strong>Read-only cache</strong><small>Only explicitly assigned exact revisions; never a current-state claim.</small></div></li></ul>
             </section>
-          </div>
+          </div></> : null}
+
+          {showGenericCapabilityLanding ? <ModuleCapabilityLanding module={activeModuleDefinition} /> : null}
 
           {selectedProject && session && activeModule === "overview" ? <CommandCenterWorkspace
             key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:command-center`}
