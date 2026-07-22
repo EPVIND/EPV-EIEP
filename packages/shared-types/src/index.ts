@@ -1601,6 +1601,129 @@ export interface TestPackageRecord {
   readonly updatedBy: string;
 }
 
+export type CollaborationEvidenceStatus = "open" | "resolved_claim" | "closed_claim" | "unknown";
+export interface CollaborationDocumentMapping {
+  readonly providerDocumentId: string;
+  readonly documentRevisionId: string;
+}
+export interface CollaborationAuthorMapping {
+  readonly providerAuthorId: string;
+  readonly userAccountId: string;
+  readonly organizationId: string;
+}
+export interface CollaborationStatusMapping {
+  readonly providerStatusCode: string;
+  readonly evidenceStatus: CollaborationEvidenceStatus;
+}
+export interface CollaborationRegion {
+  readonly x: string;
+  readonly y: string;
+  readonly width: string;
+  readonly height: string;
+  readonly units: "points" | "normalized";
+}
+export interface CollaborationSourceItem {
+  readonly providerItemId: string;
+  readonly providerDocumentId: string;
+  readonly parentProviderItemId: string | null;
+  readonly itemType: "markup" | "comment" | "reply" | "status";
+  readonly pageNumber: number;
+  readonly region: CollaborationRegion | null;
+  readonly authorProviderId: string;
+  readonly providerStatusCode: string;
+  readonly subject: string;
+  readonly body: string;
+  readonly appearance: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  readonly unsupportedContentCodes: readonly string[];
+}
+export interface CollaborationPreviewIssue {
+  readonly code: string;
+  readonly sourceObjectId: string | null;
+  readonly field: string | null;
+  readonly detail: string;
+}
+export interface DocumentCollaborationImportRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly provider: "bluebeam_export";
+  readonly providerProduct: string;
+  readonly providerProjectId: string;
+  readonly providerSessionId: string;
+  readonly sourceFileId: string;
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly canonicalSha256: string;
+  readonly schemaVersion: number;
+  readonly mappingVersion: string;
+  readonly idempotencyKey: string;
+  readonly documentMappings: readonly CollaborationDocumentMapping[];
+  readonly authorMappings: readonly CollaborationAuthorMapping[];
+  readonly statusMappings: readonly CollaborationStatusMapping[];
+  readonly sourceItems: readonly CollaborationSourceItem[];
+  readonly previewIssues: readonly CollaborationPreviewIssue[];
+  readonly committedItemIds: readonly string[];
+  readonly state: "previewed" | "invalid" | "conflict" | "committed";
+  readonly previewedAt: Date;
+  readonly previewedBy: string;
+  readonly committedAt: Date | null;
+  readonly committedBy: string | null;
+  readonly version: number;
+}
+export interface CollaborationItemRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly importId: string;
+  readonly provider: "bluebeam_export";
+  readonly providerProjectId: string;
+  readonly providerSessionId: string;
+  readonly providerItemId: string;
+  readonly providerDocumentId: string;
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly documentRevisionId: string;
+  readonly parentItemId: string | null;
+  readonly itemType: "markup" | "comment" | "reply" | "status";
+  readonly pageNumber: number;
+  readonly region: CollaborationRegion | null;
+  readonly authorUserId: string;
+  readonly authorOrganizationId: string;
+  readonly providerStatusCode: string;
+  readonly evidenceStatus: CollaborationEvidenceStatus;
+  readonly subject: string;
+  readonly body: string;
+  readonly appearance: string | null;
+  readonly sourceCreatedAt: Date;
+  readonly sourceUpdatedAt: Date;
+  readonly state: "submitted" | "accepted" | "rejected" | "superseded";
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+export interface CollaborationReconciliationRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly importId: string;
+  readonly code: string;
+  readonly sourceObjectId: string | null;
+  readonly field: string | null;
+  readonly detail: string;
+  readonly state: "open" | "resolved" | "waived";
+  readonly resolution: string | null;
+  readonly resolvedAt: Date | null;
+  readonly resolvedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+
 export type ProjectStructureType = "system" | "area" | "wbs" | "work_package";
 
 export interface ProjectStructureElementRecord {
@@ -1855,7 +1978,7 @@ export interface IntegrationMessageRecord {
 }
 
 export interface ScopedSearchResult {
-  readonly recordType: "document" | "material" | "ncr" | "punch" | "imported";
+  readonly recordType: "document" | "material" | "ncr" | "punch" | "imported" | "collaboration";
   readonly recordId: string;
   readonly projectId: string;
   readonly label: string;
@@ -1906,7 +2029,7 @@ export interface NotificationRecord {
   readonly recipientUserId: string;
   readonly recipientOrganizationId: string;
   readonly eventType: string;
-  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported";
+  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported" | "collaboration";
   readonly recordId: string;
   readonly channel: "in_app" | "email";
   readonly templateCode: string;

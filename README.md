@@ -119,8 +119,13 @@ Implemented review surfaces include:
   revisions by repair cycle, PWHT parameters/thermocouples/chart evidence, independent
   acceptance/release, and completion-boundary pressure/leak/functional test readiness,
   evidence, deficiencies, restoration, and audit;
+- a provider-neutral Bluebeam collaboration workspace and service covering protected
+  export preview, exact document/user/organization/status mapping, markup/comment/
+  reply page-region/source fidelity, idempotent atomic commit, changed-source and
+  unsupported-content reconciliation, independent evidence review, audit, scoped
+  search/export, and an explicit disabled outbound/write boundary;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 188 routes/151 request bodies, drift verification, bearer security,
+  schemas for 194 active `/v1` routes and 155 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -163,9 +168,10 @@ pnpm run containers:verify
 ```
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
-traceability, OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-92 unit/integration/security/acceptance tests, and compiled runtime process smoke
-tests. `pnpm run build` builds the two web applications, API, worker/contracts,
+OpenAPI drift, Bicep/container-definition checks, strict typechecks,
+96 unit/integration/security/acceptance tests, 99-requirement/217-path traceability,
+and compiled runtime process smoke tests. `pnpm run build` builds the two web
+applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
 containers:build` additionally requires Docker with BuildKit; it builds and smokes
 all four production targets and emits revision-linked image evidence. `pnpm run
@@ -176,7 +182,7 @@ That PostgreSQL path also creates, exactly retries, restarts, and verifies the g
 first-application-authority bootstrap; the production operator contract is in
 `docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
 
-`pnpm run test:browser` runs eight internal/portal workflow cases in a Chromium tablet
+`pnpm run test:browser` runs nine internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 
 Local review servers:

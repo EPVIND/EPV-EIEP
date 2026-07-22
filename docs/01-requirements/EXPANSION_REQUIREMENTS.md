@@ -1,8 +1,7 @@
 # Enterprise Expansion Requirements
 
-Status: Estimating, project-controls/procurement/scheduling, and welding/NDE/PWHT/
-testing requirements promoted into the controlled baseline; Bluebeam requirements
-remain proposed until their executable evidence is promoted
+Status: Estimating, project-controls/procurement/scheduling, welding/NDE/PWHT/
+testing, and governed Bluebeam collaboration requirements promoted into the controlled baseline
 Date: 2026-07-21
 
 These requirements define the active post-MVP expansion. They supplement rather

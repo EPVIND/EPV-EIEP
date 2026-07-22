@@ -37,6 +37,9 @@ import type {
   NdeReportRevisionRecord,
   PwhtCycleRecord,
   TestPackageRecord,
+  DocumentCollaborationImportRecord,
+  CollaborationItemRecord,
+  CollaborationReconciliationRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -159,6 +162,9 @@ export interface MemoryState {
   ndeReports: Map<string, NdeReportRevisionRecord>;
   pwhtCycles: Map<string, PwhtCycleRecord>;
   testPackages: Map<string, TestPackageRecord>;
+  collaborationImports: Map<string, DocumentCollaborationImportRecord>;
+  collaborationItems: Map<string, CollaborationItemRecord>;
+  collaborationReconciliations: Map<string, CollaborationReconciliationRecord>;
   audits: AuditEvent[];
 }
 
@@ -964,6 +970,71 @@ class MemoryTransaction implements FoundationTransaction {
   }
   public updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void {
     const current = this.state.testPackages.get(testPackage.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.testPackages.set(testPackage.id, cloneValue(testPackage));
+  }
+
+  public collaborationImportById(id: string): DocumentCollaborationImportRecord | null {
+    const record = this.state.collaborationImports.get(id); return record ? cloneValue(record) : null;
+  }
+  public collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null {
+    const record = [...this.state.collaborationImports.values()].find((item) => item.projectId === projectId && item.idempotencyKey === idempotencyKey);
+    return record ? cloneValue(record) : null;
+  }
+  public collaborationImportBySource(projectId: string, providerProjectId: string, providerSessionId: string, sourceVersion: string): DocumentCollaborationImportRecord | null {
+    const record = [...this.state.collaborationImports.values()].find((item) => item.projectId === projectId
+      && item.providerProjectId === providerProjectId && item.providerSessionId === providerSessionId && item.sourceVersion === sourceVersion);
+    return record ? cloneValue(record) : null;
+  }
+  public collaborationImports(projectId: string): readonly DocumentCollaborationImportRecord[] {
+    return cloneValue([...this.state.collaborationImports.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.previewedAt.getTime() - right.previewedAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCollaborationImport(collaborationImport: DocumentCollaborationImportRecord): void {
+    if (this.state.collaborationImports.has(collaborationImport.id)
+      || this.collaborationImportByIdempotency(collaborationImport.projectId, collaborationImport.idempotencyKey)) throw new ConflictError();
+    this.state.collaborationImports.set(collaborationImport.id, cloneValue(collaborationImport));
+  }
+  public updateCollaborationImport(collaborationImport: DocumentCollaborationImportRecord, expectedVersion: number): void {
+    const current = this.state.collaborationImports.get(collaborationImport.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.collaborationImports.set(collaborationImport.id, cloneValue(collaborationImport));
+  }
+  public collaborationItemById(id: string): CollaborationItemRecord | null {
+    const record = this.state.collaborationItems.get(id); return record ? cloneValue(record) : null;
+  }
+  public collaborationItemByExternal(projectId: string, providerProjectId: string, providerSessionId: string, providerItemId: string): CollaborationItemRecord | null {
+    const records = [...this.state.collaborationItems.values()].filter((item) => item.projectId === projectId
+      && item.providerProjectId === providerProjectId && item.providerSessionId === providerSessionId && item.providerItemId === providerItemId)
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime() || right.id.localeCompare(left.id));
+    return records[0] ? cloneValue(records[0]) : null;
+  }
+  public collaborationItems(projectId: string): readonly CollaborationItemRecord[] {
+    return cloneValue([...this.state.collaborationItems.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public collaborationItemsForImport(importId: string): readonly CollaborationItemRecord[] {
+    return cloneValue([...this.state.collaborationItems.values()].filter((item) => item.importId === importId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCollaborationItem(item: CollaborationItemRecord): void {
+    if (this.state.collaborationItems.has(item.id)) throw new ConflictError(); this.state.collaborationItems.set(item.id, cloneValue(item));
+  }
+  public updateCollaborationItem(item: CollaborationItemRecord, expectedVersion: number): void {
+    const current = this.state.collaborationItems.get(item.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.collaborationItems.set(item.id, cloneValue(item));
+  }
+  public collaborationReconciliationById(id: string): CollaborationReconciliationRecord | null {
+    const record = this.state.collaborationReconciliations.get(id); return record ? cloneValue(record) : null;
+  }
+  public collaborationReconciliations(projectId: string, importId?: string): readonly CollaborationReconciliationRecord[] {
+    return cloneValue([...this.state.collaborationReconciliations.values()].filter((item) => item.projectId === projectId && (!importId || item.importId === importId))
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord): void {
+    if (this.state.collaborationReconciliations.has(reconciliation.id)) throw new ConflictError();
+    this.state.collaborationReconciliations.set(reconciliation.id, cloneValue(reconciliation));
+  }
+  public updateCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord, expectedVersion: number): void {
+    const current = this.state.collaborationReconciliations.get(reconciliation.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.collaborationReconciliations.set(reconciliation.id, cloneValue(reconciliation));
   }
 
   public projectById(id: string): ProjectRecord | null {
@@ -2026,6 +2097,9 @@ export function createEmptyMemoryState(): MemoryState {
     ndeReports: new Map(),
     pwhtCycles: new Map(),
     testPackages: new Map(),
+    collaborationImports: new Map(),
+    collaborationItems: new Map(),
+    collaborationReconciliations: new Map(),
     audits: [],
   };
 }

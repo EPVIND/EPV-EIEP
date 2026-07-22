@@ -101,6 +101,9 @@ import {
   type SubmitProjectCostEntryInput,
   type SubmitProjectProgressClaimInput,
 } from "./domain/project-controls-service.js";
+import {
+  DocumentCollaborationService,
+} from "./domain/document-collaboration-service.js";
 
 export interface ServerDependencies {
   readonly service: FoundationService;
@@ -112,6 +115,7 @@ export interface ServerDependencies {
   readonly estimating?: EstimatingService;
   readonly executionDisciplines?: ExecutionDisciplineService;
   readonly projectControls?: ProjectControlsService;
+  readonly documentCollaboration?: DocumentCollaborationService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
   readonly environment: string;
@@ -179,6 +183,8 @@ function openApiTag(url: string): string {
     "procurement-requisitions": "procurement", "procurement-bid-packages": "procurement",
     "procurement-commitments": "procurement", schedules: "scheduling", "schedule-revisions": "scheduling",
     "schedule-imports": "scheduling",
+    "collaboration-imports": "collaboration", "collaboration-items": "collaboration",
+    "collaboration-reconciliations": "collaboration", collaboration: "collaboration",
   };
   return (aliases[first] ?? first) || "platform";
 }
@@ -282,6 +288,37 @@ interface SubmitTestResultHttp {
   readonly expectedVersion: number; readonly performedAt: string; readonly result: "pass" | "fail";
   readonly evidenceFileIds: readonly string[]; readonly deficiencyNcrIds: readonly string[]; readonly restorationConfirmation: string;
 }
+interface PreviewDocumentCollaborationHttp {
+  readonly provider: "bluebeam_export";
+  readonly providerProduct: string;
+  readonly providerProjectId: string;
+  readonly providerSessionId: string;
+  readonly sourceFileId: string;
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly schemaVersion: number;
+  readonly mappingVersion: string;
+  readonly idempotencyKey: string;
+  readonly documentMappings: readonly { readonly providerDocumentId: string; readonly documentRevisionId: string }[];
+  readonly authorMappings: readonly { readonly providerAuthorId: string; readonly userAccountId: string; readonly organizationId: string }[];
+  readonly statusMappings: readonly { readonly providerStatusCode: string; readonly evidenceStatus: "open" | "resolved_claim" | "closed_claim" | "unknown" }[];
+  readonly items: readonly {
+    readonly providerItemId: string;
+    readonly providerDocumentId: string;
+    readonly parentProviderItemId: string | null;
+    readonly itemType: "markup" | "comment" | "reply" | "status";
+    readonly pageNumber: number;
+    readonly region: { readonly x: string; readonly y: string; readonly width: string; readonly height: string; readonly units: "points" | "normalized" } | null;
+    readonly authorProviderId: string;
+    readonly providerStatusCode: string;
+    readonly subject: string;
+    readonly body: string;
+    readonly appearance: string | null;
+    readonly createdAt: string;
+    readonly updatedAt: string;
+    readonly unsupportedContentCodes: readonly string[];
+  }[];
+}
 
 function scheduleActivityFromHttp(activity: ScheduleActivityHttp): ScheduleActivity {
   return {
@@ -298,6 +335,7 @@ export async function buildServer(dependencies: ServerDependencies) {
   const estimating = dependencies.estimating ?? new EstimatingService(dependencies.store);
   const executionDisciplines = dependencies.executionDisciplines ?? new ExecutionDisciplineService(dependencies.store);
   const projectControls = dependencies.projectControls ?? new ProjectControlsService(dependencies.store);
+  const documentCollaboration = dependencies.documentCollaboration ?? new DocumentCollaborationService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
     logger: {
@@ -390,7 +428,7 @@ export async function buildServer(dependencies: ServerDependencies) {
       tags: [
         "identity", "projects", "documents", "files", "materials", "quality", "turnover",
         "subcontractors", "portal", "interchange", "notifications", "offline", "reports", "estimating",
-        "project-controls", "procurement", "scheduling", "welding", "nde", "pwht", "testing",
+        "project-controls", "procurement", "scheduling", "welding", "nde", "pwht", "testing", "collaboration",
       ].map((name) => ({ name })),
     },
     exposeHeadRoutes: false,
@@ -1477,6 +1515,61 @@ export async function buildServer(dependencies: ServerDependencies) {
       const access = await accessFor(request, dependencies);
       return executionDisciplines.reviewTestResult(access.context, access.assignments, request.params.testPackageId,
         request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.post<{ Params: { projectId: string }; Body: PreviewDocumentCollaborationHttp }>(
+    "/v1/projects/:projectId/collaboration-imports/preview",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await documentCollaboration.preview(
+        access.context, access.assignments, request.params.projectId,
+        { ...request.body, items: request.body.items.map((item) => ({ ...item,
+          createdAt: new Date(item.createdAt), updatedAt: new Date(item.updatedAt) })) },
+      ));
+    },
+  );
+
+  server.post<{ Params: { importId: string }; Body: { expectedVersion: number } }>(
+    "/v1/collaboration-imports/:importId/commit",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return documentCollaboration.commit(access.context, access.assignments,
+        request.params.importId, request.body.expectedVersion);
+    },
+  );
+
+  server.get<{ Params: { projectId: string } }>(
+    "/v1/projects/:projectId/collaboration",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return documentCollaboration.snapshot(access.context, access.assignments, request.params.projectId);
+    },
+  );
+
+  server.get<{ Params: { projectId: string } }>(
+    "/v1/projects/:projectId/collaboration/outbound-capability",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return documentCollaboration.outboundCapability(access.context, access.assignments, request.params.projectId);
+    },
+  );
+
+  server.post<{ Params: { itemId: string }; Body: { expectedVersion: number; decision: "accept" | "reject"; reason: string } }>(
+    "/v1/collaboration-items/:itemId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return documentCollaboration.reviewItem(access.context, access.assignments, request.params.itemId,
+        request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.post<{ Params: { issueId: string }; Body: { expectedVersion: number; decision: "resolved" | "waived"; resolution: string } }>(
+    "/v1/collaboration-reconciliations/:issueId/resolve",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return documentCollaboration.resolveIssue(access.context, access.assignments, request.params.issueId,
+        request.body.expectedVersion, request.body.decision, request.body.resolution);
     },
   );
 

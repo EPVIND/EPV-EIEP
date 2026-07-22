@@ -113,6 +113,13 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 
 ## Work objects
 
+## Provider-neutral document collaboration
+
+- `DocumentCollaborationImport` freezes the protected source-file identity/hash, provider product/project/session/source version, schema/mapping/idempotency versions, exact document/author/status mappings, source items, preview issues, actor/time, and atomic commit result. Exact retries converge; a changed source with the same provider identity becomes a visible conflict.
+- `CollaborationItem` preserves the provider document/item/parent identity, exact EIEP document revision, page/region, markup/comment/reply/status type, mapped user/organization, provider status, evidence-only normalized status, subject/body/appearance, source times/hash, source import, independent review, and supersession history.
+- `CollaborationReconciliation` preserves a safe issue code/object/field/detail plus independent resolution or waiver; it does not log protected markup body content and cannot convert an invalid preview into an approved EIEP record.
+- Provider completion or approval is never a document-release, quality, NCR, work, or turnover transition. No outbound write aggregate or command exists until the ADR-0012 external gates are independently accepted.
+
 Provide a shared `WorkObject` or equivalent stable abstraction with typed extensions:
 
 - Pipe spool, weld, line/component, pressure item, vessel component.

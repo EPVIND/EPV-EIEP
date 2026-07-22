@@ -390,6 +390,56 @@ test("FR-WLD-001-003, FR-NDE-001-002, FR-PWH-001, FR-TST-001-002 / AC-02-03, EX-
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed import fidelity, reconciliation, and disabled outbound boundary at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "collaboration-reader");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "step-up");
+  });
+  const snapshot = {
+    imports: [{ id: "import-1", providerProduct: "Bluebeam Revu Studio export", providerProjectId: "BB-PROJECT-1",
+      providerSessionId: "BB-SESSION-10", sourceVersion: "2026-07-21T17:30Z", sourceSha256: "b".repeat(64),
+      previewIssues: [], committedItemIds: ["item-1", "item-2"], state: "committed", version: 2, previewedBy: "previewer" }],
+    items: [{ id: "item-1", providerItemId: "BB-MARKUP-1", providerDocumentId: "BB-DOC-1",
+      documentRevisionId: "P-100-REV-2", parentItemId: null, itemType: "markup", pageNumber: 3,
+      authorUserId: "designer-account", providerStatusCode: "Accepted", evidenceStatus: "closed_claim",
+      subject: "Valve orientation", sourceUpdatedAt: "2026-07-21T16:30:00.000Z", state: "accepted", version: 2 },
+      { id: "item-2", providerItemId: "BB-REPLY-1", providerDocumentId: "BB-DOC-1",
+        documentRevisionId: "P-100-REV-2", parentItemId: "item-1", itemType: "reply", pageNumber: 3,
+        authorUserId: "designer-account", providerStatusCode: "Accepted", evidenceStatus: "closed_claim",
+        subject: "Field reply", sourceUpdatedAt: "2026-07-21T16:45:00.000Z", state: "submitted", version: 1 }],
+    reconciliations: [{ id: "issue-1", importId: "import-1", code: "unsupported_content",
+      sourceObjectId: "BB-MARKUP-3", field: "unsupportedContentCodes", detail: "Unsupported provider content type: measurement-calibration.",
+      state: "open", version: 1 }],
+    outbound: { enabled: false, provider: "bluebeam", blockers: ["live_provider_contract_unapproved", "sandbox_not_verified",
+      "outbound_identity_not_configured", "rate_retry_reconciliation_not_accepted", "tenant_project_ownership_not_verified",
+      "vendor_terms_and_retention_not_accepted"] },
+  };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname;
+    const respond = async (json: unknown, status = 200) => route.fulfill({ status, headers: corsHeaders, json });
+    if (path === "/health") return respond({ status: "ok", environment: "test", training: false, productionReady: false, blockers: ["external_pilot_approval"] });
+    if (path === "/v1/session") return respond({ userId: "collaboration-reader", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 6, environment: "test", training: false });
+    if (path === "/v1/projects") return respond([{ id: "project-1", number: "BBM-001", name: "Bluebeam controlled pilot",
+      customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/collaboration") return respond(snapshot);
+    return respond({ error: "not_found" }, 404);
+  });
+  await page.setViewportSize({ width: 900, height: 1100 });
+  await page.goto("/");
+  await page.getByRole("link", { name: /Bluebeam/u }).click();
+  await expect(page.getByRole("heading", { name: "Bluebeam governed import — BBM-001" })).toBeVisible();
+  await expect(page.getByText("BB-SESSION-10")).toBeVisible();
+  await expect(page.getByRole("cell", { name: /BB-MARKUP-1 Valve orientation/u })).toBeVisible();
+  await expect(page.getByText("closed claim", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("unsupported content", { exact: true })).toBeVisible();
+  await expect(page.getByText("live provider contract unapproved", { exact: true })).toBeVisible();
+  await expect(page.getByText(/No live Bluebeam write action is exposed/u)).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001, FR-TOV-001-004 / AC-03-09: guided internal workflow reaches an immutable turnover version", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "chain-controller");

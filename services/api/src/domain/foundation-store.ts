@@ -36,6 +36,9 @@ import type {
   NdeReportRevisionRecord,
   PwhtCycleRecord,
   TestPackageRecord,
+  DocumentCollaborationImportRecord,
+  CollaborationItemRecord,
+  CollaborationReconciliationRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -239,6 +242,26 @@ export interface FoundationTransaction {
   testPackages(projectId: string): readonly TestPackageRecord[];
   insertTestPackage(testPackage: TestPackageRecord): void;
   updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void;
+  collaborationImportById(id: string): DocumentCollaborationImportRecord | null;
+  collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null;
+  collaborationImportBySource(
+    projectId: string, providerProjectId: string, providerSessionId: string, sourceVersion: string,
+  ): DocumentCollaborationImportRecord | null;
+  collaborationImports(projectId: string): readonly DocumentCollaborationImportRecord[];
+  insertCollaborationImport(collaborationImport: DocumentCollaborationImportRecord): void;
+  updateCollaborationImport(collaborationImport: DocumentCollaborationImportRecord, expectedVersion: number): void;
+  collaborationItemById(id: string): CollaborationItemRecord | null;
+  collaborationItemByExternal(
+    projectId: string, providerProjectId: string, providerSessionId: string, providerItemId: string,
+  ): CollaborationItemRecord | null;
+  collaborationItems(projectId: string): readonly CollaborationItemRecord[];
+  collaborationItemsForImport(importId: string): readonly CollaborationItemRecord[];
+  insertCollaborationItem(item: CollaborationItemRecord): void;
+  updateCollaborationItem(item: CollaborationItemRecord, expectedVersion: number): void;
+  collaborationReconciliationById(id: string): CollaborationReconciliationRecord | null;
+  collaborationReconciliations(projectId: string, importId?: string): readonly CollaborationReconciliationRecord[];
+  insertCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord): void;
+  updateCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord, expectedVersion: number): void;
   projectById(id: string): ProjectRecord | null;
   projectByNumber(businessScopeOrganizationId: string, number: string): ProjectRecord | null;
   projects(): readonly ProjectRecord[];

@@ -26,8 +26,10 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
   updates, look-aheads, and P6/Project exchange: locally implemented controlled pilot.
 - Welding/WPS/PQR/WPQ, NDE repair cycles, PWHT, pressure/leak/functional testing, and
   completion-boundary test-package workflows: locally implemented controlled pilot.
-- Governed Bluebeam collaboration import followed by a separately approved live
-  adapter.
+- Governed, provider-neutral Bluebeam collaboration preview/import, reconciliation,
+  evidence review, source lineage, scoped API/search/export, and tablet workspace:
+  locally implemented controlled pilot. A live outbound adapter remains a separately
+  approved external-contract and sandbox deliverable.
 - Structural member and assembly tracking.
 - Civil, earthwork, concrete placement, testing, and foundation release.
 - Work packages, travelers, daily reports, quantities, look-aheads, and progress.

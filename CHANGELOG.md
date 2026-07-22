@@ -2,6 +2,14 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.12.0 - Governed Bluebeam document collaboration pilot
+
+- Added a provider-neutral Bluebeam export contract that validates an integrity-matched released source file and exact project, released document revision, active account/organization, provider status, page/region, parent, timestamp, and supported-content mappings before commit.
+- Added deterministic preview hashing and exact-retry idempotency, changed-source collision handling, safe reconciliation records, atomic import, provider-item supersession history, and complete markup/comment/reply/status source fidelity.
+- Added independent, step-up collaboration evidence review with separation of duty and audit. Provider “accepted/closed” remains evidence-only and cannot mutate the linked controlled document revision or imply any EIEP quality/work approval.
+- Added six secured API operations, collaboration search/export support, PostgreSQL typed persistence, and a tablet-accessible Bluebeam import/register/reconciliation/review workspace. Outbound writes remain deliberately absent and expose explicit contract/sandbox/identity/tenancy/rate/retry/retention/terms blockers.
+- Promoted five requirements into the controlled baseline and added AC-14. Full local verification passes 96 source tests, nine tablet/axe workflows, PostgreSQL 18 collaboration hydration/restart/concurrency, 194 active `/v1` routes with 155 request bodies, 99-requirement/217-path traceability, compiled runtime gates, and a clean production dependency audit; hosted verification is recorded separately after push.
+
 ## 0.11.0 - Connected welding, NDE, PWHT, and testing pilot
 
 - Added exact-revision PQR/WPS governance, effective applicability ranges,

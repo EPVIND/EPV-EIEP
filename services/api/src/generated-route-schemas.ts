@@ -219,6 +219,34 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/projects/:projectId/collaboration": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "GET /v1/projects/:projectId/collaboration/outbound-capability": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "GET /v1/projects/:projectId/configurations/:configurationCode/current": {
     "params": {
       "type": "object",
@@ -649,6 +677,108 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "delegationId"
+      ]
+    }
+  },
+  "POST /v1/collaboration-imports/:importId/commit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "importId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "importId"
+      ]
+    }
+  },
+  "POST /v1/collaboration-items/:itemId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "itemId"
+      ]
+    }
+  },
+  "POST /v1/collaboration-reconciliations/:issueId/resolve": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "resolved",
+            "waived"
+          ]
+        },
+        "resolution": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "resolution"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "issueId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "issueId"
       ]
     }
   },
@@ -3204,6 +3334,250 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/projects/:projectId/collaboration-imports/preview": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "bluebeam_export"
+          ]
+        },
+        "providerProduct": {
+          "type": "string"
+        },
+        "providerProjectId": {
+          "type": "string"
+        },
+        "providerSessionId": {
+          "type": "string"
+        },
+        "sourceFileId": {
+          "type": "string"
+        },
+        "sourceVersion": {
+          "type": "string"
+        },
+        "sourceSha256": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "number"
+        },
+        "mappingVersion": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        },
+        "documentMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "providerDocumentId": {
+                "type": "string"
+              },
+              "documentRevisionId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "documentRevisionId",
+              "providerDocumentId"
+            ]
+          }
+        },
+        "authorMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "providerAuthorId": {
+                "type": "string"
+              },
+              "userAccountId": {
+                "type": "string"
+              },
+              "organizationId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "organizationId",
+              "providerAuthorId",
+              "userAccountId"
+            ]
+          }
+        },
+        "statusMappings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "providerStatusCode": {
+                "type": "string"
+              },
+              "evidenceStatus": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "resolved_claim",
+                  "closed_claim",
+                  "unknown"
+                ]
+              }
+            },
+            "required": [
+              "evidenceStatus",
+              "providerStatusCode"
+            ]
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "providerItemId": {
+                "type": "string"
+              },
+              "providerDocumentId": {
+                "type": "string"
+              },
+              "parentProviderItemId": {
+                "type": "string",
+                "nullable": true
+              },
+              "itemType": {
+                "type": "string",
+                "enum": [
+                  "markup",
+                  "comment",
+                  "reply",
+                  "status"
+                ]
+              },
+              "pageNumber": {
+                "type": "number"
+              },
+              "region": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "x": {
+                    "type": "string"
+                  },
+                  "y": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "string"
+                  },
+                  "height": {
+                    "type": "string"
+                  },
+                  "units": {
+                    "type": "string",
+                    "enum": [
+                      "normalized",
+                      "points"
+                    ]
+                  }
+                },
+                "required": [
+                  "height",
+                  "units",
+                  "width",
+                  "x",
+                  "y"
+                ],
+                "nullable": true
+              },
+              "authorProviderId": {
+                "type": "string"
+              },
+              "providerStatusCode": {
+                "type": "string"
+              },
+              "subject": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              },
+              "appearance": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "unsupportedContentCodes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "appearance",
+              "authorProviderId",
+              "body",
+              "createdAt",
+              "itemType",
+              "pageNumber",
+              "parentProviderItemId",
+              "providerDocumentId",
+              "providerItemId",
+              "providerStatusCode",
+              "region",
+              "subject",
+              "unsupportedContentCodes",
+              "updatedAt"
+            ]
+          }
+        }
+      },
+      "required": [
+        "authorMappings",
+        "documentMappings",
+        "idempotencyKey",
+        "items",
+        "mappingVersion",
+        "provider",
+        "providerProduct",
+        "providerProjectId",
+        "providerSessionId",
+        "schemaVersion",
+        "sourceFileId",
+        "sourceSha256",
+        "sourceVersion",
+        "statusMappings"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "POST /v1/projects/:projectId/completion-boundaries": {
     "body": {
       "type": "object",
@@ -3341,7 +3715,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
             "ncr",
             "punch",
             "document",
-            "imported"
+            "imported",
+            "collaboration"
           ]
         },
         "recordIds": {
@@ -3921,7 +4296,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
             "ncr",
             "punch",
             "document",
-            "imported"
+            "imported",
+            "collaboration"
           ]
         },
         "recordId": {

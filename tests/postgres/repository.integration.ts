@@ -244,6 +244,40 @@ try {
       reviewedBy: "postgres-test-reviewer", reviewReason: "Persistent accepted test.", version: 3,
       createdAt: now, createdBy: "postgres-test-manager", updatedAt: now, updatedBy: "postgres-test-reviewer",
     });
+    transaction.insertCollaborationImport({
+      id: "postgres-collaboration-import", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      provider: "bluebeam_export", providerProduct: "Bluebeam Revu Studio export", providerProjectId: "PG-BB-PROJECT",
+      providerSessionId: "PG-BB-SESSION", sourceFileId: "postgres-bluebeam-file", sourceVersion: "BB-EXPORT-1",
+      sourceSha256: "c".repeat(64), canonicalSha256: "d".repeat(64), schemaVersion: 1,
+      mappingVersion: "PG-BB-MAP-1", idempotencyKey: "PG-BB-IMPORT-1",
+      documentMappings: [{ providerDocumentId: "PG-BB-DOC", documentRevisionId: "postgres-drawing-revision" }],
+      authorMappings: [{ providerAuthorId: "PG-BB-AUTHOR", userAccountId: "postgres-designer", organizationId: "org-epv" }],
+      statusMappings: [{ providerStatusCode: "Accepted", evidenceStatus: "closed_claim" }], sourceItems: [],
+      previewIssues: [], committedItemIds: ["postgres-collaboration-item"], state: "committed",
+      previewedAt: now, previewedBy: "postgres-collaboration-previewer", committedAt: now,
+      committedBy: "postgres-collaboration-committer", version: 2,
+    });
+    transaction.insertCollaborationItem({
+      id: "postgres-collaboration-item", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      importId: "postgres-collaboration-import", provider: "bluebeam_export", providerProjectId: "PG-BB-PROJECT",
+      providerSessionId: "PG-BB-SESSION", providerItemId: "PG-BB-MARKUP", providerDocumentId: "PG-BB-DOC",
+      sourceVersion: "BB-EXPORT-1", sourceSha256: "c".repeat(64), documentRevisionId: "postgres-drawing-revision",
+      parentItemId: null, itemType: "markup", pageNumber: 2,
+      region: { x: "0.1", y: "0.2", width: "0.3", height: "0.1", units: "normalized" },
+      authorUserId: "postgres-designer", authorOrganizationId: "org-epv", providerStatusCode: "Accepted",
+      evidenceStatus: "closed_claim", subject: "Persistent markup", body: "Persistent collaboration evidence.",
+      appearance: "cloud:red", sourceCreatedAt: now, sourceUpdatedAt: now, state: "accepted", reviewedAt: now,
+      reviewedBy: "postgres-collaboration-reviewer", reviewReason: "Persistent collaboration evidence reviewed.",
+      version: 2, createdAt: now, createdBy: "postgres-collaboration-committer",
+    });
+    transaction.insertCollaborationReconciliation({
+      id: "postgres-collaboration-reconciliation", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      importId: "postgres-collaboration-import", code: "unsupported_content", sourceObjectId: "PG-BB-MARKUP-2",
+      field: "unsupportedContentCodes", detail: "Unsupported provider content type: calibration.", state: "resolved",
+      resolution: "Mapped through an independently reviewed replacement export.", resolvedAt: now,
+      resolvedBy: "postgres-integration-authority", version: 2, createdAt: now,
+      createdBy: "postgres-collaboration-previewer",
+    });
   });
   await store.close();
 
@@ -271,6 +305,9 @@ try {
     ndeReport: transaction.ndeReportById("postgres-nde-report"),
     pwhtCycle: transaction.pwhtCycleById("postgres-pwht"),
     testPackage: transaction.testPackageById("postgres-test-package"),
+    collaborationImport: transaction.collaborationImportById("postgres-collaboration-import"),
+    collaborationItem: transaction.collaborationItemById("postgres-collaboration-item"),
+    collaborationReconciliation: transaction.collaborationReconciliationById("postgres-collaboration-reconciliation"),
   }));
   assert.equal(persisted.applicationIdentityBootstrap.identityAccounts.length, 2);
   assert.equal(persisted.applicationIdentityBootstrap.externalIdentities.length, 2);
@@ -307,6 +344,12 @@ try {
   assert.ok(persisted.pwhtCycle?.performedAt instanceof Date);
   assert.equal(persisted.testPackage?.restorationConfirmation, "Restored.");
   assert.ok(persisted.testPackage?.performedAt instanceof Date);
+  assert.equal(persisted.collaborationImport?.providerSessionId, "PG-BB-SESSION");
+  assert.ok(persisted.collaborationImport?.committedAt instanceof Date);
+  assert.equal(persisted.collaborationItem?.documentRevisionId, "postgres-drawing-revision");
+  assert.ok(persisted.collaborationItem?.sourceUpdatedAt instanceof Date);
+  assert.equal(persisted.collaborationReconciliation?.state, "resolved");
+  assert.ok(persisted.collaborationReconciliation?.resolvedAt instanceof Date);
 
   const claim = {
     interfaceCodes: new Set(["export.worker"]), limit: 1, now,
@@ -396,7 +439,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

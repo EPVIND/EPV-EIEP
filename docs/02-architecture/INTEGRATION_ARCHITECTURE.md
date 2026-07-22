@@ -21,7 +21,9 @@
 
 ### Near term
 
-- Bluebeam document/markup exchange.
+- Provider-neutral Bluebeam protected-export preview/import, reconciliation, and
+  evidence review are implemented for a controlled pilot. Live outbound/write
+  exchange remains disabled until the ADR-0012 contract and sandbox gates pass.
 - Primavera P6 and Microsoft Project schedule exchange.
 - Accounting/ERP, procurement, payroll, and customer data exchange.
 - Vendor/laboratory and subcontractor portal interfaces.
@@ -51,4 +53,3 @@ Choose deliberately among synchronous API, webhook/event, managed queue, schedul
 ## Instrument import caution
 
 Instrument data must retain the raw source file, instrument identifier, method/software context, collection time, operator, integrity hash, parsing version, and any transformation. Imported data does not bypass inspector review, calibration/verification requirements, or acceptance authority.
-

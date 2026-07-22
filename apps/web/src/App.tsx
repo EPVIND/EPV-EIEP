@@ -5,6 +5,7 @@ import { ExecutionDisciplinesWorkspace } from "./ExecutionDisciplinesWorkspace.j
 import { OperationalChain } from "./OperationalChain.js";
 import { ProjectSetup } from "./ProjectSetup.js";
 import { ProjectControlsWorkspace } from "./ProjectControlsWorkspace.js";
+import { DocumentCollaborationWorkspace } from "./DocumentCollaborationWorkspace.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -58,7 +59,7 @@ interface ProjectReadinessStatus {
   readonly blockers: readonly string[];
 }
 
-type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
+type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
 
 const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "overview", label: "Overview", eyebrow: "Control room" },
@@ -69,6 +70,7 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "welding", label: "Welding", eyebrow: "WPS · WPQ · weld map" },
   { key: "nde", label: "NDE / PWHT", eyebrow: "Examination · heat treatment" },
   { key: "testing", label: "Testing", eyebrow: "Boundaries · safety · results" },
+  { key: "bluebeam", label: "Bluebeam", eyebrow: "Markup · reconcile · evidence" },
   { key: "projects", label: "Projects", eyebrow: "Setup & structure" },
   { key: "documents", label: "Documents", eyebrow: "Current for work" },
   { key: "materials", label: "Materials", eyebrow: "Traceability" },
@@ -423,6 +425,16 @@ export function App() {
             projectId={selectedProject.id}
             projectNumber={selectedProject.number}
             initialView={activeModule}
+            request={request}
+            working={working}
+            setWorking={setWorking}
+            notify={(tone, text) => setMessage({ tone, text })}
+          /> : null}
+
+          {selectedProject && session && activeModule === "bluebeam" ? <DocumentCollaborationWorkspace
+            key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:collaboration`}
+            projectId={selectedProject.id}
+            projectNumber={selectedProject.number}
             request={request}
             working={working}
             setWorking={setWorking}

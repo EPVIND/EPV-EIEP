@@ -29,11 +29,11 @@ assignments, licensed code/standard content, or production-readiness evidence.
 |---|---|---|
 | Dashboard | Permission-scoped portfolio, work, quality, schedule, task, activity, and service-health projections | Partial: project/quality/turnover and project-control/cost/procurement/schedule projections exist; unified task/activity projection remains active work |
 | Projects | Project identity, organizations, structures, responsibilities, configuration, readiness, and governed activation | Implemented first controlled slice; external pilot/production acceptance remains gated |
-| Document Control | Documents, drawings, revisions, files, approvals, distribution/current-for-work, transmittals, and collaboration evidence | Implemented first controlled slice; advanced transmittal/Bluebeam expansion remains active work |
+| Document Control | Documents, drawings, revisions, files, approvals, distribution/current-for-work, transmittals, and collaboration evidence | Controlled document slice plus locally verified provider-neutral Bluebeam import/reconciliation/review workspace implemented; advanced transmittal and live provider write remain gated |
 | Engineering Database | Shared controlled engineering identity and revisions for requirements, drawings, specifications, systems, equipment/components, and discipline data | Partial shared foundation; discipline engineering registers remain active expansion |
-| Welding Engineering | WPS/PQR/WPQ, applicability, qualifications/continuity, consumables, and governing references | Active controlled requirements; implementation pending after estimating/project-controls foundation |
+| Welding Engineering | WPS/PQR/WPQ, applicability, qualifications/continuity, consumables, and governing references | Locally verified controlled-pilot slice implemented; owner configuration, deployed validation, and production authorization remain gated |
 | Material Traceability | Receipt, MTR, heat/lot, PMI, hold/quarantine, movement, issue/return, release, and turnover linkage | Implemented first controlled slice |
-| Weld Management | Weld/joint register, weld map, fit-up/welding events, welder attribution, examination, repair, release, and turnover | Active controlled requirements; implementation pending |
+| Weld Management | Weld/joint register, weld map, fit-up/welding events, welder attribution, examination, repair, release, and turnover | Locally verified connected weld/NDE/PWHT/testing slice implemented; representative field pilot and production authority remain gated |
 | QC / Inspection | Inspection plans/points, observations/results, qualification/equipment evidence, acceptance, deficiencies, and releases | Material/PMI/NCR/punch slice implemented; generalized inspection and execution disciplines remain active expansion |
 | NCR Management | NCR creation, evidence, responsibility, disposition, verification, closure, audit, and linked records | Implemented first controlled slice |
 | Estimating | Opportunities, revisions, assemblies, labor/productivity, direct cost, quotes, price adjustments, approvals, proposal, and award handoff | Locally verified controlled-pilot slice implemented; normalized production migrations, owner configuration, deployed validation, and production authorization remain gated |
@@ -65,15 +65,12 @@ match the dashboard presentation.
 
 ## Immediate sequencing
 
-1. Complete the advanced estimating pilot vertical slice.
-2. Establish project-controls/procurement/scheduling baselines and the estimating
-   award handoff target.
-3. Implement welding engineering, weld management, NDE, PWHT, testing, and their
-   fabrication/inspection/turnover links.
-4. Implement provider-neutral Bluebeam collaboration and then an approved live
-   adapter.
-5. Continue dashboard/task/activity projection and the adjacent fabrication,
+1. Preserve and refine the completed controlled-pilot slices for estimating,
+   project controls/procurement/scheduling, welding/NDE/PWHT/testing, and provider-neutral Bluebeam collaboration.
+2. Continue dashboard/task/activity projection and the adjacent fabrication,
    spool, customer, reporting, and approved advanced integration capabilities.
+3. Validate representative owner/provider fixtures and pursue separately approved
+   live adapters only when contracts, credentials, sandboxes, tenancy, and production authorization exist.
 
 This ordering is dependency driven and does not remove any capability from the
 vision baseline.

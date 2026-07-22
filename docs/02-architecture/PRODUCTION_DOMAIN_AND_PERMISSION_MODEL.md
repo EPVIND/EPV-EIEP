@@ -45,6 +45,7 @@ development, but production use requires accepted ADRs and data/security review.
 | `subcontract` | Profiles, credential requirements/evidence, lower tiers, mobilization, deliverables | Parties, projects, work packages, files |
 | `turnover` | Completion boundaries, requirements/status, packages/versions/items/manifests | Projects and exact accepted source revisions/files |
 | `estimate` | Opportunity estimates, immutable revisions/lines, assembly, productivity, and authority-policy catalogs, quote comparisons, proposal artifacts/manifests, award handoffs | Parties, facilities, files, projects, WBS/work packages, cost codes, qualifications, audit |
+| `collaboration` | Protected provider imports, exact mappings, markups/comments/replies/status evidence, reconciliation, independent evidence review, outbound capability boundary | Projects, released document revisions, files, accounts, organizations, audit |
 | `platform` | File metadata, audit, outbox/inbox/jobs, imports/exports, retention/legal hold, code lists | Stable IDs from all modules |
 
 Modules expose application operations and events. A module must not update another
@@ -254,6 +255,11 @@ trusted without server lookup and relationship validation.
 | `estimate.quote.manage/select` | Organization/estimate/quote | Released source file/hash; complete current scope; independent selection and above-limit qualification |
 | `estimate.proposal.generate/approve/issue/download` | Organization/estimate/proposal | Current approved source; commercial authority and separation; above-limit qualification; future validity; artifact-hash verification before download |
 | `estimate.handoff` | Organization/estimate/project | Project-controls authority; same organization; exact reconciliation |
+| `collaboration.import.preview` | Assigned project/import source | MFA; released clean source/hash; exact mappings; creates no collaboration item |
+| `collaboration.import.commit` | Assigned project/import | Step-up collaboration-import authority, independent of previewer; current valid preview; atomic commit |
+| `collaboration.read` | Assigned project/item | Search/export/download reauthorize the underlying project and exact source/document scope |
+| `collaboration.review` | Assigned project/item | Step-up document-collaboration authority, version/state check, independent of source author/previewer/committer |
+| `collaboration.reconcile` | Assigned project/issue | Step-up integration authority, independent resolution/waiver with reason; cannot grant EIEP document/quality approval |
 
 Material, inspection, NCR/punch, subcontractor, and turnover permissions follow the
 same pattern and the detailed role baseline in `../01-requirements/USER_ROLES.md`.

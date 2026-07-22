@@ -59,6 +59,14 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-TST-001** Pressure, leak, and functional test packages shall define boundaries, drawings, test medium/pressure/duration, hazards/permits owned by the approved safety process, prerequisites, blinds/valves/instruments, calibrated gauges, participants/witnesses, results, deficiencies, restoration, and acceptance.
 - **FR-TST-002** Welding, NDE, PWHT, and test readiness/release shall be projections of authoritative current records and shall feed deficiencies, completion, progress, and turnover without allowing software to replace qualified inspection, engineering, Authorized Inspector, client, or regulatory judgment.
 
+## Bluebeam and provider-neutral document collaboration
+
+- **FR-BBM-001** A provider-neutral collaboration adapter shall ingest an approved Bluebeam Studio/export package only after exact project, released document revision, active user/organization, and protected source-file mapping succeeds.
+- **FR-BBM-002** Imported markups, comments, replies, and status evidence shall preserve provider project/session/document/item identifiers, page/region, parent relationship, author, timestamps, appearance, exact source version/hash, and exact EIEP document revision.
+- **FR-BBM-003** Preview shall report unmapped documents/users/statuses, duplicates, invalid parent/region/time data, unsupported content, and changed-source collisions before an atomic, idempotent commit; failures shall remain explicit reconciliation records.
+- **FR-BBM-004** Provider content and completion/approval statuses shall remain submitted collaboration evidence only; independently authorized EIEP review shall not mutate or imply document release, quality acceptance, NCR closure, or work acceptance.
+- **FR-BBM-005** Outbound provider writes shall remain disabled until an approved vendor contract/API, sandbox, least-privilege identity, tenant/project ownership, rate/retry/reconciliation behavior, retention, terms, and production authorization are verified.
+
 ## Documents
 
 - **FR-DOC-001** The system shall register a controlled document with number, title, type, discipline, revision, status, source, and project applicability.

@@ -8,6 +8,7 @@ import { FoundationService } from "./domain/foundation-service.js";
 import { EstimatingService } from "./domain/estimating-service.js";
 import { ExecutionDisciplineService } from "./domain/execution-discipline-service.js";
 import { ProjectControlsService } from "./domain/project-controls-service.js";
+import { DocumentCollaborationService } from "./domain/document-collaboration-service.js";
 import { InMemoryFoundationStore } from "./domain/in-memory-foundation-store.js";
 import { OperationalService } from "./domain/operational-service.js";
 import { PlatformService } from "./domain/platform-service.js";
@@ -34,6 +35,7 @@ const service = new FoundationService(store);
 const estimating = new EstimatingService(store);
 const executionDisciplines = new ExecutionDisciplineService(store);
 const projectControls = new ProjectControlsService(store);
+const documentCollaboration = new DocumentCollaborationService(store);
 const operations = new OperationalService(store);
 const platform = new PlatformService(store);
 const reporting = new ReportingService(store, config.environment.trainingBanner);
@@ -55,6 +57,7 @@ const server = await buildServer({
   estimating,
   executionDisciplines,
   projectControls,
+  documentCollaboration,
   operations,
   platform,
   reporting,

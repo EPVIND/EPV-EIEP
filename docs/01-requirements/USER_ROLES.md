@@ -9,6 +9,8 @@ Roles are permission bundles, not job titles. Access is the intersection of role
 | Project manager | Project setup, assignments, scope, schedule/progress overview, issue coordination. | Quality disposition/acceptance unless separately authorized. |
 | Project controls | WBS, activities, quantities, progress and forecast records. | Material or inspection release. |
 | Document controller | Document registration, revision workflow, distribution and supersession. | Technical approval unless separately assigned. |
+| Document collaboration coordinator | Protected provider-export preview, exact mapping, reconciliation coordination, and collaboration evidence register. | Committing own preview, accepting provider status as EIEP approval, or live provider writes without separate authorization. |
+| Integration authority | Independent import commit/reconciliation and provider contract/operational controls within assigned scope. | Document release, quality acceptance, or commercial authority unless separately assigned. |
 | Procurement/material manager | Procurement references, receipt planning, inventory and issue oversight. | QC release where inspection approval is required. |
 | Receiver/warehouse user | Receive, identify, label, locate, issue/return allowed material. | Release quarantined material or approve MTR/PMI. |
 | QC manager | Project quality configuration, inspector assignment, reviews, NCR workflow and quality releases. | Engineering disposition outside delegated authority. |
@@ -39,4 +41,3 @@ Roles are permission bundles, not job titles. Access is the intersection of role
 - Vertical denial for approval, release, export, configuration, and administration.
 - Revocation after assignment end, organization removal, or credential disablement.
 - Protection of file download URLs, search results, notifications, and generated packages.
-

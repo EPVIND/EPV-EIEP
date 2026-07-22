@@ -54,7 +54,7 @@ export interface StageImportInput {
 }
 
 export interface RequestExportInput {
-  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported";
+  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported" | "collaboration";
   readonly recordIds: readonly string[];
   readonly format: "csv" | "jsonl";
   readonly recipientOrganizationId: string;
@@ -84,7 +84,7 @@ export interface ConfigureNotificationSubscriptionInput {
 
 export interface DispatchNotificationInput {
   readonly eventType: string;
-  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported";
+  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported" | "collaboration";
   readonly recordId: string;
   readonly recipientUserIds: readonly string[];
   readonly templateCode: string;
@@ -1035,6 +1035,7 @@ export class PlatformService {
         ...this.recordsForClass(transaction, project.id, "ncr"),
         ...this.recordsForClass(transaction, project.id, "punch"),
         ...this.recordsForClass(transaction, project.id, "imported"),
+        ...this.recordsForClass(transaction, project.id, "collaboration"),
       ];
       const results = candidates.filter((candidate) => candidate.label.toLocaleLowerCase().includes(needle))
         .filter((candidate) => authorize(context, assignments, {
@@ -1160,6 +1161,7 @@ export class PlatformService {
       : recordClass === "material" ? "material.read"
       : recordClass === "ncr" ? "ncr.read"
       : recordClass === "punch" ? "punch.read"
+      : recordClass === "collaboration" ? "collaboration.read"
       : "project.read";
   }
 
@@ -1188,6 +1190,11 @@ export class PlatformService {
       recordType: "imported", recordId: record.id, projectId,
       label: `${record.recordType} ${record.externalId} ${Object.values(record.payload).join(" ")}`,
       state: "committed", version: 1,
+    }));
+    if (recordClass === "collaboration") return transaction.collaborationItems(projectId).map((record) => ({
+      recordType: "collaboration", recordId: record.id, projectId,
+      label: `${record.providerItemId} ${record.subject} ${record.itemType} ${record.providerStatusCode}`,
+      state: record.state, version: record.version,
     }));
     throw new ValidationError("The record class is unsupported.", ["record_class_unsupported"]);
   }

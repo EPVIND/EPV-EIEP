@@ -84,6 +84,13 @@
 - PWHT preserves exact weld scope, procedure, parameters, thermocouple tolerances, valid equipment, chart/evidence, interruptions, result, and independent acceptance.
 - Pressure/leak/functional test readiness derives from the exact completion boundary, released welds/documents, valid gauges, prerequisites, safety references, and deficiencies; execution and acceptance remain separate and preserve result evidence plus restoration confirmation.
 
+## AC-14 Bluebeam and provider-neutral document collaboration
+
+- A protected representative Bluebeam export previews and atomically commits exact project/session/source/document-revision/user/organization/status mappings plus markup, comment, reply, page, region, appearance, and timestamps.
+- Exact retries do not duplicate evidence; changed source, unmapped identity/document/status, invalid parent/region/time, unsupported content, unsafe file, and cross-project/direct-identifier access fail closed with safe reconciliation evidence.
+- Provider completion/approval remains evidence-only, while independent step-up EIEP review is version checked, audited, separated from importer/provider author, and cannot rewrite the controlled document revision.
+- The operator workspace exposes import, reconciliation, review, source lineage, and an explicit disabled outbound boundary; a live vendor sandbox and all named provider gates remain required before any write operation exists.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.
