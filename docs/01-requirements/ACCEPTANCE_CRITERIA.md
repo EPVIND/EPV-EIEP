@@ -108,6 +108,15 @@
 - Fabrication completion remains distinct from quality acceptance. Acceptance is denied for incomplete traveler, missing/rejected inspection, unreleased weld, open affected NCR, stale version, or quality-authority separation-of-duty failure.
 - The authenticated tablet workspace and command center expose exact source state and currently authorized tasks with no serious or critical automated accessibility findings.
 
+## AC-17 CNC, waterjet, and profiling control
+
+- An independently approved effective machine profile defines the exact work center, process/stock/operation/feature capabilities, dimensional envelope, units, coordinates, and postprocessor identity; its proposer cannot approve it.
+- A representative machine-neutral program binds an exact released source file/revision/hash to an approved fabrication assembly, traveler operation, material item, BOM piece/quantity, and approved profile. Deterministic normalization produces the same package hash from the same accepted input.
+- Unsupported or out-of-bounds process, stock, unit, coordinate, feature, operation, geometry, sequence, source, material, traveler, or assembly conditions remain explicit findings and prevent technical submission or release.
+- Technical approval and job release are separate qualified step-up decisions with current-version/prerequisite revalidation. Authorized download returns the exact released SHA-256 artifact and records an audit event; no API or interface directly controls equipment.
+- Execution rejects a wrong artifact hash, work center, qualification, evidence, quantity/result meaning, exception scope, or produced/remnant genealogy. A distinct qualified authority reconciles the exact release, quantities, evidence, and genealogy; all participating program and operator actors are prohibited from self-reconciliation.
+- Authenticated/scoped API, command-center projection, PostgreSQL typed restart, tablet workflow, accessibility, and audit evidence pass locally. Approved machine fixtures, shop-device validation, physical production tables/volume, owner capability dictionaries, and named technical/release/reconciliation approvals remain production gates.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.

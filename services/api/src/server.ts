@@ -110,6 +110,10 @@ import {
   type CreateFabricationTravelerInput,
   type RecordFabricationEventInput,
 } from "./domain/fabrication-service.js";
+import {
+  CncService,
+  type CreateCncProgramInput,
+} from "./domain/cnc-service.js";
 
 export interface ServerDependencies {
   readonly service: FoundationService;
@@ -123,6 +127,7 @@ export interface ServerDependencies {
   readonly projectControls?: ProjectControlsService;
   readonly documentCollaboration?: DocumentCollaborationService;
   readonly fabrication?: FabricationService;
+  readonly cnc?: CncService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
   readonly environment: string;
@@ -191,6 +196,7 @@ function openApiTag(url: string): string {
     "procurement-commitments": "procurement", schedules: "scheduling", "schedule-revisions": "scheduling",
     "schedule-imports": "scheduling",
     "fabrication-assemblies": "fabrication", "fabrication-travelers": "fabrication",
+    "cnc-machine-profiles": "cnc", "cnc-programs": "cnc", "cnc-executions": "cnc",
     "collaboration-imports": "collaboration", "collaboration-items": "collaboration",
     "collaboration-reconciliations": "collaboration", collaboration: "collaboration",
   };
@@ -297,6 +303,25 @@ interface SubmitTestResultHttp {
   readonly evidenceFileIds: readonly string[]; readonly deficiencyNcrIds: readonly string[]; readonly restorationConfirmation: string;
 }
 type RecordFabricationEventHttp = Omit<RecordFabricationEventInput, "performedAt"> & { readonly performedAt: string };
+interface CreateCncMachineProfileHttp {
+  readonly workCenterCode: string; readonly revision: string; readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly processTypes: readonly ("saw" | "drill" | "plasma" | "oxy_fuel" | "waterjet" | "laser" | "cope" | "profiling")[];
+  readonly stockFormCodes: readonly string[];
+  readonly supportedOperationTypes: readonly ("cut" | "miter" | "drill" | "punch" | "slot" | "countersink"
+    | "profile" | "cope" | "notch" | "bevel" | "scribe" | "mark")[];
+  readonly supportedFeatureCodes: readonly string[]; readonly unitCode: string; readonly coordinateSystemCode: string;
+  readonly maximumLength: string; readonly maximumWidth: string; readonly maximumThickness: string;
+  readonly postprocessorName: string; readonly postprocessorVersion: string;
+  readonly effectiveFrom: string; readonly effectiveTo: string | null;
+}
+interface RecordCncExecutionHttp {
+  readonly expectedProgramVersion: number; readonly releasedArtifactSha256: string; readonly workCenterCode: string;
+  readonly machineIdentifier: string; readonly startedAt: string; readonly completedAt: string; readonly actualQuantity: string;
+  readonly scrapQuantity: string; readonly producedMaterialItemIds: readonly string[]; readonly remnantMaterialItemIds: readonly string[];
+  readonly evidenceFileIds: readonly string[]; readonly exceptionNcrIds: readonly string[];
+  readonly result: "complete" | "complete_with_exception" | "aborted";
+}
 interface PreviewDocumentCollaborationHttp {
   readonly provider: "bluebeam_export";
   readonly providerProduct: string;
@@ -346,6 +371,7 @@ export async function buildServer(dependencies: ServerDependencies) {
   const projectControls = dependencies.projectControls ?? new ProjectControlsService(dependencies.store);
   const documentCollaboration = dependencies.documentCollaboration ?? new DocumentCollaborationService(dependencies.store);
   const fabrication = dependencies.fabrication ?? new FabricationService(dependencies.store);
+  const cnc = dependencies.cnc ?? new CncService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
     logger: {
@@ -1596,6 +1622,93 @@ export async function buildServer(dependencies: ServerDependencies) {
         request.body.expectedVersion, request.body.reason);
     },
   );
+
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/cnc", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return cnc.snapshot(access.context, access.assignments, request.params.projectId);
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateCncMachineProfileHttp }>(
+    "/v1/projects/:projectId/cnc-machine-profiles",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await cnc.createMachineProfile(
+        access.context, access.assignments, request.params.projectId,
+        { ...request.body, effectiveFrom: new Date(request.body.effectiveFrom),
+          effectiveTo: request.body.effectiveTo ? new Date(request.body.effectiveTo) : null },
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { profileId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/cnc-machine-profiles/:profileId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return cnc.reviewMachineProfile(access.context, access.assignments, request.params.profileId,
+      request.body.expectedVersion, request.body.decision, request.body.reason);
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateCncProgramInput }>(
+    "/v1/projects/:projectId/cnc-programs",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await cnc.createProgram(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{ Params: { programId: string }; Body: { expectedVersion: number } }>(
+    "/v1/cnc-programs/:programId/submit",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return cnc.submitProgram(access.context, access.assignments, request.params.programId, request.body.expectedVersion);
+    },
+  );
+
+  server.post<{
+    Params: { programId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/cnc-programs/:programId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return cnc.reviewProgram(access.context, access.assignments, request.params.programId,
+      request.body.expectedVersion, request.body.decision, request.body.reason);
+  });
+
+  server.post<{ Params: { programId: string }; Body: { expectedVersion: number; reason: string } }>(
+    "/v1/cnc-programs/:programId/release",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return cnc.releaseProgram(access.context, access.assignments, request.params.programId,
+        request.body.expectedVersion, request.body.reason);
+    },
+  );
+
+  server.get<{ Params: { programId: string } }>("/v1/cnc-programs/:programId/artifact", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return cnc.artifact(access.context, access.assignments, request.params.programId);
+  });
+
+  server.post<{ Params: { programId: string }; Body: RecordCncExecutionHttp }>(
+    "/v1/cnc-programs/:programId/executions",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await cnc.recordExecution(
+        access.context, access.assignments, request.params.programId,
+        { ...request.body, startedAt: new Date(request.body.startedAt), completedAt: new Date(request.body.completedAt) },
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { executionId: string };
+    Body: { expectedExecutionVersion: number; expectedProgramVersion: number; decision: "accept" | "reject"; reason: string };
+  }>("/v1/cnc-executions/:executionId/reconcile", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return cnc.reconcileExecution(access.context, access.assignments, request.params.executionId,
+      request.body.expectedExecutionVersion, request.body.expectedProgramVersion, request.body.decision, request.body.reason);
+  });
 
   server.post<{ Params: { projectId: string }; Body: PreviewDocumentCollaborationHttp }>(
     "/v1/projects/:projectId/collaboration-imports/preview",

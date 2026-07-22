@@ -1,7 +1,7 @@
 # Enterprise Expansion Acceptance Criteria
 
-Status: EX-AC-01 through EX-AC-08 and EX-AC-10 have local controlled-pilot evidence
-and are promoted through AC-11/AC-12/AC-13/AC-14/AC-16. The command-center subset
+Status: EX-AC-01 through EX-AC-08 and EX-AC-10/EX-AC-11 have local controlled-pilot evidence
+and are promoted through AC-11/AC-12/AC-13/AC-14/AC-16/AC-17. The command-center subset
 is promoted through AC-15; EX-AC-09 remains proposed for its external and production evidence.
 Date: 2026-07-21
 
@@ -110,3 +110,25 @@ Date: 2026-07-21
   PostgreSQL restart, tablet workflow, accessibility, and audit evidence pass
   locally. Dedicated production tables, owner configuration, representative volume,
   deployed shop validation, and named approvals remain external.
+
+## EX-AC-11 CNC, waterjet, and profiling control
+
+- A representative approved machine profile preserves the exact capability envelope,
+  units, coordinates, postprocessor version, effective interval, and independent
+  authority; profile authors cannot approve their own revision.
+- A machine-neutral program retains exact released source file/revision/hash,
+  fabrication assembly, traveler operation, material/BOM piece, profile, stock,
+  ordered normalized operations, validation-rule version, findings, and deterministic
+  package hash. Any unsupported or changed prerequisite blocks submission or release.
+- Independent technical approval and independent job release produce an integrity-
+  checked, auditable artifact explicitly marked as providing no direct machine
+  control. Operator download is separately authorized and audited.
+- Execution rejects a different artifact hash/work center, invalid operator scope,
+  inconsistent quantities/results, unsafe evidence, cross-project exceptions, or
+  broken produced/remnant material genealogy. Reconciliation requires a separate
+  authority and closed exceptions before acceptance.
+- Authenticated API scope, safe schema validation, exact positive/negative lifecycle,
+  command-center tasks, record-normalized persistence, tablet accessibility, and
+  audit evidence pass locally. Representative machines/files, owner profiles,
+  physical production tables/volume, field validation, and named approvals remain
+  external production gates.

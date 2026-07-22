@@ -76,6 +76,7 @@ export type CommandCenterModule =
   | "nde"
   | "testing"
   | "fabrication"
+  | "cnc"
   | "bluebeam"
   | "turnover";
 
@@ -244,6 +245,7 @@ function ageDays(now: Date, createdAt: Date): number {
 
 function moduleForObjectType(objectType: string): CommandCenterModule {
   const value = objectType.toLowerCase();
+  if (value.includes("cnc_")) return "cnc";
   if (value.includes("fabrication") || value.includes("traveler")) return "fabrication";
   if (value.includes("estimate") || value.includes("proposal")) return "estimating";
   if (value.includes("procurement") || value.includes("requisition") || value.includes("bid_package") || value.includes("commitment")) return "procurement";
@@ -667,6 +669,45 @@ export class ReportingService {
               traveler?.createdBy ?? "", ...eventPerformers], "step-up") });
       }
 
+      const cncMachineProfiles = transaction.cncMachineProfiles(project.id)
+        .filter((record) => permitted("cnc.read", record.id));
+      const cncPrograms = transaction.cncPrograms(project.id)
+        .filter((record) => permitted("cnc.read", record.id));
+      const cncExecutions = transaction.cncExecutions(project.id)
+        .filter((execution) => cncPrograms.some((program) => program.id === execution.programRevisionId));
+      for (const profile of cncMachineProfiles.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "cnc", recordType: "cnc_machine_profile_revision", recordId: profile.id,
+        title: `Review machine profile ${profile.workCenterCode} revision ${profile.revision}`, state: profile.state, dueAt: profile.effectiveFrom,
+        action: "cnc.profile.approve", version: profile.version, preferredPriority: "high",
+        authorized: permitted("cnc.profile.approve", profile.id, ["cnc_profile_authority"], [profile.createdBy], "step-up") });
+      for (const program of cncPrograms.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "cnc", recordType: "cnc_program_revision", recordId: program.id,
+        title: `Review CNC program ${program.number} revision ${program.revision}`, state: program.state, dueAt: null,
+        action: "cnc.program.approve", version: program.version, preferredPriority: "high",
+        authorized: permitted("cnc.program.approve", program.id, ["cnc_technical_authority"],
+          [program.createdBy, program.submittedBy ?? program.createdBy], "step-up") });
+      for (const program of cncPrograms.filter((candidate) => candidate.state === "approved")) addTask({
+        module: "cnc", recordType: "cnc_program_revision", recordId: program.id,
+        title: `Release machine-neutral job ${program.number} revision ${program.revision}`, state: program.state, dueAt: null,
+        action: "cnc.job.release", version: program.version, preferredPriority: "high",
+        authorized: permitted("cnc.job.release", program.id, ["cnc_release_authority"],
+          [program.createdBy, program.submittedBy ?? "", program.reviewedBy ?? ""], "step-up") });
+      for (const program of cncPrograms.filter((candidate) => candidate.state === "released"
+        && !cncExecutions.some((execution) => execution.programRevisionId === candidate.id))) addTask({
+        module: "cnc", recordType: "cnc_program_revision", recordId: program.id,
+        title: `Execute released job ${program.number} revision ${program.revision}`, state: program.state, dueAt: null,
+        action: "cnc.execute", version: program.version, preferredPriority: "medium",
+        authorized: permitted("cnc.execute", program.id, [`CNC_${program.processType.toUpperCase()}_OPERATOR`], [], "mfa") });
+      for (const execution of cncExecutions.filter((candidate) => candidate.state === "submitted")) {
+        const program = cncPrograms.find((candidate) => candidate.id === execution.programRevisionId);
+        if (!program) continue;
+        addTask({ module: "cnc", recordType: "cnc_execution", recordId: execution.id,
+          title: `Reconcile CNC execution ${program.number} revision ${program.revision}`, state: execution.state, dueAt: execution.completedAt,
+          action: "cnc.execution.reconcile", version: execution.version, preferredPriority: "high",
+          authorized: permitted("cnc.execution.reconcile", execution.id, ["cnc_reconciliation_authority"],
+            [program.createdBy, program.submittedBy ?? "", program.reviewedBy ?? "", program.releasedBy ?? "", execution.operatorUserId], "step-up") });
+      }
+
       const collaborationImports = transaction.collaborationImports(project.id);
       const collaborationItems = transaction.collaborationItems(project.id).filter((record) => permitted("collaboration.read", record.id));
       const reconciliationIssues = transaction.collaborationReconciliations(project.id)
@@ -747,6 +788,13 @@ export class ReportingService {
         fabricationAssemblies.filter((record) => ["accepted", "superseded"].includes(record.state)).length,
         fabricationAssemblies.filter((record) => ["under_review", "rejected", "fabrication_complete"].includes(record.state)
           || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length);
+      summary("cnc", "CNC / waterjet / profiling", cncMachineProfiles.length + cncPrograms.length + cncExecutions.length,
+        cncMachineProfiles.filter((record) => ["approved", "superseded"].includes(record.state)).length
+          + cncPrograms.filter((record) => ["reconciled", "superseded"].includes(record.state)).length
+          + cncExecutions.filter((record) => record.state === "accepted").length,
+        cncMachineProfiles.filter((record) => ["under_review", "rejected"].includes(record.state)).length
+          + cncPrograms.filter((record) => ["draft", "under_review", "rejected", "execution_recorded"].includes(record.state)).length
+          + cncExecutions.filter((record) => ["submitted", "rejected"].includes(record.state)).length);
       summary("bluebeam", "Document collaboration", collaborationItems.length + reconciliationIssues.length,
         collaborationItems.filter((record) => ["accepted", "rejected"].includes(record.state)).length
           + reconciliationIssues.filter((record) => ["resolved", "waived"].includes(record.state)).length,
@@ -776,7 +824,10 @@ export class ReportingService {
           openExceptions: openNcrs + openPunches + commitments.filter((record) => record.state === "exception").length
             + reconciliationIssues.filter((record) => record.state === "open").length
             + fabricationAssemblies.filter((record) => record.state === "rejected"
-              || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length,
+              || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length
+            + cncPrograms.filter((record) => record.state === "rejected"
+              || (record.state === "draft" && record.validationFindings.some((finding) => finding.severity === "error"))).length
+            + cncExecutions.filter((record) => record.state === "rejected").length,
           scheduleProgressPercent,
           openTasks: allOrderedTasks.length,
         },

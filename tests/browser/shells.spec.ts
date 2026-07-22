@@ -528,6 +528,58 @@ test("FR-FAB-001-006 / AC-02-03, AC-09: fabrication workspace exposes exact spoo
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-CNC-001-006 / AC-02-03, AC-17: CNC workspace exposes exact release identity, execution genealogy, and no-control boundary at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "cnc-reconciliation-authority");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "step-up");
+  });
+  const snapshot = {
+    machineProfiles: [{ id: "profile-1", workCenterCode: "SAW-01", revision: "1", revisionReason: "Approved profile",
+      processTypes: ["saw"], stockFormCodes: ["PIPE"], supportedOperationTypes: ["cut"], supportedFeatureCodes: ["STRAIGHT_CUT"],
+      unitCode: "IN", coordinateSystemCode: "XYZ_RIGHT_HAND", maximumLength: "240", maximumWidth: "24", maximumThickness: "4",
+      postprocessorName: "Machine-neutral package", postprocessorVersion: "1.0", state: "approved", version: 2 }],
+    programs: [{ id: "program-1", number: "CNC-SP-100", revision: "0", revisionReason: "Initial controlled cut", processType: "saw",
+      sourceFormat: "machine_neutral_json", sourceVersion: "1.0", sourceSha256: "a".repeat(64), sourceFileId: "source-file-1",
+      sourceDocumentRevisionId: "source-revision-1", assemblyRevisionId: "assembly-1", travelerId: "traveler-1",
+      travelerOperationKey: "CUT", machineProfileRevisionId: "profile-1", materialItemId: "material-1", pieceMark: "P-100",
+      quantity: "1", coordinateSystemCode: "XYZ_RIGHT_HAND", operations: [{ operationKey: "CUT-10", sequence: 10,
+        operationType: "cut", featureCode: "STRAIGHT_CUT", instruction: "Cut and preserve heat identity." }], validationFindings: [],
+      normalizedPackageSha256: "b".repeat(64), releasedArtifactSha256: "c".repeat(64), state: "execution_recorded", version: 5,
+      createdBy: "cnc-programmer", submittedBy: "cnc-programmer", reviewedBy: "cnc-technical-authority", releasedBy: "cnc-release-authority" }],
+    executions: [{ id: "execution-1", programRevisionId: "program-1", releasedArtifactSha256: "c".repeat(64), workCenterCode: "SAW-01",
+      machineIdentifier: "SAW-A", operatorUserId: "cnc-operator", actualQuantity: "1", scrapQuantity: "0",
+      producedMaterialItemIds: ["piece-P-100"], remnantMaterialItemIds: ["remnant-100"], evidenceFileIds: ["execution-evidence-1"],
+      exceptionNcrIds: [], result: "complete", state: "submitted", version: 1 }],
+  };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname;
+    const respond = async (json: unknown, status = 200) => route.fulfill({ status, headers: corsHeaders, json });
+    if (path === "/health") return respond({ status: "ok", environment: "test", training: false,
+      productionReady: false, blockers: ["external_pilot_approval"] });
+    if (path === "/v1/session") return respond({ userId: "cnc-reconciliation-authority", actingOrganizationId: "org-epv",
+      assurance: "step-up", assignmentCount: 4, environment: "test", training: false });
+    if (path === "/v1/projects") return respond([{ id: "project-1", number: "CNC-001", name: "Controlled CNC pilot",
+      customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/cnc") return respond(snapshot);
+    if (path === "/v1/cnc-executions/execution-1/reconcile") return respond({ program: { ...snapshot.programs[0], state: "reconciled", version: 6 },
+      execution: { ...snapshot.executions[0], state: "accepted", version: 2 } });
+    return respond({ error: "not_found" }, 404);
+  });
+  await page.setViewportSize({ width: 900, height: 1100 });
+  await page.goto("/#cnc");
+  await expect(page.getByRole("heading", { name: "CNC, waterjet & profiling — CNC-001" })).toBeVisible();
+  await expect(page.getByText(/never starts, stops, configures, interlocks, or directly controls equipment/u)).toBeVisible();
+  await expect(page.getByText("CNC-SP-100 · r0")).toBeVisible();
+  await expect(page.getByText("Execution · SAW-A")).toBeVisible();
+  await expect(page.getByText(/Release hash cccccccccccccccc/u)).toBeVisible();
+  await expect(page.getByText(/produced 1 · remnants 1/u)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Accept reconciliation" })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed import fidelity, reconciliation, and disabled outbound boundary at tablet size", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "collaboration-reader");

@@ -10,6 +10,7 @@ import { ExecutionDisciplineService } from "./domain/execution-discipline-servic
 import { ProjectControlsService } from "./domain/project-controls-service.js";
 import { DocumentCollaborationService } from "./domain/document-collaboration-service.js";
 import { FabricationService } from "./domain/fabrication-service.js";
+import { CncService } from "./domain/cnc-service.js";
 import { InMemoryFoundationStore } from "./domain/in-memory-foundation-store.js";
 import { OperationalService } from "./domain/operational-service.js";
 import { PlatformService } from "./domain/platform-service.js";
@@ -38,6 +39,7 @@ const executionDisciplines = new ExecutionDisciplineService(store);
 const projectControls = new ProjectControlsService(store);
 const documentCollaboration = new DocumentCollaborationService(store);
 const fabrication = new FabricationService(store);
+const cnc = new CncService(store);
 const operations = new OperationalService(store);
 const platform = new PlatformService(store);
 const reporting = new ReportingService(store, config.environment.trainingBanner);
@@ -61,6 +63,7 @@ const server = await buildServer({
   projectControls,
   documentCollaboration,
   fabrication,
+  cnc,
   operations,
   platform,
   reporting,

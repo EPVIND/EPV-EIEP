@@ -46,6 +46,7 @@ development, but production use requires accepted ADRs and data/security review.
 | `turnover` | Completion boundaries, requirements/status, packages/versions/items/manifests | Projects and exact accepted source revisions/files |
 | `estimate` | Opportunity estimates, immutable revisions/lines, assembly, productivity, and authority-policy catalogs, quote comparisons, proposal artifacts/manifests, award handoffs | Parties, facilities, files, projects, WBS/work packages, cost codes, qualifications, audit |
 | `fabrication` | Assembly/spool revisions, exact BOM/cut lists, shop travelers, ordered operations, append-only execution/hold events, engineering/release/quality decisions | Projects, materials, welds, inspections, NCRs, exact document/file revisions, qualifications, completion boundaries, audit |
+| `cnc` | Machine-profile revisions, deterministic machine-neutral program revisions/findings, independent release/download, execution and reconciliation evidence | Projects, fabrication assemblies/travelers, materials/genealogy, exact document/file revisions, NCRs, qualifications, audit |
 | `collaboration` | Protected provider imports, exact mappings, markups/comments/replies/status evidence, reconciliation, independent evidence review, outbound capability boundary | Projects, released document revisions, files, accounts, organizations, audit |
 | `platform` | File metadata, audit, outbox/inbox/jobs, imports/exports, retention/legal hold, code lists | Stable IDs from all modules |
 
@@ -174,6 +175,31 @@ versions atomically.
   normalized fabrication tables, indexes, volume tests, and rollback evidence remain
   required before production promotion.
 
+### CNC, waterjet, and profiling control
+
+- `cnc_machine_profile_revision` owns the effective work-center capability envelope:
+  process/stock/operation/feature scope, units, coordinate convention, dimensions,
+  postprocessor identity/version, immutable parent/reason, and independent approval.
+- `cnc_program_revision` binds exact released source file/revision/hash, approved
+  fabrication assembly and traveler operation, material/BOM piece and quantity, and
+  approved machine profile to versioned normalized stock/operations and validation
+  findings. Canonical JSON and SHA-256 make the accepted package deterministic.
+- Technical approval and job release are separate qualified step-up authorities.
+  Release revalidates changing prerequisites and freezes a second artifact hash with
+  an explicit `NO_DIRECT_MACHINE_CONTROL` boundary. Download reauthorizes the exact
+  released revision and appends audit; there is no machine-control command.
+- `cnc_execution` retains the exact downloaded release hash, work center/machine,
+  qualified operator, times, result, actual/scrap quantity, released evidence,
+  exception NCRs, produced items, and remnants. Produced/remnant items must be
+  children of the released source material.
+- Execution reconciliation is an independent qualified decision separated from
+  programmer, submitter, technical reviewer, release authority, and operator. It
+  accepts only conforming execution with closed exceptions.
+- The pilot uses the record-normalized PostgreSQL adapter. Dedicated CNC profile,
+  program, finding, operation, artifact, execution, and genealogy tables/indexes,
+  representative file/machine fixtures, volume tests, and shop-device evidence remain
+  required before production promotion.
+
 ### Inspection and PMI
 
 - `inspection_plan` has versioned `inspection_plan_revision` records; assignments
@@ -218,6 +244,9 @@ versions atomically.
 | Estimate proposal | `draft -> approved -> issued`; rejected draft becomes superseded | Generate from noncurrent/nonapproved revision; self-approve; issue expired/unapproved proposal |
 | Fabrication assembly revision | `draft -> under_review -> approved -> released_to_fabrication -> in_fabrication -> fabrication_complete -> accepted`; governed `rejected/superseded` | Self-review/release/accept; execute from unreleased inputs; supersede executing parent; equate completion with acceptance |
 | Fabrication traveler | `draft -> issued -> in_progress -> on_hold -> in_progress -> complete`; governed `superseded` | Execute out of sequence; skip hold release; use unqualified performer; mutate prior event; release mismatched scope |
+| CNC machine profile revision | `under_review -> approved/rejected -> superseded` | Self-approve; overlap invalid lineage; use ineffective/unapproved capabilities |
+| CNC program revision | `draft/validated -> under_review -> approved/rejected -> released -> execution_recorded -> reconciled`; governed `superseded` | Submit findings; self-approve/release; release changed prerequisite; download wrong state/hash; direct machine control |
+| CNC execution | `submitted -> accepted/rejected` | Wrong release hash/work center/qualification; broken genealogy; inconsistent result/quantity; participant self-reconciliation |
 
 Transitions are commands with preconditions and audit, never arbitrary state-field
 updates.
@@ -295,6 +324,12 @@ trusted without server lookup and relationship validation.
 | `fabrication.execute` | Assigned project/traveler/operation | MFA; active issued traveler; required operation qualifications; exact sequence/evidence/result meaning |
 | `fabrication.hold.release` | Assigned project/traveler/operation | Step-up hold authority independent of operation performers; current unresolved hold only |
 | `fabrication.accept` | Assigned project/assembly revision | Step-up fabrication quality authority independent of plan/review/release/execution; all inspection/weld/NCR/traveler prerequisites |
+| `cnc.profile.manage/approve` | Assigned project/profile revision | Manage requires MFA; approval requires independent step-up `cnc_profile_authority`, current lineage, and effective capability scope |
+| `cnc.program.plan/submit/read` | Assigned project/program revision | Exact released source/assembly/traveler/material/profile linkage; deterministic validation; current version/state; MFA for writes |
+| `cnc.program.approve` | Assigned project/program revision | Independent step-up `cnc_technical_authority`; no unresolved errors/warnings; exact normalized package hash |
+| `cnc.job.release/download` | Assigned project/program revision | Release requires independent step-up `cnc_release_authority` and prerequisite revalidation; download requires process operator qualification, exact released hash, and audit |
+| `cnc.execute` | Assigned project/program revision | MFA; process-qualified operator; exact release hash/work center; evidence/result/quantity/exception/genealogy validation |
+| `cnc.execution.reconcile` | Assigned project/execution | Independent step-up `cnc_reconciliation_authority`; separated from all program actors/operator; closed exceptions before acceptance |
 | `collaboration.import.preview` | Assigned project/import source | MFA; released clean source/hash; exact mappings; creates no collaboration item |
 | `collaboration.import.commit` | Assigned project/import | Step-up collaboration-import authority, independent of previewer; current valid preview; atomic commit |
 | `collaboration.read` | Assigned project/item | Search/export/download reauthorize the underlying project and exact source/document scope |

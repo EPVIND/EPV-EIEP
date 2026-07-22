@@ -277,6 +277,45 @@ try {
       observations: { REASON: "DIMENSIONAL_HOLD" }, evidenceFileIds: ["postgres-fabrication-evidence"],
       performedAt: now, performedBy: "postgres-fabricator", version: 1,
     });
+    transaction.insertCncMachineProfile({
+      id: "postgres-cnc-profile", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      workCenterCode: "PG-SAW", revision: "1", parentRevisionId: null, revisionReason: "Persistent machine profile.",
+      processTypes: ["saw"], stockFormCodes: ["PIPE"], supportedOperationTypes: ["cut"],
+      supportedFeatureCodes: ["STRAIGHT_CUT"], unitCode: "IN", coordinateSystemCode: "XYZ_RIGHT_HAND",
+      maximumLength: "240", maximumWidth: "24", maximumThickness: "4", postprocessorName: "Machine-neutral package",
+      postprocessorVersion: "1.0", effectiveFrom: now, effectiveTo: null, state: "approved", reviewedAt: now,
+      reviewedBy: "postgres-cnc-profile-authority", reviewReason: "Persistent profile approval.", version: 2,
+      createdAt: now, createdBy: "postgres-cnc-programmer", updatedAt: now, updatedBy: "postgres-cnc-profile-authority",
+    });
+    transaction.insertCncProgram({
+      id: "postgres-cnc-program", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      number: "PG-CNC-001", revision: "0", parentRevisionId: null, revisionReason: "Persistent machine-neutral job.",
+      processType: "saw", sourceFormat: "machine_neutral_json", sourceVersion: "1.0", sourceSha256: "a".repeat(64),
+      sourceFileId: "postgres-fabrication-evidence", sourceDocumentRevisionId: "postgres-drawing-revision",
+      assemblyRevisionId: "postgres-fabrication-assembly", travelerId: "postgres-fabrication-traveler",
+      travelerOperationKey: "CUT", machineProfileRevisionId: "postgres-cnc-profile", materialItemId: "postgres-material",
+      pieceMark: "PG-P-001", quantity: "1", stock: { formCode: "PIPE", unitCode: "IN", length: "24",
+        width: "2.5", thickness: "0.154", diameter: "2.5" }, coordinateSystemCode: "XYZ_RIGHT_HAND",
+      operations: [{ operationKey: "CUT-10", sequence: 10, operationType: "cut", featureCode: "STRAIGHT_CUT",
+        x: "0", y: "0", z: "0", length: "24", width: "2.5", depth: "0.154", diameter: "2.5",
+        angleDegrees: "0", toolCode: null, instruction: "Cut and retain material identity." }],
+      validationRuleVersion: "cnc-validation-v1", validationFindings: [], warningDispositions: {},
+      normalizedPackageJson: "{\"schema\":\"eiep-machine-neutral-v1\"}", normalizedPackageSha256: "b".repeat(64),
+      releasedArtifactJson: "{\"controlBoundary\":\"NO_DIRECT_MACHINE_CONTROL\"}", releasedArtifactSha256: "c".repeat(64),
+      state: "execution_recorded", submittedAt: now, submittedBy: "postgres-cnc-programmer", reviewedAt: now,
+      reviewedBy: "postgres-cnc-technical-authority", reviewReason: "Persistent technical approval.", releasedAt: now,
+      releasedBy: "postgres-cnc-release-authority", releaseReason: "Persistent controlled release.", version: 5,
+      createdAt: now, createdBy: "postgres-cnc-programmer", updatedAt: now, updatedBy: "postgres-cnc-operator",
+    });
+    transaction.insertCncExecution({
+      id: "postgres-cnc-execution", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      programRevisionId: "postgres-cnc-program", releasedArtifactSha256: "c".repeat(64), workCenterCode: "PG-SAW",
+      machineIdentifier: "PG-SAW-A", operatorUserId: "postgres-cnc-operator", startedAt: now, completedAt: now,
+      actualQuantity: "1", scrapQuantity: "0", producedMaterialItemIds: [], remnantMaterialItemIds: [],
+      evidenceFileIds: ["postgres-fabrication-evidence"], exceptionNcrIds: [], result: "complete", state: "submitted",
+      reviewedAt: null, reviewedBy: null, reviewReason: null, version: 1, createdAt: now,
+      createdBy: "postgres-cnc-operator", updatedAt: now, updatedBy: "postgres-cnc-operator",
+    });
     transaction.insertCollaborationImport({
       id: "postgres-collaboration-import", businessScopeOrganizationId: "org-epv", projectId: project.id,
       provider: "bluebeam_export", providerProduct: "Bluebeam Revu Studio export", providerProjectId: "PG-BB-PROJECT",
@@ -341,6 +380,9 @@ try {
     fabricationAssembly: transaction.fabricationAssemblyById("postgres-fabrication-assembly"),
     fabricationTraveler: transaction.fabricationTravelerForAssembly("postgres-fabrication-assembly"),
     fabricationEvents: transaction.fabricationExecutionEvents("postgres-fabrication-traveler"),
+    cncProfile: transaction.cncMachineProfileById("postgres-cnc-profile"),
+    cncProgram: transaction.cncProgramById("postgres-cnc-program"),
+    cncExecution: transaction.cncExecutionForProgram("postgres-cnc-program"),
     collaborationImport: transaction.collaborationImportById("postgres-collaboration-import"),
     collaborationItem: transaction.collaborationItemById("postgres-collaboration-item"),
     collaborationReconciliation: transaction.collaborationReconciliationById("postgres-collaboration-reconciliation"),
@@ -386,6 +428,13 @@ try {
   assert.ok(persisted.fabricationTraveler?.issuedAt instanceof Date);
   assert.equal(persisted.fabricationEvents[0]?.eventType, "hold");
   assert.ok(persisted.fabricationEvents[0]?.performedAt instanceof Date);
+  assert.equal(persisted.cncProfile?.supportedFeatureCodes[0], "STRAIGHT_CUT");
+  assert.ok(persisted.cncProfile?.effectiveFrom instanceof Date);
+  assert.equal(persisted.cncProgram?.releasedArtifactSha256, "c".repeat(64));
+  assert.equal(persisted.cncProgram?.operations[0]?.operationType, "cut");
+  assert.ok(persisted.cncProgram?.releasedAt instanceof Date);
+  assert.equal(persisted.cncExecution?.machineIdentifier, "PG-SAW-A");
+  assert.ok(persisted.cncExecution?.completedAt instanceof Date);
   assert.equal(persisted.collaborationImport?.providerSessionId, "PG-BB-SESSION");
   assert.ok(persisted.collaborationImport?.committedAt instanceof Date);
   assert.equal(persisted.collaborationItem?.documentRevisionId, "postgres-drawing-revision");
@@ -481,7 +530,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/fabrication/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/fabrication/CNC/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

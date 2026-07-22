@@ -1737,6 +1737,154 @@ export interface FabricationExecutionEventRecord {
   readonly version: 1;
 }
 
+export type CncProcessType = "saw" | "drill" | "plasma" | "oxy_fuel" | "waterjet" | "laser" | "cope" | "profiling";
+export type CncOperationType = "cut" | "miter" | "drill" | "punch" | "slot" | "countersink" | "profile"
+  | "cope" | "notch" | "bevel" | "scribe" | "mark";
+
+export interface CncMachineProfileRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly workCenterCode: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly processTypes: readonly CncProcessType[];
+  readonly stockFormCodes: readonly string[];
+  readonly supportedOperationTypes: readonly CncOperationType[];
+  readonly supportedFeatureCodes: readonly string[];
+  readonly unitCode: string;
+  readonly coordinateSystemCode: string;
+  readonly maximumLength: string;
+  readonly maximumWidth: string;
+  readonly maximumThickness: string;
+  readonly postprocessorName: string;
+  readonly postprocessorVersion: string;
+  readonly effectiveFrom: Date;
+  readonly effectiveTo: Date | null;
+  readonly state: "under_review" | "approved" | "rejected" | "superseded";
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface CncStockDefinition {
+  readonly formCode: string;
+  readonly unitCode: string;
+  readonly length: string;
+  readonly width: string;
+  readonly thickness: string;
+  readonly diameter: string | null;
+}
+
+export interface CncNormalizedOperation {
+  readonly operationKey: string;
+  readonly sequence: number;
+  readonly operationType: CncOperationType;
+  readonly featureCode: string;
+  readonly x: string;
+  readonly y: string;
+  readonly z: string;
+  readonly length: string;
+  readonly width: string;
+  readonly depth: string;
+  readonly diameter: string;
+  readonly angleDegrees: string;
+  readonly toolCode: string | null;
+  readonly instruction: string;
+}
+
+export interface CncValidationFinding {
+  readonly code: string;
+  readonly severity: "error" | "warning";
+  readonly operationKey: string | null;
+  readonly detail: string;
+}
+
+export type CncProgramState = "draft" | "validated" | "under_review" | "approved" | "rejected"
+  | "released" | "execution_recorded" | "reconciled" | "superseded";
+
+export interface CncProgramRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly processType: CncProcessType;
+  readonly sourceFormat: "machine_neutral_json" | "dstv_nc1" | "dxf" | "step" | "ifc" | "tekla" | "sds2" | "advance_steel";
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly sourceFileId: string;
+  readonly sourceDocumentRevisionId: string;
+  readonly assemblyRevisionId: string;
+  readonly travelerId: string;
+  readonly travelerOperationKey: string;
+  readonly machineProfileRevisionId: string;
+  readonly materialItemId: string;
+  readonly pieceMark: string;
+  readonly quantity: string;
+  readonly stock: CncStockDefinition;
+  readonly coordinateSystemCode: string;
+  readonly operations: readonly CncNormalizedOperation[];
+  readonly validationRuleVersion: string;
+  readonly validationFindings: readonly CncValidationFinding[];
+  readonly warningDispositions: Readonly<Record<string, string>>;
+  readonly normalizedPackageJson: string;
+  readonly normalizedPackageSha256: string;
+  readonly releasedArtifactJson: string | null;
+  readonly releasedArtifactSha256: string | null;
+  readonly state: CncProgramState;
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly releasedAt: Date | null;
+  readonly releasedBy: string | null;
+  readonly releaseReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface CncExecutionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly programRevisionId: string;
+  readonly releasedArtifactSha256: string;
+  readonly workCenterCode: string;
+  readonly machineIdentifier: string;
+  readonly operatorUserId: string;
+  readonly startedAt: Date;
+  readonly completedAt: Date;
+  readonly actualQuantity: string;
+  readonly scrapQuantity: string;
+  readonly producedMaterialItemIds: readonly string[];
+  readonly remnantMaterialItemIds: readonly string[];
+  readonly evidenceFileIds: readonly string[];
+  readonly exceptionNcrIds: readonly string[];
+  readonly result: "complete" | "complete_with_exception" | "aborted";
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
 export type CollaborationEvidenceStatus = "open" | "resolved_claim" | "closed_claim" | "unknown";
 export interface CollaborationDocumentMapping {
   readonly providerDocumentId: string;

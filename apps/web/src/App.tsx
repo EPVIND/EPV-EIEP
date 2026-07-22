@@ -8,6 +8,7 @@ import { ProjectControlsWorkspace } from "./ProjectControlsWorkspace.js";
 import { DocumentCollaborationWorkspace } from "./DocumentCollaborationWorkspace.js";
 import { CommandCenterWorkspace } from "./CommandCenterWorkspace.js";
 import { FabricationWorkspace } from "./FabricationWorkspace.js";
+import { CncWorkspace } from "./CncWorkspace.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -61,7 +62,7 @@ interface ProjectReadinessStatus {
   readonly blockers: readonly string[];
 }
 
-type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "fabrication" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
+type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "fabrication" | "cnc" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
 
 const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "overview", label: "Overview", eyebrow: "Control room" },
@@ -73,6 +74,7 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "nde", label: "NDE / PWHT", eyebrow: "Examination · heat treatment" },
   { key: "testing", label: "Testing", eyebrow: "Boundaries · safety · results" },
   { key: "fabrication", label: "Fabrication & Spools", eyebrow: "BOM · traveler · shop release" },
+  { key: "cnc", label: "CNC / Waterjet", eyebrow: "Validate · release · reconcile" },
   { key: "bluebeam", label: "Bluebeam", eyebrow: "Markup · reconcile · evidence" },
   { key: "projects", label: "Projects", eyebrow: "Setup & structure" },
   { key: "documents", label: "Documents", eyebrow: "Current for work" },
@@ -119,6 +121,32 @@ function FabricationCapabilityPreview() {
       <div><strong>Connected records</strong><p>Drawings · procedures · materials · welds · inspections · NCRs · evidence files · audit events</p></div>
       <p className="truth-notice"><strong>Data truth:</strong> No production counts or sample work objects are displayed without an authorized project context.</p>
     </div>
+  </section>;
+}
+
+function CncCapabilityPreview() {
+  const controlStages = [
+    ["01", "Exact released source", "A protected file hash and released drawing/model revision are bound to the approved assembly, traveler operation, piece mark, and material."],
+    ["02", "Approved machine profile", "Effective work-center capabilities govern process, stock form, dimensions, units, coordinates, features, and postprocessor identity."],
+    ["03", "Deterministic validation", "A machine-neutral package is normalized and hashed; unsupported operations, geometry, units, sequence, and source drift become explicit findings."],
+    ["04", "Independent approval & release", "Technical approval and job release require distinct qualified authorities, step-up assurance, and current-version revalidation."],
+    ["05", "Authorized operator download", "The exact released artifact is reauthorized and audited at download; its integrity hash follows the shop execution record."],
+    ["06", "Execution reconciliation", "Work center, operator qualification, quantities, evidence, exceptions, produced pieces, remnants, and source-material genealogy are independently reconciled."],
+  ] as const;
+  return <section className="fabrication-capability-preview" aria-labelledby="cnc-capability-heading">
+    <div className="workspace-hero fabrication-preview-hero">
+      <div><p className="section-label">Implemented controlled-pilot surface</p><h2 id="cnc-capability-heading">CNC, waterjet & profiling governance</h2>
+        <p>The machine-neutral workflow is live in this build. Apply an authorized identity and select an assigned project to load permission-scoped profiles, programs, releases, and execution evidence.</p></div>
+      <div className="preview-status"><span aria-hidden="true" />Available in pilot build</div>
+    </div>
+    <div className="fabrication-preview-metrics" aria-label="CNC capability summary">
+      <article><strong>6</strong><span>Controlled stages</span></article><article><strong>3</strong><span>Independent authorities</span></article>
+      <article><strong>10</strong><span>Authenticated API actions</span></article><article><strong>SHA-256</strong><span>Exact release identity</span></article>
+    </div>
+    <div className="fabrication-control-path">{controlStages.map(([number, title, description]) => <article key={number}>
+      <span>{number}</span><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>
+    <div className="fabrication-preview-footer"><div><strong>Connected records</strong><p>Source files · drawings/models · assemblies · travelers · materials · profiles · NCRs · evidence · audit</p></div>
+      <p className="truth-notice"><strong>Safety boundary:</strong> No direct machine control, start/stop, interlock, or equipment configuration is performed.</p></div>
   </section>;
 }
 
@@ -519,6 +547,18 @@ export function App() {
           /> : null}
 
           {activeModule === "fabrication" && (!selectedProject || !session) ? <FabricationCapabilityPreview /> : null}
+
+          {selectedProject && session && activeModule === "cnc" ? <CncWorkspace
+            key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:cnc`}
+            projectId={selectedProject.id}
+            projectNumber={selectedProject.number}
+            request={request}
+            working={working}
+            setWorking={setWorking}
+            notify={notify}
+          /> : null}
+
+          {activeModule === "cnc" && (!selectedProject || !session) ? <CncCapabilityPreview /> : null}
 
           {selectedProject && (activeModule === "documents" || activeModule === "materials" || activeModule === "quality" || activeModule === "turnover" || activeModule === "reports")
             ? <OperationalChain

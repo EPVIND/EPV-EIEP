@@ -44,7 +44,7 @@ The implementation sequence is dependency driven:
 Shared cost codes, organizations/vendors, files, documents, requirements, work
 packages, qualifications, audit, jobs, exports, and turnover links are reused rather
 than duplicated. Payroll, billing, general ledger, and CRM are now explicit future
-governed tranches, but are not part of this verified fabrication increment. Robotic/
+governed tranches, but are not part of this verified CNC increment. Robotic/direct
 machine control, automatic engineering acceptance, real payment execution, tax
 filing, and unapproved vendor-specific writes remain outside the current increment
 and require separately approved boundaries.
@@ -96,6 +96,21 @@ and require separately approved boundaries.
   Dedicated physical fabrication tables/indexes, representative shop volume and
   device validation, owner dictionaries, and named engineering/fabrication/quality
   approval remain external production gates.
+- Sequence 7 now has a locally implemented controlled-pilot CNC/waterjet/profiling
+  handoff: independently approved effective machine profiles; exact source,
+  fabrication, traveler, material, and piece linkage; deterministic machine-neutral
+  normalization and validation findings; separate technical approval and job release;
+  integrity-checked authorized download; qualified execution with produced/remnant
+  genealogy; and independent reconciliation. Ten authenticated routes bring the
+  secured `/v1` surface to 213 routes. The domain/API positive and negative lifecycle,
+  safe request schemas, command-center tasks, tablet/accessibility surface, audit,
+  and record-normalized persistence are implemented locally. Direct machine control
+  is explicitly prohibited. Complete local gates cover 105 source tests, twelve
+  tablet/accessibility workflows, 115 controlled requirements with 262 evidence
+  paths, 213 active secured `/v1` routes, and disposable PostgreSQL restart and
+  concurrency verification. Representative machine/vendor files, owner-approved
+  capability dictionaries, dedicated physical tables/volume, shop-device trials,
+  and named technical/release/reconciliation acceptance remain external gates.
 
 ## Controlled impact
 

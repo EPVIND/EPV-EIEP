@@ -51,6 +51,7 @@ const mapCollections = [
   "scheduleImports",
   "weldingProcedures", "welderQualifications", "weldJoints", "ndeRequests", "ndeReports",
   "pwhtCycles", "testPackages", "fabricationAssemblies", "fabricationTravelers", "fabricationExecutionEvents",
+  "cncMachineProfiles", "cncPrograms", "cncExecutions",
   "collaborationImports", "collaborationItems", "collaborationReconciliations",
 ] as const satisfies readonly (keyof MemoryState)[];
 

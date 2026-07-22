@@ -39,6 +39,9 @@ import type {
   FabricationAssemblyRevisionRecord,
   FabricationTravelerRecord,
   FabricationExecutionEventRecord,
+  CncMachineProfileRevisionRecord,
+  CncProgramRevisionRecord,
+  CncExecutionRecord,
   DocumentCollaborationImportRecord,
   CollaborationItemRecord,
   CollaborationReconciliationRecord,
@@ -258,6 +261,21 @@ export interface FoundationTransaction {
   fabricationExecutionEventById(id: string): FabricationExecutionEventRecord | null;
   fabricationExecutionEvents(travelerId: string): readonly FabricationExecutionEventRecord[];
   insertFabricationExecutionEvent(event: FabricationExecutionEventRecord): void;
+  cncMachineProfileById(id: string): CncMachineProfileRevisionRecord | null;
+  cncMachineProfileByRevision(projectId: string, workCenterCode: string, revision: string): CncMachineProfileRevisionRecord | null;
+  cncMachineProfiles(projectId: string): readonly CncMachineProfileRevisionRecord[];
+  insertCncMachineProfile(profile: CncMachineProfileRevisionRecord): void;
+  updateCncMachineProfile(profile: CncMachineProfileRevisionRecord, expectedVersion: number): void;
+  cncProgramById(id: string): CncProgramRevisionRecord | null;
+  cncProgramByRevision(projectId: string, number: string, revision: string): CncProgramRevisionRecord | null;
+  cncPrograms(projectId: string): readonly CncProgramRevisionRecord[];
+  insertCncProgram(program: CncProgramRevisionRecord): void;
+  updateCncProgram(program: CncProgramRevisionRecord, expectedVersion: number): void;
+  cncExecutionById(id: string): CncExecutionRecord | null;
+  cncExecutionForProgram(programRevisionId: string): CncExecutionRecord | null;
+  cncExecutions(projectId: string): readonly CncExecutionRecord[];
+  insertCncExecution(execution: CncExecutionRecord): void;
+  updateCncExecution(execution: CncExecutionRecord, expectedVersion: number): void;
   collaborationImportById(id: string): DocumentCollaborationImportRecord | null;
   collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null;
   collaborationImportBySource(

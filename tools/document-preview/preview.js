@@ -1,6 +1,9 @@
 const documents = [
+  ["Verification report", "docs/05-testing/FIRST_RUN_VERIFICATION_REPORT.md"],
+  ["CNC / waterjet / profiling", "docs/03-workflows/CNC_WATERJET_PROFILING_CONTROL.md"],
   ["Fabrication workflow", "docs/03-workflows/FABRICATION_AND_SPOOL_CONTROL.md"],
   ["Functional requirements", "docs/01-requirements/FUNCTIONAL_REQUIREMENTS.md"],
+  ["Roles & permissions", "docs/01-requirements/USER_ROLES.md"],
   ["Expansion acceptance", "docs/01-requirements/EXPANSION_ACCEPTANCE_CRITERIA.md"],
   ["Domain & permission model", "docs/02-architecture/PRODUCTION_DOMAIN_AND_PERMISSION_MODEL.md"],
   ["Traceability matrix", "docs/05-testing/REQUIREMENTS_TRACEABILITY_MATRIX.md"],

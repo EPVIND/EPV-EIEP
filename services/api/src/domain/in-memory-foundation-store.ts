@@ -40,6 +40,9 @@ import type {
   FabricationAssemblyRevisionRecord,
   FabricationTravelerRecord,
   FabricationExecutionEventRecord,
+  CncMachineProfileRevisionRecord,
+  CncProgramRevisionRecord,
+  CncExecutionRecord,
   DocumentCollaborationImportRecord,
   CollaborationItemRecord,
   CollaborationReconciliationRecord,
@@ -168,6 +171,9 @@ export interface MemoryState {
   fabricationAssemblies: Map<string, FabricationAssemblyRevisionRecord>;
   fabricationTravelers: Map<string, FabricationTravelerRecord>;
   fabricationExecutionEvents: Map<string, FabricationExecutionEventRecord>;
+  cncMachineProfiles: Map<string, CncMachineProfileRevisionRecord>;
+  cncPrograms: Map<string, CncProgramRevisionRecord>;
+  cncExecutions: Map<string, CncExecutionRecord>;
   collaborationImports: Map<string, DocumentCollaborationImportRecord>;
   collaborationItems: Map<string, CollaborationItemRecord>;
   collaborationReconciliations: Map<string, CollaborationReconciliationRecord>;
@@ -1028,6 +1034,65 @@ class MemoryTransaction implements FoundationTransaction {
   public insertFabricationExecutionEvent(event: FabricationExecutionEventRecord): void {
     if (this.state.fabricationExecutionEvents.has(event.id)) throw new ConflictError();
     this.state.fabricationExecutionEvents.set(event.id, cloneValue(event));
+  }
+
+  public cncMachineProfileById(id: string): CncMachineProfileRevisionRecord | null {
+    const record = this.state.cncMachineProfiles.get(id); return record ? cloneValue(record) : null;
+  }
+  public cncMachineProfileByRevision(projectId: string, workCenterCode: string, revision: string): CncMachineProfileRevisionRecord | null {
+    const record = [...this.state.cncMachineProfiles.values()].find((item) => item.projectId === projectId
+      && item.workCenterCode === workCenterCode && item.revision === revision); return record ? cloneValue(record) : null;
+  }
+  public cncMachineProfiles(projectId: string): readonly CncMachineProfileRevisionRecord[] {
+    return cloneValue([...this.state.cncMachineProfiles.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.workCenterCode.localeCompare(right.workCenterCode) || left.revision.localeCompare(right.revision)));
+  }
+  public insertCncMachineProfile(profile: CncMachineProfileRevisionRecord): void {
+    if (this.state.cncMachineProfiles.has(profile.id)
+      || this.cncMachineProfileByRevision(profile.projectId, profile.workCenterCode, profile.revision)) throw new ConflictError();
+    this.state.cncMachineProfiles.set(profile.id, cloneValue(profile));
+  }
+  public updateCncMachineProfile(profile: CncMachineProfileRevisionRecord, expectedVersion: number): void {
+    const current = this.state.cncMachineProfiles.get(profile.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.cncMachineProfiles.set(profile.id, cloneValue(profile));
+  }
+  public cncProgramById(id: string): CncProgramRevisionRecord | null {
+    const record = this.state.cncPrograms.get(id); return record ? cloneValue(record) : null;
+  }
+  public cncProgramByRevision(projectId: string, number: string, revision: string): CncProgramRevisionRecord | null {
+    const record = [...this.state.cncPrograms.values()].find((item) => item.projectId === projectId
+      && item.number === number && item.revision === revision); return record ? cloneValue(record) : null;
+  }
+  public cncPrograms(projectId: string): readonly CncProgramRevisionRecord[] {
+    return cloneValue([...this.state.cncPrograms.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertCncProgram(program: CncProgramRevisionRecord): void {
+    if (this.state.cncPrograms.has(program.id) || this.cncProgramByRevision(program.projectId, program.number, program.revision)) throw new ConflictError();
+    this.state.cncPrograms.set(program.id, cloneValue(program));
+  }
+  public updateCncProgram(program: CncProgramRevisionRecord, expectedVersion: number): void {
+    const current = this.state.cncPrograms.get(program.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.cncPrograms.set(program.id, cloneValue(program));
+  }
+  public cncExecutionById(id: string): CncExecutionRecord | null {
+    const record = this.state.cncExecutions.get(id); return record ? cloneValue(record) : null;
+  }
+  public cncExecutionForProgram(programRevisionId: string): CncExecutionRecord | null {
+    const record = [...this.state.cncExecutions.values()].find((item) => item.programRevisionId === programRevisionId);
+    return record ? cloneValue(record) : null;
+  }
+  public cncExecutions(projectId: string): readonly CncExecutionRecord[] {
+    return cloneValue([...this.state.cncExecutions.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCncExecution(execution: CncExecutionRecord): void {
+    if (this.state.cncExecutions.has(execution.id) || this.cncExecutionForProgram(execution.programRevisionId)) throw new ConflictError();
+    this.state.cncExecutions.set(execution.id, cloneValue(execution));
+  }
+  public updateCncExecution(execution: CncExecutionRecord, expectedVersion: number): void {
+    const current = this.state.cncExecutions.get(execution.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.cncExecutions.set(execution.id, cloneValue(execution));
   }
 
   public collaborationImportById(id: string): DocumentCollaborationImportRecord | null {
@@ -2158,6 +2223,9 @@ export function createEmptyMemoryState(): MemoryState {
     fabricationAssemblies: new Map(),
     fabricationTravelers: new Map(),
     fabricationExecutionEvents: new Map(),
+    cncMachineProfiles: new Map(),
+    cncPrograms: new Map(),
+    cncExecutions: new Map(),
     collaborationImports: new Map(),
     collaborationItems: new Map(),
     collaborationReconciliations: new Map(),

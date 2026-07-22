@@ -60,6 +60,13 @@ async function commandCenterFixture() {
       reviewedAt: null, reviewedBy: null, reviewReason: null, releasedAt: null, releasedBy: null,
       acceptedAt: null, acceptedBy: null, version: 2, createdAt: now, createdBy: "fabrication-planner",
       updatedAt: now, updatedBy: "fabrication-planner" });
+    transaction.insertCncMachineProfile({ id: "command-cnc-profile", businessScopeOrganizationId: "org-epv", projectId,
+      workCenterCode: "SAW-CMD", revision: "1", parentRevisionId: null, revisionReason: "Initial command-center machine profile.",
+      processTypes: ["saw"], stockFormCodes: ["PIPE"], supportedOperationTypes: ["cut"], supportedFeatureCodes: ["STRAIGHT_CUT"],
+      unitCode: "IN", coordinateSystemCode: "XYZ_RIGHT_HAND", maximumLength: "240", maximumWidth: "24", maximumThickness: "4",
+      postprocessorName: "Machine-neutral package", postprocessorVersion: "1.0", effectiveFrom: now, effectiveTo: null,
+      state: "under_review", reviewedAt: null, reviewedBy: null, reviewReason: null, version: 1,
+      createdAt: now, createdBy: "cnc-programmer", updatedAt: now, updatedBy: "cnc-programmer" });
     for (const [id, number, ownerUserId] of [["owned-punch", "P-001", "operator"], ["other-punch", "P-002", "other-user"]] as const) {
       transaction.insertPunch({ id, projectId, number, type: "completion", priority: "high", systemId: null, areaId: null,
         workPackageId: null, assetId: null, description: `${number} controlled completion work`, ownerUserId,
@@ -144,4 +151,15 @@ test("FR-CMD-002 / FR-FAB-003: command center projects permission-scoped fabrica
   assert.equal(snapshot.modules.find((module) => module.module === "fabrication")?.attention, 1);
   assert.equal(snapshot.tasks.some((task) => task.recordId === "command-fabrication"
     && task.action === "fabrication.approve"), true);
+});
+
+test("FR-CMD-002 / FR-CNC-001: command center projects permission-scoped machine-profile authority work", async () => {
+  const { service } = await commandCenterFixture();
+  const reviewer = context("cnc-profile-reviewer", "step-up", ["cnc_profile_authority"]);
+  const snapshot = await service.commandCenter(reviewer, [assignment("cnc-command-access", "cnc-profile-reviewer",
+    ["report.read", "cnc.read", "cnc.profile.approve"], scope(projectId))], projectId);
+  assert.equal(snapshot.modules.find((module) => module.module === "cnc")?.total, 1);
+  assert.equal(snapshot.modules.find((module) => module.module === "cnc")?.attention, 1);
+  assert.equal(snapshot.tasks.some((task) => task.recordId === "command-cnc-profile"
+    && task.action === "cnc.profile.approve"), true);
 });

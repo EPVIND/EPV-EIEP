@@ -68,6 +68,15 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-FAB-005** Fabrication execution shall append immutable, sequential start, complete, hold, independent hold-release, rework, and scrap events with exact operation, actor, time, controlled result meaning, quantity/unit, observations, and released evidence; later operations shall not start before required predecessors complete.
 - **FR-FAB-006** Fabrication completion shall remain distinct from independent quality acceptance, which shall fail closed for incomplete travelers, unaccepted required inspections, unreleased welds, open affected NCRs, or violated creator/reviewer/releaser/performer separation of duty.
 
+## CNC, waterjet, and profiling control
+
+- **FR-CNC-001** Machine-profile revisions shall preserve work-center identity, supported process/stock/operation/feature scope, units, coordinate convention, dimensional envelope, postprocessor identity/version, effective interval, parent/reason, and independent qualified approval.
+- **FR-CNC-002** A CNC program revision shall bind the exact released source file/version/SHA-256 and document revision to the approved fabrication assembly, traveler operation, released or issued material item, piece mark/BOM quantity, and approved effective machine profile.
+- **FR-CNC-003** Machine-neutral preparation shall normalize stock and ordered operations into a deterministic, versioned package; unsupported process, form, unit, coordinates, envelope, feature, operation, geometry, sequence, or source lineage shall remain explicit validation findings and block submission.
+- **FR-CNC-004** Submission, technical approval, job release, and artifact download shall revalidate exact version/state/current prerequisites, enforce independent qualified step-up authorities, preserve normalized and released SHA-256 identities, audit every release/download, and explicitly prohibit direct machine control.
+- **FR-CNC-005** Execution shall require the exact released artifact hash, approved work center, process-qualified operator, attributable time/result/quantities, released evidence, controlled exceptions, and parent/child material genealogy for produced pieces and remnants.
+- **FR-CNC-006** A distinct qualified authority shall reconcile execution against the released program, artifact hash, operator/work center, quantities, evidence, genealogy, and closed exceptions; creator/submitter/reviewer/releaser/operator self-reconciliation shall fail closed and history shall remain immutable.
+
 ## Bluebeam and provider-neutral document collaboration
 
 - **FR-BBM-001** A provider-neutral collaboration adapter shall ingest an approved Bluebeam Studio/export package only after exact project, released document revision, active user/organization, and protected source-file mapping succeeds.
@@ -81,7 +90,7 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-CMD-001** The command center shall derive project metrics and module health on demand from authorized current source records, preserve generation time and exact schedule-revision lineage, and shall not store or imply an independent workflow state.
 - **FR-CMD-002** “My open tasks” shall include only work explicitly owned by the current user or currently authorized under the exact action, organization, project, object, assurance, qualification, and separation-of-duty boundary; source identity/version, due date, overdue state, and priority shall remain visible.
 - **FR-CMD-003** Recent activity shall be a separately authorized, permission-filtered projection of immutable audit events preserving actor, time, action, object identity, module, and prior/new state without exposing protected changed-field content.
-- **FR-CMD-004** Document, material, quality, estimating handoff, controls, procurement, schedule, welding, NDE/PWHT, testing, fabrication, collaboration, and turnover summaries shall expose explicit numerators/denominators, distinguish absent data from zero percent, and drill through to the authoritative module.
+- **FR-CMD-004** Document, material, quality, estimating handoff, controls, procurement, schedule, welding, NDE/PWHT, testing, fabrication, CNC, collaboration, and turnover summaries shall expose explicit numerators/denominators, distinguish absent data from zero percent, and drill through to the authoritative module.
 
 ## Documents
 
