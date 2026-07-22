@@ -2319,6 +2319,11 @@ export async function buildServer(dependencies: ServerDependencies) {
     return reporting.dashboard(access.context, access.assignments, request.params.projectId);
   });
 
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/command-center", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return reporting.commandCenter(access.context, access.assignments, request.params.projectId);
+  });
+
   server.post<{ Params: { projectId: string }; Body: GenerateControlledReportInput }>(
     "/v1/projects/:projectId/reports",
     async (request, reply) => {

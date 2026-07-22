@@ -174,6 +174,76 @@ test("NFR-USE-003: internal workspace scopes records and requires typed confirma
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-CMD-001-004, NFR-USE-001-003 / AC-02-03, AC-15: command center exposes derived tasks, activity, and module health at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "command-user");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "mfa");
+  });
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") {
+      await route.fulfill({ status: 204, headers: corsHeaders });
+      return;
+    }
+    const url = new URL(request.url());
+    if (url.pathname === "/health") {
+      await route.fulfill({ headers: corsHeaders, json: { status: "ok", environment: "test", training: false,
+        productionReady: false, blockers: ["production_authorization_missing"] } });
+      return;
+    }
+    if (url.pathname === "/v1/session") {
+      await route.fulfill({ headers: corsHeaders, json: { userId: "command-user", actingOrganizationId: "org-epv",
+        assurance: "mfa", assignmentCount: 8, environment: "test", training: false } });
+      return;
+    }
+    if (url.pathname === "/v1/projects") {
+      await route.fulfill({ headers: corsHeaders, json: [{ id: "command-project", number: "CMD-001",
+        name: "Integrated delivery project", customerOrganizationId: "org-customer", facilityId: "facility-command",
+        timeZone: "America/Denver", state: "active", version: 4 }] });
+      return;
+    }
+    if (url.pathname === "/v1/projects/command-project/command-center") {
+      await route.fulfill({ headers: corsHeaders, json: {
+        generatedAt: "2026-07-21T18:00:00.000Z", project: { id: "command-project", number: "CMD-001", name: "Integrated delivery project", state: "active" },
+        metrics: { documentsCurrent: 18, documentsTotal: 20, materialsTracked: 64, weldsComplete: 42, weldsTotal: 50,
+          executionAccepted: 31, executionTotal: 38, openExceptions: 5, scheduleProgressPercent: 68, openTasks: 2 },
+        tasks: [
+          { id: "quality:punch:1", module: "quality", recordType: "punch_item", recordId: "punch-1",
+            title: "Complete punch P-001", state: "open", priority: "critical", dueAt: "2026-07-20T18:00:00.000Z",
+            overdue: true, action: "punch.update.owned", version: 2 },
+          { id: "bluebeam:item:1", module: "bluebeam", recordType: "collaboration_item", recordId: "markup-1",
+            title: "Review collaboration evidence: Valve access", state: "submitted", priority: "medium", dueAt: null,
+            overdue: false, action: "collaboration.review", version: 1 },
+        ],
+        recentActivity: [{ id: "audit-1", occurredAt: "2026-07-21T17:45:00.000Z", actorUserId: "scheduler",
+          action: "schedule.revision_approved", module: "scheduling", objectType: "schedule_revision",
+          objectId: "schedule-revision-2", priorState: "under_review", newState: "approved" }],
+        activityVisible: true,
+        modules: [
+          { module: "quality", label: "Quality / NCR / punch", total: 10, open: 3, attention: 3, completed: 7, progressPercent: 70 },
+          { module: "scheduling", label: "Scheduling", total: 25, open: 8, attention: 2, completed: 17, progressPercent: 68 },
+          { module: "bluebeam", label: "Document collaboration", total: 6, open: 1, attention: 1, completed: 5, progressPercent: 83 },
+        ],
+        schedule: { sourceRevisionIds: ["schedule-revision-2"], activityCount: 25, completedActivities: 17, lateActivities: 2, progressPercent: 68 },
+      } });
+      return;
+    }
+    await route.fulfill({ status: 404, headers: corsHeaders, json: { error: "not_found" } });
+  });
+  await page.setViewportSize({ width: 810, height: 1080 });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Enterprise command center" })).toBeVisible();
+  await expect(page.getByText("Complete punch P-001")).toBeVisible();
+  await expect(page.getByText("Schedule Revision Approved")).toBeVisible();
+  await expect(page.getByText("68%", { exact: true }).first()).toBeVisible();
+  await page.getByRole("combobox", { name: "Priority", exact: true }).selectOption("critical");
+  await expect(page.getByText("Complete punch P-001")).toBeVisible();
+  await expect(page.getByText("Review collaboration evidence: Valve access")).toBeHidden();
+  await expect(page.getByRole("button", { name: /Bluebeam review/u })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-EST-001-010, NFR-USE-001-003 / AC-02-03, AC-09-11: estimating workspace exposes the controlled pilot workflow at tablet size", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "estimator");
@@ -320,7 +390,12 @@ test("FR-PJC-001-004, FR-PRC-001-003, FR-SCH-001-004, NFR-USE-001-003 / AC-02-03
   await page.getByRole("link", { name: /Scheduling/u }).click();
   await expect(page.getByText("U2 · update")).toBeVisible();
   await expect(page.getByText("p6 P6-24.12 → U2")).toBeVisible();
+  const lookAheadResponse = page.waitForResponse((response) =>
+    new URL(response.url()).pathname === "/v1/schedules/schedule-1/look-ahead" && response.status() === 200,
+  );
   await page.getByRole("button", { name: "30-day look-ahead" }).click();
+  await lookAheadResponse;
+  await expect(page.getByRole("status").filter({ hasText: "30-day look-ahead derived" })).toBeVisible();
   await expect(page.getByText("A200 · Activity A200")).toBeVisible();
   await expect(page.getByText("MATERIAL-DELIVERY", { exact: true })).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);

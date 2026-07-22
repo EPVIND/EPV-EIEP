@@ -27,7 +27,7 @@ assignments, licensed code/standard content, or production-readiness evidence.
 
 | Vision surface | Controlled EIEP interpretation | Current repository position |
 |---|---|---|
-| Dashboard | Permission-scoped portfolio, work, quality, schedule, task, activity, and service-health projections | Partial: project/quality/turnover and project-control/cost/procurement/schedule projections exist; unified task/activity projection remains active work |
+| Dashboard | Permission-scoped portfolio, work, quality, schedule, task, activity, and service-health projections | Locally verified project command-center slice derives cross-module metrics, task/action queue, schedule progress, module health, and permission-gated activity; cross-project portfolio and deployed service adapters remain expansion |
 | Projects | Project identity, organizations, structures, responsibilities, configuration, readiness, and governed activation | Implemented first controlled slice; external pilot/production acceptance remains gated |
 | Document Control | Documents, drawings, revisions, files, approvals, distribution/current-for-work, transmittals, and collaboration evidence | Controlled document slice plus locally verified provider-neutral Bluebeam import/reconciliation/review workspace implemented; advanced transmittal and live provider write remain gated |
 | Engineering Database | Shared controlled engineering identity and revisions for requirements, drawings, specifications, systems, equipment/components, and discipline data | Partial shared foundation; discipline engineering registers remain active expansion |
@@ -42,10 +42,10 @@ assignments, licensed code/standard content, or production-readiness evidence.
 | Spool Generation | Controlled piping spool identity and revision, component/weld/material mapping, fabrication/erection state, and approved output | Expected capability; detailed controlled requirements and implementation pending |
 | CNC / Waterjet / Profiling | Approved model/detail/CNC source revision, validation/preview, machine-neutral output, reconciliation, and execution evidence | Expected advanced integration; production machine control is not authorized by this baseline |
 | Customer Portal | Released, recipient-scoped documents/status/submissions and attributable customer actions without internal-data leakage | Limited partner portal shell/assignment submission exists; customer-specific workflows remain expansion |
-| Reports & Analytics | Permission-scoped operational projections plus immutable controlled reports/exports with source lineage | Implemented first reporting/dashboard slice; enterprise analytics remain expansion |
+| Reports & Analytics | Permission-scoped operational projections plus immutable controlled reports/exports with source lineage | Implemented controlled reports, operational dashboard, and unified project command-center slice; enterprise portfolio analytics remain expansion |
 | Admin | Identity, external identity resolution, assignments, role/permission governance, environment/configuration, audit, and release boundary | Implemented controlled foundation; independent corporate/production authorization remains external |
-| My Open Tasks | User-scoped work queue derived from authoritative workflow assignments and due/escalation state | Expected capability; unified task projection pending |
-| Recent Activity | Permission-filtered audit/activity projection with exact source links | Audit foundation implemented; consolidated activity experience pending |
+| My Open Tasks | User-scoped work queue derived from authoritative workflow assignments and due/escalation state | Locally verified project command-center slice with explicit ownership/current-action authority, due/overdue priority, source version, filters, and module drill-through |
+| Recent Activity | Permission-filtered audit/activity projection with exact source links | Locally verified separately authorized safe audit projection with actor/time/action/object/state and module drill-through |
 | Offline Mode | Explicit bounded offline capture/cache policy with synchronization, conflict handling, and no false current-state claim | Offline punch policy/evidence exists; broad offline mode is not implied |
 | System Status | API/database/storage/integration/recovery health and release-readiness projection | Health/readiness/metrics foundation exists; production service integrations remain gated |
 
@@ -67,8 +67,9 @@ match the dashboard presentation.
 
 1. Preserve and refine the completed controlled-pilot slices for estimating,
    project controls/procurement/scheduling, welding/NDE/PWHT/testing, and provider-neutral Bluebeam collaboration.
-2. Continue dashboard/task/activity projection and the adjacent fabrication,
-   spool, customer, reporting, and approved advanced integration capabilities.
+2. Extend the verified project command center into cross-project portfolio views and
+   continue the adjacent fabrication, spool, customer, reporting, and approved
+   advanced integration capabilities.
 3. Validate representative owner/provider fixtures and pursue separately approved
    live adapters only when contracts, credentials, sandboxes, tenancy, and production authorization exist.
 

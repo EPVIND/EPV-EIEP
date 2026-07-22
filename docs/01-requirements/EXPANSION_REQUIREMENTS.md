@@ -134,6 +134,19 @@ recovery, and data requirements.
   approved versioned contract, least-privilege credential, recipient reauthorization,
   retained request/result identifiers, bounded retry, reconciliation, and audit.
 
+## Unified enterprise command center
+
+- **FR-CMD-001** Dashboard metrics and module health shall be recalculated from
+  authorized current records with generation time and exact schedule-revision lineage,
+  never persisted as a competing workflow state.
+- **FR-CMD-002** My Open Tasks shall contain only explicit user ownership or a currently
+  authorized exact workflow action, preserving source/version, due/overdue, priority,
+  assurance, qualification, scope, and separation-of-duty boundaries.
+- **FR-CMD-003** Recent Activity shall require separate audit-read authority and emit
+  only safe actor/time/action/object/prior/new-state fields with module drill-through.
+- **FR-CMD-004** Cross-module summaries and schedule progress shall show their
+  numerator/denominator or an explicit no-data state and link to authoritative modules.
+
 ## Shared nonfunctional expansion constraints
 
 - Commercial calculations use bounded exact decimals with explicit currency, unit,

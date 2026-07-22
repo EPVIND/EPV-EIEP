@@ -39,7 +39,7 @@ Forms are views of controlled domain records, not isolated PDF replicas. Printab
 - Turnover completeness by boundary and requirement state.
 - Audit history and privileged action review.
 
-The eleven controlled snapshots are implemented by `ReportingService` and exercised together in `tests/acceptance/controlled-reports.test.ts`. Each generation stores an immutable, revisioned JSON and searchable printable-HTML snapshot with exact source identifiers, versions, states, SHA-256 values, stable filenames, print warnings, recipient authorization, redaction, and generation/download audit. The project dashboard is calculated on demand by the same authorization boundary at `GET /v1/projects/{projectId}/report-dashboard`; it does not replace an immutable controlled snapshot.
+The eleven controlled snapshots are implemented by `ReportingService` and exercised together in `tests/acceptance/controlled-reports.test.ts`. Each generation stores an immutable, revisioned JSON and searchable printable-HTML snapshot with exact source identifiers, versions, states, SHA-256 values, stable filenames, print warnings, recipient authorization, redaction, and generation/download audit. The project dashboard is calculated on demand by the same authorization boundary at `GET /v1/projects/{projectId}/report-dashboard`; it does not replace an immutable controlled snapshot. The enterprise command center at `GET /v1/projects/{projectId}/command-center` is also an on-demand projection: it independently permission-filters every module count, exact-revision schedule metric, authorized/owned work card, and audit event, and always links back to the authoritative workflow.
 
 ## Output controls
 

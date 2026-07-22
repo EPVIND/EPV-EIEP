@@ -247,6 +247,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/projects/:projectId/command-center": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "GET /v1/projects/:projectId/configurations/:configurationCode/current": {
     "params": {
       "type": "object",

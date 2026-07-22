@@ -91,6 +91,14 @@
 - Provider completion/approval remains evidence-only, while independent step-up EIEP review is version checked, audited, separated from importer/provider author, and cannot rewrite the controlled document revision.
 - The operator workspace exposes import, reconciliation, review, source lineage, and an explicit disabled outbound boundary; a live vendor sandbox and all named provider gates remain required before any write operation exists.
 
+## AC-15 Unified enterprise command center
+
+- A scoped user sees only authorized current source records in dashboard counts and module-health projections; revoking the underlying read scope removes those counts without disclosing their existence.
+- The user work queue contains only explicitly owned or currently authorized actions and preserves exact source identity/version, due/overdue state, and deterministic priority; another user's owned work is never relabeled as “mine.”
+- Schedule progress derives from the exact current approved revision and accepted activity progress, identifies late work, retains the source revision IDs, and returns no percentage when no authorized activities exist.
+- Recent activity requires separate audit-read authority and exposes only safe actor/time/action/object/prior/new-state fields with authoritative module drill-through.
+- The tablet command center supports module and priority filters, module-health drill-through, quick actions, 44-pixel controls, and no serious or critical automated accessibility findings.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.

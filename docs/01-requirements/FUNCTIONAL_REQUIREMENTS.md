@@ -67,6 +67,13 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-BBM-004** Provider content and completion/approval statuses shall remain submitted collaboration evidence only; independently authorized EIEP review shall not mutate or imply document release, quality acceptance, NCR closure, or work acceptance.
 - **FR-BBM-005** Outbound provider writes shall remain disabled until an approved vendor contract/API, sandbox, least-privilege identity, tenant/project ownership, rate/retry/reconciliation behavior, retention, terms, and production authorization are verified.
 
+## Unified enterprise command center
+
+- **FR-CMD-001** The command center shall derive project metrics and module health on demand from authorized current source records, preserve generation time and exact schedule-revision lineage, and shall not store or imply an independent workflow state.
+- **FR-CMD-002** “My open tasks” shall include only work explicitly owned by the current user or currently authorized under the exact action, organization, project, object, assurance, qualification, and separation-of-duty boundary; source identity/version, due date, overdue state, and priority shall remain visible.
+- **FR-CMD-003** Recent activity shall be a separately authorized, permission-filtered projection of immutable audit events preserving actor, time, action, object identity, module, and prior/new state without exposing protected changed-field content.
+- **FR-CMD-004** Document, material, quality, estimating handoff, controls, procurement, schedule, welding, NDE/PWHT, testing, collaboration, and turnover summaries shall expose explicit numerators/denominators, distinguish absent data from zero percent, and drill through to the authoritative module.
+
 ## Documents
 
 - **FR-DOC-001** The system shall register a controlled document with number, title, type, discipline, revision, status, source, and project applicability.

@@ -1,7 +1,8 @@
 # Enterprise Expansion Acceptance Criteria
 
 Status: EX-AC-01 through EX-AC-08 have local controlled-pilot evidence and are
-promoted through AC-11/AC-12/AC-13/AC-14; EX-AC-09 remains proposed for active implementation
+promoted through AC-11/AC-12/AC-13/AC-14. The command-center subset is promoted
+through AC-15; EX-AC-09 remains proposed for its external and production evidence.
 Date: 2026-07-21
 
 ## EX-AC-01 Advanced estimate lifecycle

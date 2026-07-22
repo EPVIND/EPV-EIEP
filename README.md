@@ -124,8 +124,12 @@ Implemented review surfaces include:
   reply page-region/source fidelity, idempotent atomic commit, changed-source and
   unsupported-content reconciliation, independent evidence review, audit, scoped
   search/export, and an explicit disabled outbound/write boundary;
+- a unified enterprise command center that derives permission-filtered project
+  metrics, exact-revision schedule progress, module health, authorized or explicitly
+  owned work, recent audit activity, quick actions, and authoritative drill-through
+  without creating a competing workflow-state aggregate;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 194 active `/v1` routes and 155 request bodies, drift verification, bearer security,
+  schemas for 195 active `/v1` routes and 155 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -169,7 +173,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-96 unit/integration/security/acceptance tests, 99-requirement/217-path traceability,
+99 unit/integration/security/acceptance tests, 103-requirement/227-path traceability,
 and compiled runtime process smoke tests. `pnpm run build` builds the two web
 applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
@@ -182,7 +186,7 @@ That PostgreSQL path also creates, exactly retries, restarts, and verifies the g
 first-application-authority bootstrap; the production operator contract is in
 `docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
 
-`pnpm run test:browser` runs nine internal/portal workflow cases in a Chromium tablet
+`pnpm run test:browser` runs ten internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 
 Local review servers:

@@ -2,6 +2,25 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.13.0 - Unified enterprise command center
+
+- Added a project-scoped enterprise command center derived on demand from authorized
+  document, material, quality, estimating-handoff, controls, procurement, schedule,
+  welding, NDE/PWHT, testing, collaboration, turnover, and audit source records.
+- Added exact-current-revision schedule progress and lineage, explicit no-data states,
+  module numerators/denominators, late-work and exception attention, source-versioned
+  work cards, deterministic priority, quick actions, and authoritative drill-through.
+- The work queue is fail-closed: an item appears only when explicitly owned by the
+  current user or when its exact action, scope, assurance, qualification, and
+  separation-of-duty checks can be proven without an unevaluated policy threshold.
+  Recent activity independently requires audit-read authority and excludes protected
+  changed-field content.
+- Added one secured API operation, a tablet-accessible overview workspace, two domain
+  projection/security tests, one authenticated API test, and a tenth Chromium/axe
+  workflow. The controlled baseline is now 78 functional and 25 nonfunctional
+  requirements with 227 evidence paths; complete gate results are recorded in the
+  local verification report.
+
 ## 0.12.0 - Governed Bluebeam document collaboration pilot
 
 - Added a provider-neutral Bluebeam export contract that validates an integrity-matched released source file and exact project, released document revision, active account/organization, provider status, page/region, parent, timestamp, and supported-content mappings before commit.

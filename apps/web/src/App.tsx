@@ -6,6 +6,7 @@ import { OperationalChain } from "./OperationalChain.js";
 import { ProjectSetup } from "./ProjectSetup.js";
 import { ProjectControlsWorkspace } from "./ProjectControlsWorkspace.js";
 import { DocumentCollaborationWorkspace } from "./DocumentCollaborationWorkspace.js";
+import { CommandCenterWorkspace } from "./CommandCenterWorkspace.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -285,6 +286,12 @@ export function App() {
     }
   }
 
+  function openModule(module: ModuleKey) {
+    setActiveModule(module);
+    window.location.hash = module;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <div className="app-shell">
       <EnvironmentBanner environment={health?.environment ?? "unconnected"} training={health?.training ?? false} />
@@ -307,7 +314,7 @@ export function App() {
                 key={module.key}
                 href={`#${module.key}`}
                 aria-current={activeModule === module.key ? "page" : undefined}
-                onClick={() => setActiveModule(module.key)}
+                onClick={() => openModule(module.key)}
               >
                 <span>{module.label}</span><small>{module.eyebrow}</small>
               </a>
@@ -386,6 +393,17 @@ export function App() {
               <ul className="control-list"><li><span className="control-icon">O</span><div><strong>Authoritative actions</strong><small>Release, acceptance, current-for-work, issue, and turnover generation require online state.</small></div></li><li><span className="control-icon">Q</span><div><strong>Queued offline capture</strong><small>Punch observations retain actor, device, original time, idempotency, and conflicts.</small></div></li><li><span className="control-icon">R</span><div><strong>Read-only cache</strong><small>Only explicitly assigned exact revisions; never a current-state claim.</small></div></li></ul>
             </section>
           </div>
+
+          {selectedProject && session && activeModule === "overview" ? <CommandCenterWorkspace
+            key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:command-center`}
+            projectId={selectedProject.id}
+            projectNumber={selectedProject.number}
+            request={request}
+            working={working}
+            setWorking={setWorking}
+            notify={(tone, text) => setMessage({ tone, text })}
+            openModule={openModule}
+          /> : null}
 
           {selectedProject && activeModule === "projects" ? <ProjectSetup
             projectId={selectedProject.id}

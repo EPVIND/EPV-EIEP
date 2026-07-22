@@ -36,6 +36,7 @@ The implementation sequence is dependency driven:
 3. Welding/NDE/PWHT/test execution on shared material, document, equipment,
    qualification, deficiency, and turnover identities.
 4. Bluebeam document/markup exchange through a provider adapter.
+5. Unified permission-filtered project command center across the delivered modules.
 
 Shared cost codes, organizations/vendors, files, documents, requirements, work
 packages, qualifications, audit, jobs, exports, and turnover links are reused rather
@@ -71,8 +72,17 @@ integration surface.
   thresholds, calendars, mapping fixtures, live provider/accounting/vendor
   sandboxes, normalized production migrations, deployed validation, and pilot
   sign-off remain required.
-- Sequence 3 is the active implementation target after the Sequence 2 controlled
-  increment is sealed. Sequence 4 remains pending.
+- Sequence 3 now has a locally verified controlled-pilot implementation for exact
+  WPS/PQR/WPQ applicability, weld and repair history, repair-cycle NDE, PWHT, and
+  completion-boundary pressure/leak/functional testing.
+- Sequence 4 now has a locally verified provider-neutral Bluebeam export preview,
+  idempotent import, source/item reconciliation, exact markup/comment/reply fidelity,
+  independent evidence review, and an explicit disabled outbound-write boundary.
+- Sequence 5 implements a unified project command center over the delivered modules,
+  including exact-current-revision schedule progress, permission-filtered module
+  health, owned/authorized work, separately authorized activity, quick actions, and
+  authoritative drill-through. Complete local and hosted gate results are recorded
+  after the increment's verification run.
 
 ## Controlled impact
 

@@ -111,6 +111,19 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 - `TestPackage` owns an exact active `CompletionBoundary` and its released procedures/drawings, medium/pressure/hold, approved safety/permit and prerequisite references, blind/valve/instrument list, valid gauges, participants/witnesses, evidence, deficiencies/NCRs, restoration confirmation, result, and independent acceptance.
 - Weld and test readiness are computed projections over current controlled material, event repair cycle, accepted NDE/PWHT, open NCR, released boundary weld, exact document, and valid-equipment records. A projection never replaces the underlying acceptance authority.
 
+## Enterprise command center projection
+
+- The command center adds no persisted aggregate or independent state machine. It is
+  an on-demand projection over authorized current source records and returns its
+  generation time plus exact current schedule-revision identifiers.
+- Module totals, completion, attention, accepted schedule progress, exceptions, work
+  cards, and recent activity retain source identities and versions. Missing read or
+  audit authority removes the corresponding source data rather than substituting an
+  unscoped cached count.
+- A work card is navigation and prioritization metadata only. The authoritative
+  module command rechecks record version, state, scope, assurance, qualification,
+  separation of duty, and any configured threshold before mutation.
+
 ## Work objects
 
 ## Provider-neutral document collaboration

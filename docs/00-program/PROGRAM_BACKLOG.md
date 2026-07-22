@@ -30,12 +30,16 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
   evidence review, source lineage, scoped API/search/export, and tablet workspace:
   locally implemented controlled pilot. A live outbound adapter remains a separately
   approved external-contract and sandbox deliverable.
+- Unified project command center with derived module health, accepted schedule
+  progress, owned/currently authorized task queue, safe recent activity, filters,
+  quick actions, and source/module drill-through: locally implemented controlled
+  pilot. Cross-project portfolio thresholds and deployed service health remain expansion.
 - Structural member and assembly tracking.
 - Civil, earthwork, concrete placement, testing, and foundation release.
 - Work packages, travelers, daily reports, quantities, look-aheads, and progress.
 - Focused subcontractor portal, mobilization, and deliverables.
 - Pressure/leak testing, coating, alignment, grouting, and commissioning packages.
-- Dashboard-derived engineering register, fabrication, spool, unified task/activity,
+- Dashboard-derived engineering register, fabrication, spool, cross-project portfolio,
   and customer/reports projections needed by the controlled product-vision baseline.
 
 ## Later - remaining enterprise expansion

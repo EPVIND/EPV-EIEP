@@ -212,6 +212,15 @@ Missing or ambiguous context denies. Every protected list/query applies the same
 scope at the data source. File URLs, search suggestions/counts, notifications,
 exports, jobs, and package downloads are resources, not side channels.
 
+The project command center follows the same rule independently for every source
+module; `report.read` is necessary but never sufficient to reveal an underlying
+count. Each queue candidate must additionally pass the exact action check or be an
+explicitly owned action whose ownership permission passes. Policy-thresholded
+approvals are omitted when the complete threshold decision cannot be evaluated by
+the projection. Recent activity is independently empty unless `audit.read` passes,
+and it excludes protected changed-field content. Opening a card never delegates or
+pre-authorizes its command; the authoritative module rechecks all conditions.
+
 ### Required access context
 
 Every application command/query receives an immutable server-created context:
