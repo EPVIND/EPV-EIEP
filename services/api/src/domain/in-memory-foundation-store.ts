@@ -30,6 +30,13 @@ import type {
   ScheduleImportRecord,
   ScheduleProgramRecord,
   ScheduleRevisionRecord,
+  WeldingProcedureRevisionRecord,
+  WelderQualificationRecord,
+  WeldJointRecord,
+  NdeRequestRecord,
+  NdeReportRevisionRecord,
+  PwhtCycleRecord,
+  TestPackageRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -145,6 +152,13 @@ export interface MemoryState {
   schedulePrograms: Map<string, ScheduleProgramRecord>;
   scheduleRevisions: Map<string, ScheduleRevisionRecord>;
   scheduleImports: Map<string, ScheduleImportRecord>;
+  weldingProcedures: Map<string, WeldingProcedureRevisionRecord>;
+  welderQualifications: Map<string, WelderQualificationRecord>;
+  weldJoints: Map<string, WeldJointRecord>;
+  ndeRequests: Map<string, NdeRequestRecord>;
+  ndeReports: Map<string, NdeReportRevisionRecord>;
+  pwhtCycles: Map<string, PwhtCycleRecord>;
+  testPackages: Map<string, TestPackageRecord>;
   audits: AuditEvent[];
 }
 
@@ -849,6 +863,107 @@ class MemoryTransaction implements FoundationTransaction {
     const current = this.state.scheduleImports.get(scheduleImport.id);
     if (!current || current.version !== expectedVersion) throw new ConflictError();
     this.state.scheduleImports.set(scheduleImport.id, cloneValue(scheduleImport));
+  }
+
+  public weldingProcedureById(id: string): WeldingProcedureRevisionRecord | null {
+    const record = this.state.weldingProcedures.get(id); return record ? cloneValue(record) : null;
+  }
+  public weldingProcedureByRevision(projectId: string, number: string, revision: string): WeldingProcedureRevisionRecord | null {
+    const record = [...this.state.weldingProcedures.values()].find((item) => item.projectId === projectId && item.number === number && item.revision === revision);
+    return record ? cloneValue(record) : null;
+  }
+  public weldingProcedures(projectId: string): readonly WeldingProcedureRevisionRecord[] {
+    return cloneValue([...this.state.weldingProcedures.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertWeldingProcedure(procedure: WeldingProcedureRevisionRecord): void {
+    if (this.state.weldingProcedures.has(procedure.id) || this.weldingProcedureByRevision(procedure.projectId, procedure.number, procedure.revision)) throw new ConflictError();
+    this.state.weldingProcedures.set(procedure.id, cloneValue(procedure));
+  }
+  public updateWeldingProcedure(procedure: WeldingProcedureRevisionRecord, expectedVersion: number): void {
+    const current = this.state.weldingProcedures.get(procedure.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.weldingProcedures.set(procedure.id, cloneValue(procedure));
+  }
+  public welderQualificationById(id: string): WelderQualificationRecord | null {
+    const record = this.state.welderQualifications.get(id); return record ? cloneValue(record) : null;
+  }
+  public welderQualificationByNumber(projectId: string, qualificationNumber: string): WelderQualificationRecord | null {
+    const record = [...this.state.welderQualifications.values()].find((item) => item.projectId === projectId && item.qualificationNumber === qualificationNumber);
+    return record ? cloneValue(record) : null;
+  }
+  public welderQualifications(projectId: string): readonly WelderQualificationRecord[] {
+    return cloneValue([...this.state.welderQualifications.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.qualificationNumber.localeCompare(right.qualificationNumber)));
+  }
+  public insertWelderQualification(qualification: WelderQualificationRecord): void {
+    if (this.state.welderQualifications.has(qualification.id) || this.welderQualificationByNumber(qualification.projectId, qualification.qualificationNumber)) throw new ConflictError();
+    this.state.welderQualifications.set(qualification.id, cloneValue(qualification));
+  }
+  public updateWelderQualification(qualification: WelderQualificationRecord, expectedVersion: number): void {
+    const current = this.state.welderQualifications.get(qualification.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.welderQualifications.set(qualification.id, cloneValue(qualification));
+  }
+  public weldById(id: string): WeldJointRecord | null { const record = this.state.weldJoints.get(id); return record ? cloneValue(record) : null; }
+  public weldByNumber(projectId: string, number: string): WeldJointRecord | null {
+    const record = [...this.state.weldJoints.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public welds(projectId: string): readonly WeldJointRecord[] {
+    return cloneValue([...this.state.weldJoints.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertWeld(weld: WeldJointRecord): void {
+    if (this.state.weldJoints.has(weld.id) || this.weldByNumber(weld.projectId, weld.number)) throw new ConflictError(); this.state.weldJoints.set(weld.id, cloneValue(weld));
+  }
+  public updateWeld(weld: WeldJointRecord, expectedVersion: number): void {
+    const current = this.state.weldJoints.get(weld.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.weldJoints.set(weld.id, cloneValue(weld));
+  }
+  public ndeRequestById(id: string): NdeRequestRecord | null { const record = this.state.ndeRequests.get(id); return record ? cloneValue(record) : null; }
+  public ndeRequestByNumber(projectId: string, number: string): NdeRequestRecord | null {
+    const record = [...this.state.ndeRequests.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public ndeRequests(projectId: string): readonly NdeRequestRecord[] {
+    return cloneValue([...this.state.ndeRequests.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertNdeRequest(request: NdeRequestRecord): void {
+    if (this.state.ndeRequests.has(request.id) || this.ndeRequestByNumber(request.projectId, request.number)) throw new ConflictError(); this.state.ndeRequests.set(request.id, cloneValue(request));
+  }
+  public updateNdeRequest(request: NdeRequestRecord, expectedVersion: number): void {
+    const current = this.state.ndeRequests.get(request.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.ndeRequests.set(request.id, cloneValue(request));
+  }
+  public ndeReportById(id: string): NdeReportRevisionRecord | null { const record = this.state.ndeReports.get(id); return record ? cloneValue(record) : null; }
+  public ndeReports(requestId: string): readonly NdeReportRevisionRecord[] {
+    return cloneValue([...this.state.ndeReports.values()].filter((item) => item.requestId === requestId).sort((left, right) => left.revision.localeCompare(right.revision)));
+  }
+  public insertNdeReport(report: NdeReportRevisionRecord): void {
+    if (this.state.ndeReports.has(report.id) || this.ndeReports(report.requestId).some((item) => item.revision === report.revision)) throw new ConflictError(); this.state.ndeReports.set(report.id, cloneValue(report));
+  }
+  public updateNdeReport(report: NdeReportRevisionRecord, expectedVersion: number): void {
+    const current = this.state.ndeReports.get(report.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.ndeReports.set(report.id, cloneValue(report));
+  }
+  public pwhtCycleById(id: string): PwhtCycleRecord | null { const record = this.state.pwhtCycles.get(id); return record ? cloneValue(record) : null; }
+  public pwhtCycleByNumber(projectId: string, number: string): PwhtCycleRecord | null {
+    const record = [...this.state.pwhtCycles.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public pwhtCycles(projectId: string): readonly PwhtCycleRecord[] {
+    return cloneValue([...this.state.pwhtCycles.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertPwhtCycle(cycle: PwhtCycleRecord): void {
+    if (this.state.pwhtCycles.has(cycle.id) || this.pwhtCycleByNumber(cycle.projectId, cycle.number)) throw new ConflictError(); this.state.pwhtCycles.set(cycle.id, cloneValue(cycle));
+  }
+  public updatePwhtCycle(cycle: PwhtCycleRecord, expectedVersion: number): void {
+    const current = this.state.pwhtCycles.get(cycle.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.pwhtCycles.set(cycle.id, cloneValue(cycle));
+  }
+  public testPackageById(id: string): TestPackageRecord | null { const record = this.state.testPackages.get(id); return record ? cloneValue(record) : null; }
+  public testPackageByNumber(projectId: string, number: string): TestPackageRecord | null {
+    const record = [...this.state.testPackages.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public testPackages(projectId: string): readonly TestPackageRecord[] {
+    return cloneValue([...this.state.testPackages.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertTestPackage(testPackage: TestPackageRecord): void {
+    if (this.state.testPackages.has(testPackage.id) || this.testPackageByNumber(testPackage.projectId, testPackage.number)) throw new ConflictError(); this.state.testPackages.set(testPackage.id, cloneValue(testPackage));
+  }
+  public updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void {
+    const current = this.state.testPackages.get(testPackage.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.testPackages.set(testPackage.id, cloneValue(testPackage));
   }
 
   public projectById(id: string): ProjectRecord | null {
@@ -1904,6 +2019,13 @@ export function createEmptyMemoryState(): MemoryState {
     schedulePrograms: new Map(),
     scheduleRevisions: new Map(),
     scheduleImports: new Map(),
+    weldingProcedures: new Map(),
+    welderQualifications: new Map(),
+    weldJoints: new Map(),
+    ndeRequests: new Map(),
+    ndeReports: new Map(),
+    pwhtCycles: new Map(),
+    testPackages: new Map(),
     audits: [],
   };
 }

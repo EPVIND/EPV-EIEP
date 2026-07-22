@@ -29,6 +29,13 @@ import type {
   ScheduleImportRecord,
   ScheduleProgramRecord,
   ScheduleRevisionRecord,
+  WeldingProcedureRevisionRecord,
+  WelderQualificationRecord,
+  WeldJointRecord,
+  NdeRequestRecord,
+  NdeReportRevisionRecord,
+  PwhtCycleRecord,
+  TestPackageRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -198,6 +205,40 @@ export interface FoundationTransaction {
   scheduleImports(projectId: string): readonly ScheduleImportRecord[];
   insertScheduleImport(scheduleImport: ScheduleImportRecord): void;
   updateScheduleImport(scheduleImport: ScheduleImportRecord, expectedVersion: number): void;
+  weldingProcedureById(id: string): WeldingProcedureRevisionRecord | null;
+  weldingProcedureByRevision(projectId: string, number: string, revision: string): WeldingProcedureRevisionRecord | null;
+  weldingProcedures(projectId: string): readonly WeldingProcedureRevisionRecord[];
+  insertWeldingProcedure(procedure: WeldingProcedureRevisionRecord): void;
+  updateWeldingProcedure(procedure: WeldingProcedureRevisionRecord, expectedVersion: number): void;
+  welderQualificationById(id: string): WelderQualificationRecord | null;
+  welderQualificationByNumber(projectId: string, qualificationNumber: string): WelderQualificationRecord | null;
+  welderQualifications(projectId: string): readonly WelderQualificationRecord[];
+  insertWelderQualification(qualification: WelderQualificationRecord): void;
+  updateWelderQualification(qualification: WelderQualificationRecord, expectedVersion: number): void;
+  weldById(id: string): WeldJointRecord | null;
+  weldByNumber(projectId: string, number: string): WeldJointRecord | null;
+  welds(projectId: string): readonly WeldJointRecord[];
+  insertWeld(weld: WeldJointRecord): void;
+  updateWeld(weld: WeldJointRecord, expectedVersion: number): void;
+  ndeRequestById(id: string): NdeRequestRecord | null;
+  ndeRequestByNumber(projectId: string, number: string): NdeRequestRecord | null;
+  ndeRequests(projectId: string): readonly NdeRequestRecord[];
+  insertNdeRequest(request: NdeRequestRecord): void;
+  updateNdeRequest(request: NdeRequestRecord, expectedVersion: number): void;
+  ndeReportById(id: string): NdeReportRevisionRecord | null;
+  ndeReports(requestId: string): readonly NdeReportRevisionRecord[];
+  insertNdeReport(report: NdeReportRevisionRecord): void;
+  updateNdeReport(report: NdeReportRevisionRecord, expectedVersion: number): void;
+  pwhtCycleById(id: string): PwhtCycleRecord | null;
+  pwhtCycleByNumber(projectId: string, number: string): PwhtCycleRecord | null;
+  pwhtCycles(projectId: string): readonly PwhtCycleRecord[];
+  insertPwhtCycle(cycle: PwhtCycleRecord): void;
+  updatePwhtCycle(cycle: PwhtCycleRecord, expectedVersion: number): void;
+  testPackageById(id: string): TestPackageRecord | null;
+  testPackageByNumber(projectId: string, number: string): TestPackageRecord | null;
+  testPackages(projectId: string): readonly TestPackageRecord[];
+  insertTestPackage(testPackage: TestPackageRecord): void;
+  updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void;
   projectById(id: string): ProjectRecord | null;
   projectByNumber(businessScopeOrganizationId: string, number: string): ProjectRecord | null;
   projects(): readonly ProjectRecord[];

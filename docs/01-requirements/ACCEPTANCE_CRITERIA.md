@@ -76,6 +76,14 @@
 - An independently approved schedule baseline and at least two updates retain logic, actual/claim/accepted progress, constraints, source identifiers, and baseline variance; look-ahead is derived from the current approved revision.
 - P6 and Microsoft Project fixtures preview duplicate/conflict/mapping failures, commit exact retries idempotently, and cannot bypass independent schedule approval. Live provider credentials and sandbox acceptance remain production gates.
 
+## AC-13 Welding, NDE, PWHT, and testing
+
+- An exact material/component/drawing/WPS-qualified weld progresses through fit-up, preheat/interpass observation, qualified welding, independent visual examination, required NDE/PWHT, repair where applicable, and separately authorized release with immutable event and repair-cycle history.
+- Wrong/inapplicable WPS, expired or out-of-range qualification, held material, stale repair-cycle examination, rejected result, incomplete NDE/PWHT, open NCR, or performer self-release is denied with explicit blockers.
+- NDE preserves exact request/technique/personnel/equipment/media/conditions/indications/report revision and an independent review that distinguishes accepting the report from the report's accept/reject result.
+- PWHT preserves exact weld scope, procedure, parameters, thermocouple tolerances, valid equipment, chart/evidence, interruptions, result, and independent acceptance.
+- Pressure/leak/functional test readiness derives from the exact completion boundary, released welds/documents, valid gauges, prerequisites, safety references, and deficiencies; execution and acceptance remain separate and preserve result evidence plus restoration confirmation.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.

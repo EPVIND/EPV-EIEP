@@ -265,6 +265,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/projects/:projectId/execution-disciplines": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "GET /v1/projects/:projectId/notifications": {
     "params": {
       "type": "object",
@@ -477,6 +491,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "packageId"
+      ]
+    }
+  },
+  "GET /v1/welds/:weldId/release-readiness": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "weldId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "weldId"
       ]
     }
   },
@@ -1738,8 +1766,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "reject",
-            "accept"
+            "accept",
+            "reject"
           ]
         },
         "meaningOrReason": {
@@ -2070,8 +2098,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "reject",
-            "accept"
+            "accept",
+            "reject"
           ]
         },
         "reason": {
@@ -2209,6 +2237,125 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/nde-reports/:reportId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reportId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "reportId"
+      ]
+    }
+  },
+  "POST /v1/nde-requests/:requestId/reports": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revision": {
+          "type": "string"
+        },
+        "examinerOrganizationId": {
+          "type": "string"
+        },
+        "personnelQualificationReference": {
+          "type": "string"
+        },
+        "equipmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mediaFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "performedAt": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "indications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "evidenceFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "conditions",
+        "equipmentIds",
+        "evidenceFileIds",
+        "examinerOrganizationId",
+        "indications",
+        "mediaFileIds",
+        "performedAt",
+        "personnelQualificationReference",
+        "result",
+        "revision"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requestId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "requestId"
+      ]
+    }
+  },
   "POST /v1/notifications/:notificationId/process": {
     "body": {
       "type": "object",
@@ -2259,9 +2406,9 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "outcome": {
           "type": "string",
           "enum": [
-            "conflict",
+            "accept",
             "reject",
-            "accept"
+            "conflict"
           ]
         },
         "conflictReason": {
@@ -2811,8 +2958,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "reject",
-            "accept"
+            "accept",
+            "reject"
           ]
         },
         "reason": {
@@ -2849,8 +2996,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "reject",
-            "accept"
+            "accept",
+            "reject"
           ]
         },
         "reason": {
@@ -3697,6 +3844,68 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/projects/:projectId/nde-requests": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "weldId": {
+          "type": "string"
+        },
+        "methodCode": {
+          "type": "string"
+        },
+        "extent": {
+          "type": "string"
+        },
+        "techniqueDocumentRevisionId": {
+          "type": "string"
+        },
+        "acceptanceReference": {
+          "type": "string"
+        },
+        "examinationStage": {
+          "type": "string"
+        },
+        "requiredPersonnelQualification": {
+          "type": "string"
+        },
+        "dueAt": {
+          "type": "string"
+        },
+        "holdWitnessContext": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "acceptanceReference",
+        "dueAt",
+        "examinationStage",
+        "extent",
+        "holdWitnessContext",
+        "methodCode",
+        "number",
+        "requiredPersonnelQualification",
+        "techniqueDocumentRevisionId",
+        "weldId"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "POST /v1/projects/:projectId/notifications/dispatch": {
     "body": {
       "type": "object",
@@ -3875,6 +4084,132 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
   },
   "POST /v1/projects/:projectId/punch-items": {
     "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/pwht-cycles": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "procedureDocumentRevisionId": {
+          "type": "string"
+        },
+        "weldIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "heatingRate": {
+          "type": "string"
+        },
+        "coolingRate": {
+          "type": "string"
+        },
+        "soakTemperatureMinimum": {
+          "type": "string"
+        },
+        "soakTemperatureMaximum": {
+          "type": "string"
+        },
+        "soakDurationMinutes": {
+          "type": "string"
+        },
+        "thermocouples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "thermocoupleId": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              },
+              "minimumTemperature": {
+                "type": "string"
+              },
+              "maximumTemperature": {
+                "type": "string"
+              },
+              "withinTolerance": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "location",
+              "maximumTemperature",
+              "minimumTemperature",
+              "thermocoupleId",
+              "withinTolerance"
+            ]
+          }
+        },
+        "equipmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "chartFileId": {
+          "type": "string"
+        },
+        "evidenceFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interruptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "performedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "chartFileId",
+        "coolingRate",
+        "equipmentIds",
+        "evidenceFileIds",
+        "heatingRate",
+        "interruptions",
+        "number",
+        "performedAt",
+        "procedureDocumentRevisionId",
+        "result",
+        "soakDurationMinutes",
+        "soakTemperatureMaximum",
+        "soakTemperatureMinimum",
+        "thermocouples",
+        "weldIds"
+      ]
+    },
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -4143,6 +4478,437 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/projects/:projectId/test-packages": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "testType": {
+          "type": "string",
+          "enum": [
+            "pressure",
+            "leak",
+            "functional"
+          ]
+        },
+        "completionBoundaryId": {
+          "type": "string"
+        },
+        "governingDocumentRevisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "drawingRevisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "testMedium": {
+          "type": "string"
+        },
+        "targetPressure": {
+          "type": "string",
+          "nullable": true
+        },
+        "holdDurationMinutes": {
+          "type": "string"
+        },
+        "hazardPermitReferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prerequisiteReferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "blindValveInstrumentReferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gaugeEquipmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "participantUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "witnessUserIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "blindValveInstrumentReferences",
+        "completionBoundaryId",
+        "drawingRevisionIds",
+        "gaugeEquipmentIds",
+        "governingDocumentRevisionIds",
+        "hazardPermitReferences",
+        "holdDurationMinutes",
+        "number",
+        "participantUserIds",
+        "prerequisiteReferences",
+        "targetPressure",
+        "testMedium",
+        "testType",
+        "witnessUserIds"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/welder-qualifications": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "welderUserId": {
+          "type": "string"
+        },
+        "employerOrganizationId": {
+          "type": "string"
+        },
+        "qualificationNumber": {
+          "type": "string"
+        },
+        "governingDocumentRevisionId": {
+          "type": "string"
+        },
+        "processCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "materialGroupCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "positionCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "thicknessMinimum": {
+          "type": "string"
+        },
+        "thicknessMaximum": {
+          "type": "string"
+        },
+        "diameterMinimum": {
+          "type": "string"
+        },
+        "diameterMaximum": {
+          "type": "string"
+        },
+        "qualifiedAt": {
+          "type": "string"
+        },
+        "validTo": {
+          "type": "string"
+        },
+        "continuityIntervalDays": {
+          "type": "number"
+        },
+        "lastContinuityAt": {
+          "type": "string"
+        },
+        "evidenceFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "continuityIntervalDays",
+        "diameterMaximum",
+        "diameterMinimum",
+        "employerOrganizationId",
+        "evidenceFileIds",
+        "governingDocumentRevisionId",
+        "lastContinuityAt",
+        "materialGroupCodes",
+        "positionCodes",
+        "processCodes",
+        "qualificationNumber",
+        "qualifiedAt",
+        "thicknessMaximum",
+        "thicknessMinimum",
+        "validTo",
+        "welderUserId"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/welding-procedures": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "procedureType": {
+          "type": "string",
+          "enum": [
+            "pqr",
+            "wps"
+          ]
+        },
+        "number": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "governingDocumentRevisionId": {
+          "type": "string"
+        },
+        "supportingPqrIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "processCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "materialGroupCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "positionCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "thicknessMinimum": {
+          "type": "string"
+        },
+        "thicknessMaximum": {
+          "type": "string"
+        },
+        "diameterMinimum": {
+          "type": "string"
+        },
+        "diameterMaximum": {
+          "type": "string"
+        },
+        "jointDesignCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "consumableClassifications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "preheatMinimum": {
+          "type": "string"
+        },
+        "interpassMaximum": {
+          "type": "string"
+        },
+        "effectiveFrom": {
+          "type": "string"
+        },
+        "effectiveTo": {
+          "type": "string",
+          "nullable": true
+        },
+        "supersedesRevisionId": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "consumableClassifications",
+        "diameterMaximum",
+        "diameterMinimum",
+        "effectiveFrom",
+        "effectiveTo",
+        "governingDocumentRevisionId",
+        "interpassMaximum",
+        "jointDesignCodes",
+        "materialGroupCodes",
+        "number",
+        "positionCodes",
+        "preheatMinimum",
+        "procedureType",
+        "processCodes",
+        "revision",
+        "supersedesRevisionId",
+        "supportingPqrIds",
+        "thicknessMaximum",
+        "thicknessMinimum"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/welds": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "systemCode": {
+          "type": "string"
+        },
+        "areaCode": {
+          "type": "string"
+        },
+        "workPackageCode": {
+          "type": "string"
+        },
+        "componentReferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "materialItemIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "drawingRevisionId": {
+          "type": "string"
+        },
+        "weldMapLocation": {
+          "type": "string"
+        },
+        "wpsRevisionId": {
+          "type": "string"
+        },
+        "processCode": {
+          "type": "string"
+        },
+        "materialGroupCode": {
+          "type": "string"
+        },
+        "positionCode": {
+          "type": "string"
+        },
+        "thickness": {
+          "type": "string"
+        },
+        "diameter": {
+          "type": "string"
+        },
+        "jointDesignCode": {
+          "type": "string"
+        },
+        "requiredExaminationMethods": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pwhtRequired": {
+          "type": "boolean"
+        },
+        "completionBoundaryId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "areaCode",
+        "completionBoundaryId",
+        "componentReferences",
+        "diameter",
+        "drawingRevisionId",
+        "jointDesignCode",
+        "materialGroupCode",
+        "materialItemIds",
+        "number",
+        "positionCode",
+        "processCode",
+        "pwhtRequired",
+        "requiredExaminationMethods",
+        "systemCode",
+        "thickness",
+        "weldMapLocation",
+        "workPackageCode",
+        "wpsRevisionId"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "POST /v1/punch-items/:punchId/close": {
     "body": {
       "type": "object",
@@ -4237,6 +5003,44 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "punchId"
+      ]
+    }
+  },
+  "POST /v1/pwht-cycles/:cycleId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cycleId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cycleId"
       ]
     }
   },
@@ -4626,8 +5430,8 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "decision": {
           "type": "string",
           "enum": [
-            "reject",
-            "accept"
+            "accept",
+            "reject"
           ]
         },
         "meaningOrReason": {
@@ -4708,6 +5512,126 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "POST /v1/test-packages/:testPackageId/readiness": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "testPackageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "testPackageId"
+      ]
+    }
+  },
+  "POST /v1/test-packages/:testPackageId/results": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "performedAt": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail"
+          ]
+        },
+        "evidenceFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deficiencyNcrIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "restorationConfirmation": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deficiencyNcrIds",
+        "evidenceFileIds",
+        "expectedVersion",
+        "performedAt",
+        "restorationConfirmation",
+        "result"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "testPackageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "testPackageId"
+      ]
+    }
+  },
+  "POST /v1/test-packages/:testPackageId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "accept",
+            "reject"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "testPackageId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "testPackageId"
+      ]
+    }
+  },
   "POST /v1/turnover/generate": {
     "body": {
       "type": "object",
@@ -4723,6 +5647,190 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       "required": [
         "packageId",
         "projectId"
+      ]
+    }
+  },
+  "POST /v1/welder-qualifications/:qualificationId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "qualificationId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "qualificationId"
+      ]
+    }
+  },
+  "POST /v1/welding-procedures/:procedureId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "procedureId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "procedureId"
+      ]
+    }
+  },
+  "POST /v1/welds/:weldId/events": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "fit_up",
+            "consumable_issue",
+            "preheat_observation",
+            "weld_pass",
+            "visual_examination",
+            "repair_excavation",
+            "repair_weld"
+          ]
+        },
+        "performedAt": {
+          "type": "string"
+        },
+        "welderQualificationIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "consumableClassification": {
+          "type": "string",
+          "nullable": true
+        },
+        "observations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "evidenceFileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "observed"
+          ]
+        }
+      },
+      "required": [
+        "consumableClassification",
+        "eventType",
+        "evidenceFileIds",
+        "expectedVersion",
+        "observations",
+        "performedAt",
+        "result",
+        "welderQualificationIds"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "weldId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "weldId"
+      ]
+    }
+  },
+  "POST /v1/welds/:weldId/release": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "weldId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "weldId"
       ]
     }
   },

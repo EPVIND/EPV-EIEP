@@ -2,6 +2,31 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.11.0 - Connected welding, NDE, PWHT, and testing pilot
+
+- Added exact-revision PQR/WPS governance, effective applicability ranges,
+  independently approved welder qualifications and continuity, structure/material/
+  drawing/weld-map identities, and append-only fit-up, consumable, preheat/interpass,
+  weld, visual, excavation, and repair-cycle events.
+- Added qualified repair-cycle NDE requests and report revisions with valid
+  method-capable equipment, media/conditions/indications, independent report review,
+  and explicit reject-to-repair-to-re-examination behavior. Added PWHT procedure,
+  parameter, thermocouple, chart, equipment, interruption, and independent acceptance
+  records.
+- Added completion-boundary pressure/leak/functional test packages with exact
+  documents/drawings, safety/prerequisite/isolation references, valid gauges,
+  participant/witness context, derived readiness, evidence, deficiencies/NCRs,
+  restoration, result, and independent acceptance.
+- Added 18 secured API operations, PostgreSQL record collections, audit history, and
+  a tablet-accessible Welding/NDE-PWHT/Testing workspace. Promoted eight requirements
+  into the controlled baseline and added AC-13.
+- Local focused evidence passes 92 source tests in the declared suite inventory,
+  eight Chromium tablet/axe workflows in the browser inventory, 188 active `/v1`
+  routes with 151 request bodies, and 94-requirement/203-path traceability. Full local
+  and hosted verification evidence is recorded separately after the complete gate run;
+  live authority policies, normalized production migrations, managed deployment,
+  representative field data, and pilot approval remain external gates.
+
 ## 0.10.0 - Integrated project controls, procurement, and scheduling pilot
 
 - Added immutable estimate-handoff-derived cost/quantity baselines, thresholded

@@ -6,6 +6,7 @@ import { StoreIdentityResolver } from "./auth/store-identity-resolver.js";
 import { loadRuntimeConfig } from "./config.js";
 import { FoundationService } from "./domain/foundation-service.js";
 import { EstimatingService } from "./domain/estimating-service.js";
+import { ExecutionDisciplineService } from "./domain/execution-discipline-service.js";
 import { ProjectControlsService } from "./domain/project-controls-service.js";
 import { InMemoryFoundationStore } from "./domain/in-memory-foundation-store.js";
 import { OperationalService } from "./domain/operational-service.js";
@@ -31,6 +32,7 @@ const postgresStore = config.environment.dataStore === "postgres"
 const store = postgresStore ?? new InMemoryFoundationStore();
 const service = new FoundationService(store);
 const estimating = new EstimatingService(store);
+const executionDisciplines = new ExecutionDisciplineService(store);
 const projectControls = new ProjectControlsService(store);
 const operations = new OperationalService(store);
 const platform = new PlatformService(store);
@@ -51,6 +53,7 @@ const authenticator =
 const server = await buildServer({
   service,
   estimating,
+  executionDisciplines,
   projectControls,
   operations,
   platform,

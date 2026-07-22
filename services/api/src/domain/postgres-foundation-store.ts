@@ -49,6 +49,8 @@ const mapCollections = [
   "projectCostEntries", "projectProgressClaims", "procurementRequisitions",
   "procurementBidPackages", "procurementCommitments", "schedulePrograms", "scheduleRevisions",
   "scheduleImports",
+  "weldingProcedures", "welderQualifications", "weldJoints", "ndeRequests", "ndeReports",
+  "pwhtCycles", "testPackages",
 ] as const satisfies readonly (keyof MemoryState)[];
 
 const arrayCollections = ["assignments", "audits"] as const satisfies readonly (keyof MemoryState)[];

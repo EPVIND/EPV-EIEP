@@ -83,6 +83,15 @@ repair cycles, PWHT chart/thermocouple/calibration/interruption, pressure/leak t
 readiness/restoration, independent acceptance, failed-path NCR/hold, PostgreSQL
 restart/concurrency/restore, field tablet/accessibility, and exact turnover manifest.
 
+Local implementation evidence now covers exact WPS/PQR and WPQ applicability,
+append-only weld/repair history, independent visual/release authority, NDE reject and
+new-cycle re-examination, valid method equipment, PWHT thermocouple/chart review,
+boundary-derived test readiness, result/restoration evidence, authenticated scoped
+API access, audit, and tablet accessibility. Live authority configuration,
+representative file/volume evidence, normalized production tables, managed-service
+recovery, and turnover projection remain external acceptance gates; this evidence
+does not change the ADR's Proposed status.
+
 ## Supersedes / superseded by
 
 None. This proposal extends ADR-0003 through ADR-0008 and the existing PMI/

@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { EnvironmentBanner } from "@eiep/ui-components";
 import { EstimatingWorkspace } from "./EstimatingWorkspace.js";
+import { ExecutionDisciplinesWorkspace } from "./ExecutionDisciplinesWorkspace.js";
 import { OperationalChain } from "./OperationalChain.js";
 import { ProjectSetup } from "./ProjectSetup.js";
 import { ProjectControlsWorkspace } from "./ProjectControlsWorkspace.js";
@@ -57,7 +58,7 @@ interface ProjectReadinessStatus {
   readonly blockers: readonly string[];
 }
 
-type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
+type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
 
 const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "overview", label: "Overview", eyebrow: "Control room" },
@@ -65,6 +66,9 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "controls", label: "Project Controls", eyebrow: "Budget · change · EAC" },
   { key: "procurement", label: "Procurement", eyebrow: "Bid · award · expedite" },
   { key: "scheduling", label: "Scheduling", eyebrow: "Logic · updates · look-ahead" },
+  { key: "welding", label: "Welding", eyebrow: "WPS · WPQ · weld map" },
+  { key: "nde", label: "NDE / PWHT", eyebrow: "Examination · heat treatment" },
+  { key: "testing", label: "Testing", eyebrow: "Boundaries · safety · results" },
   { key: "projects", label: "Projects", eyebrow: "Setup & structure" },
   { key: "documents", label: "Documents", eyebrow: "Current for work" },
   { key: "materials", label: "Materials", eyebrow: "Traceability" },
@@ -407,6 +411,17 @@ export function App() {
             projectId={selectedProject.id}
             projectNumber={selectedProject.number}
             organizationId={identity.organizationId}
+            initialView={activeModule}
+            request={request}
+            working={working}
+            setWorking={setWorking}
+            notify={(tone, text) => setMessage({ tone, text })}
+          /> : null}
+
+          {selectedProject && session && (activeModule === "welding" || activeModule === "nde" || activeModule === "testing") ? <ExecutionDisciplinesWorkspace
+            key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:execution`}
+            projectId={selectedProject.id}
+            projectNumber={selectedProject.number}
             initialView={activeModule}
             request={request}
             working={working}

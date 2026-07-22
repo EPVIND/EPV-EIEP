@@ -326,6 +326,70 @@ test("FR-PJC-001-004, FR-PRC-001-003, FR-SCH-001-004, NFR-USE-001-003 / AC-02-03
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-WLD-001-003, FR-NDE-001-002, FR-PWH-001, FR-TST-001-002 / AC-02-03, EX-AC-06-07: execution disciplines expose repair-cycle and boundary evidence at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "execution-reader");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "step-up");
+  });
+  const snapshot = {
+    procedures: [{ id: "wps-1", procedureType: "wps", number: "WPS-001", revision: "0", processCodes: ["GTAW"],
+      materialGroupCodes: ["P1"], state: "approved", version: 2 }],
+    welderQualifications: [{ id: "wpq-1", welderUserId: "welder-1", qualificationNumber: "WPQ-001",
+      processCodes: ["GTAW"], validTo: "2027-01-01T00:00:00.000Z", state: "active", version: 2 }],
+    welds: [{ id: "weld-1", number: "W-100", systemCode: "SYS-01", workPackageCode: "WP-PIPING",
+      weldMapLocation: "ISO-100 / JOINT 1", wpsRevisionId: "wps-1", requiredExaminationMethods: ["RT"],
+      pwhtRequired: true, repairCycle: 1, state: "pending_examination", version: 9,
+      events: [{ id: "event-1", eventType: "weld_pass", repairCycle: 0, performedBy: "welder-1", result: "pass" },
+        { id: "event-2", eventType: "visual_examination", repairCycle: 0, performedBy: "inspector-1", result: "pass" },
+        { id: "event-3", eventType: "repair_excavation", repairCycle: 0, performedBy: "welder-1", result: "observed" },
+        { id: "event-4", eventType: "repair_weld", repairCycle: 1, performedBy: "welder-1", result: "pass" },
+        { id: "event-5", eventType: "visual_examination", repairCycle: 1, performedBy: "inspector-1", result: "pass" }] }],
+    ndeRequests: [{ id: "nde-request-0", number: "NDE-RT-100-0", weldId: "weld-1", repairCycle: 0, methodCode: "RT",
+      reportRevisionIds: ["nde-report-0"], state: "rejected", version: 3 },
+      { id: "nde-request-1", number: "NDE-RT-100-1", weldId: "weld-1", repairCycle: 1, methodCode: "RT",
+        reportRevisionIds: ["nde-report-1"], state: "accepted", version: 3 }],
+    ndeReports: [{ id: "nde-report-0", requestId: "nde-request-0", revision: "0", examinerUserId: "nde-examiner",
+      result: "reject", state: "accepted", version: 2 },
+      { id: "nde-report-1", requestId: "nde-request-1", revision: "1", examinerUserId: "nde-examiner",
+        result: "accept", state: "accepted", version: 2 }],
+    pwhtCycles: [{ id: "pwht-1", number: "PWHT-100", weldIds: ["weld-1"], result: "pass", interruptions: [], state: "accepted", version: 2 }],
+    testPackages: [{ id: "test-1", number: "TP-001", testType: "pressure", completionBoundaryId: "boundary-1",
+      targetPressure: "225", result: "pass", deficiencyNcrIds: [], state: "accepted", version: 3 }],
+    weldReadiness: [{ weldId: "weld-1", blockers: [] }],
+  };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname;
+    const respond = async (json: unknown, status = 200) => route.fulfill({ status, headers: corsHeaders, json });
+    if (path === "/health") return respond({ status: "ok", environment: "test", training: false, productionReady: false, blockers: ["external_pilot_approval"] });
+    if (path === "/v1/session") return respond({ userId: "execution-reader", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 14, environment: "test", training: false });
+    if (path === "/v1/projects") return respond([{ id: "project-1", number: "EXE-001", name: "Execution disciplines pilot",
+      customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/execution-disciplines") return respond(snapshot);
+    return respond({ error: "not_found" }, 404);
+  });
+  await page.setViewportSize({ width: 900, height: 1100 });
+  await page.goto("/");
+  await page.getByRole("link", { name: /Welding/u }).click();
+  await expect(page.getByRole("heading", { name: "Welding, NDE, PWHT & testing — EXE-001" })).toBeVisible();
+  await expect(page.getByText("WPS WPS-001 · revision 0")).toBeVisible();
+  await expect(page.getByText("W-100 · SYS-01 · repair cycle 1")).toBeVisible();
+  await expect(page.getByText("Release prerequisites complete")).toBeVisible();
+  await expect(page.getByText("repair weld — pass · cycle 1 · welder-1")).toBeVisible();
+
+  await page.getByRole("link", { name: /NDE \/ PWHT/u }).click();
+  await expect(page.getByText("NDE-RT-100-0 · RT · repair cycle 0")).toBeVisible();
+  await expect(page.getByText("NDE-RT-100-1 · RT · repair cycle 1")).toBeVisible();
+  await expect(page.getByText("PWHT-100 · pass")).toBeVisible();
+
+  await page.getByRole("link", { name: /Testing/u }).click();
+  await expect(page.getByText("TP-001 · pressure test")).toBeVisible();
+  await expect(page.getByText("Result pass")).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001, FR-TOV-001-004 / AC-03-09: guided internal workflow reaches an immutable turnover version", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "chain-controller");

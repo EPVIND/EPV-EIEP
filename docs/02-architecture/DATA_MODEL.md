@@ -101,6 +101,16 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 - `CalibrationVerification` identifies calibration or daily/reference verification, evidence, result, and validity window.
 - `PmiRecord` specializes inspection context with required/observed material, method, component location, sampling basis, readings, evidence, notes, and alloy decision.
 
+## Welding, examination, heat treatment, and testing
+
+- `WeldingProcedureRevision` represents a PQR or WPS exact revision with a released governing document, approved supporting PQR revisions, effective interval, process/material/position/joint/consumable applicability, dimensional ranges, preheat/interpass limits, and independent review. Supersession preserves the prior approved revision.
+- `WelderQualification` links a person and employer to an exact released qualification record, process/material/position/dimensional scope, original validity, continuity interval/latest continuity evidence, and independent review state.
+- `WeldJoint` is the stable joint identity linking project structure, component references, controlled material items, released drawing revision, weld-map location, exact WPS revision, examination/PWHT requirements, and completion boundary. Its append-only `WeldExecutionEvent` sequence records fit-up, consumable issue, preheat/interpass, weld passes, visual examination, excavation, repair welds, actor/time/evidence, and repair cycle.
+- `NdeRequest` binds method/extent, exact technique revision, acceptance reference, stage, required personnel qualification, hold/witness context, due state, weld, and current repair cycle. `NdeReportRevision` preserves the qualified examiner/organization, valid method-capable equipment, media, conditions, indications, result, evidence, and independent review; accepting a valid report does not rewrite a reject result.
+- `PwhtCycle` binds exact welds and a released procedure to heating/cooling/soak values, thermocouple locations/ranges/tolerance status, valid equipment, source chart, supporting evidence, interruptions, result, performer, and independent acceptance.
+- `TestPackage` owns an exact active `CompletionBoundary` and its released procedures/drawings, medium/pressure/hold, approved safety/permit and prerequisite references, blind/valve/instrument list, valid gauges, participants/witnesses, evidence, deficiencies/NCRs, restoration confirmation, result, and independent acceptance.
+- Weld and test readiness are computed projections over current controlled material, event repair cycle, accepted NDE/PWHT, open NCR, released boundary weld, exact document, and valid-equipment records. A projection never replaces the underlying acceptance authority.
+
 ## Work objects
 
 Provide a shared `WorkObject` or equivalent stable abstraction with typed extensions:
@@ -154,7 +164,10 @@ Do not force discipline-specific attributes into one wide nullable table. Use st
   content/hash divergence; no pending/rejected change altering an approved baseline;
   no accepted progress above baseline quantity; no procurement receipt without a
   same-project controlled material item; no cyclic schedule logic, duplicate import
-  external ID, or imported revision bypassing independent approval.
+  external ID, or imported revision bypassing independent approval; no WPS/WPQ use
+  outside its exact effective scope, performer self-release, stale repair-cycle NDE
+  acceptance, PWHT pass with out-of-tolerance thermocouples, boundary test before
+  weld release, failed test acceptance, or result self-acceptance.
 
 The physical review schema currently advances through reversible migration
 `0014_pmi_ncr_execution_detail`, which makes PMI component location/notes and NCR

@@ -81,6 +81,11 @@ import {
   type UpsertEstimateLineInput,
 } from "./domain/estimating-service.js";
 import {
+  ExecutionDisciplineService,
+  type CreateTestPackageInput,
+  type CreateWeldInput,
+} from "./domain/execution-discipline-service.js";
+import {
   ProjectControlsService,
   type AwardProcurementInput,
   type CreateControlBaselineFromChangeInput,
@@ -105,6 +110,7 @@ export interface ServerDependencies {
   readonly identityAdministration?: IdentityAdministrationService;
   readonly reporting?: ReportingService;
   readonly estimating?: EstimatingService;
+  readonly executionDisciplines?: ExecutionDisciplineService;
   readonly projectControls?: ProjectControlsService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
@@ -164,6 +170,9 @@ function openApiTag(url: string): string {
     "estimate-authority-policies": "estimating",
     "estimate-revisions": "estimating", "estimate-lines": "estimating", "estimate-quotes": "estimating",
     "estimate-proposals": "estimating",
+    "welding-procedures": "welding", "welder-qualifications": "welding", welds: "welding",
+    "nde-requests": "nde", "nde-reports": "nde", "pwht-cycles": "pwht",
+    "test-packages": "testing",
     "project-controls-authority-policies": "project-controls",
     "project-control-baselines": "project-controls", "project-changes": "project-controls",
     "project-cost-entries": "project-controls", "project-progress-claims": "project-controls",
@@ -228,6 +237,51 @@ type PreviewScheduleImportHttp = Omit<PreviewScheduleImportInput, "dataDate" | "
   readonly dataDate: string;
   readonly activities: readonly ScheduleActivityHttp[];
 };
+interface SubmitWeldingProcedureHttp {
+  readonly procedureType: "pqr" | "wps"; readonly number: string; readonly revision: string;
+  readonly governingDocumentRevisionId: string; readonly supportingPqrIds: readonly string[];
+  readonly processCodes: readonly string[]; readonly materialGroupCodes: readonly string[]; readonly positionCodes: readonly string[];
+  readonly thicknessMinimum: string; readonly thicknessMaximum: string; readonly diameterMinimum: string; readonly diameterMaximum: string;
+  readonly jointDesignCodes: readonly string[]; readonly consumableClassifications: readonly string[];
+  readonly preheatMinimum: string; readonly interpassMaximum: string; readonly effectiveFrom: string;
+  readonly effectiveTo: string | null; readonly supersedesRevisionId: string | null;
+}
+interface SubmitWelderQualificationHttp {
+  readonly welderUserId: string; readonly employerOrganizationId: string; readonly qualificationNumber: string;
+  readonly governingDocumentRevisionId: string; readonly processCodes: readonly string[]; readonly materialGroupCodes: readonly string[];
+  readonly positionCodes: readonly string[]; readonly thicknessMinimum: string; readonly thicknessMaximum: string;
+  readonly diameterMinimum: string; readonly diameterMaximum: string; readonly qualifiedAt: string; readonly validTo: string;
+  readonly continuityIntervalDays: number; readonly lastContinuityAt: string; readonly evidenceFileIds: readonly string[];
+}
+interface RecordWeldEventHttp {
+  readonly expectedVersion: number;
+  readonly eventType: "fit_up" | "consumable_issue" | "preheat_observation" | "weld_pass" | "visual_examination" | "repair_excavation" | "repair_weld";
+  readonly performedAt: string; readonly welderQualificationIds: readonly string[]; readonly consumableClassification: string | null;
+  readonly observations: Readonly<Record<string, string>>; readonly evidenceFileIds: readonly string[]; readonly result: "pass" | "fail" | "observed";
+}
+interface CreateNdeRequestHttp {
+  readonly number: string; readonly weldId: string; readonly methodCode: string; readonly extent: string;
+  readonly techniqueDocumentRevisionId: string; readonly acceptanceReference: string; readonly examinationStage: string;
+  readonly requiredPersonnelQualification: string; readonly dueAt: string; readonly holdWitnessContext: string;
+}
+interface SubmitNdeReportHttp {
+  readonly revision: string; readonly examinerOrganizationId: string; readonly personnelQualificationReference: string;
+  readonly equipmentIds: readonly string[]; readonly mediaFileIds: readonly string[]; readonly performedAt: string;
+  readonly conditions: Readonly<Record<string, string>>; readonly indications: readonly string[]; readonly result: "accept" | "reject";
+  readonly evidenceFileIds: readonly string[];
+}
+interface SubmitPwhtCycleHttp {
+  readonly number: string; readonly procedureDocumentRevisionId: string; readonly weldIds: readonly string[];
+  readonly heatingRate: string; readonly coolingRate: string; readonly soakTemperatureMinimum: string; readonly soakTemperatureMaximum: string;
+  readonly soakDurationMinutes: string; readonly thermocouples: readonly { readonly thermocoupleId: string; readonly location: string;
+    readonly minimumTemperature: string; readonly maximumTemperature: string; readonly withinTolerance: boolean }[];
+  readonly equipmentIds: readonly string[]; readonly chartFileId: string; readonly evidenceFileIds: readonly string[];
+  readonly interruptions: readonly string[]; readonly result: "pass" | "fail"; readonly performedAt: string;
+}
+interface SubmitTestResultHttp {
+  readonly expectedVersion: number; readonly performedAt: string; readonly result: "pass" | "fail";
+  readonly evidenceFileIds: readonly string[]; readonly deficiencyNcrIds: readonly string[]; readonly restorationConfirmation: string;
+}
 
 function scheduleActivityFromHttp(activity: ScheduleActivityHttp): ScheduleActivity {
   return {
@@ -242,6 +296,7 @@ export async function buildServer(dependencies: ServerDependencies) {
   const identityAdministration = dependencies.identityAdministration ?? new IdentityAdministrationService(dependencies.store);
   const reporting = dependencies.reporting ?? new ReportingService(dependencies.store, dependencies.trainingBanner);
   const estimating = dependencies.estimating ?? new EstimatingService(dependencies.store);
+  const executionDisciplines = dependencies.executionDisciplines ?? new ExecutionDisciplineService(dependencies.store);
   const projectControls = dependencies.projectControls ?? new ProjectControlsService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
@@ -335,6 +390,7 @@ export async function buildServer(dependencies: ServerDependencies) {
       tags: [
         "identity", "projects", "documents", "files", "materials", "quality", "turnover",
         "subcontractors", "portal", "interchange", "notifications", "offline", "reports", "estimating",
+        "project-controls", "procurement", "scheduling", "welding", "nde", "pwht", "testing",
       ].map((name) => ({ name })),
     },
     exposeHeadRoutes: false,
@@ -1259,6 +1315,170 @@ export async function buildServer(dependencies: ServerDependencies) {
       access.context, access.assignments, request.params.importId, request.body.expectedVersion,
     );
   });
+
+  server.post<{ Params: { projectId: string }; Body: SubmitWeldingProcedureHttp }>(
+    "/v1/projects/:projectId/welding-procedures",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.submitProcedure(
+        access.context, access.assignments, request.params.projectId,
+        { ...request.body, effectiveFrom: new Date(request.body.effectiveFrom),
+          effectiveTo: request.body.effectiveTo ? new Date(request.body.effectiveTo) : null },
+      ));
+    },
+  );
+
+  server.post<{ Params: { procedureId: string }; Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string } }>(
+    "/v1/welding-procedures/:procedureId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.reviewProcedure(access.context, access.assignments, request.params.procedureId,
+        request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.post<{ Params: { projectId: string }; Body: SubmitWelderQualificationHttp }>(
+    "/v1/projects/:projectId/welder-qualifications",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.submitWelderQualification(
+        access.context, access.assignments, request.params.projectId,
+        { ...request.body, qualifiedAt: new Date(request.body.qualifiedAt), validTo: new Date(request.body.validTo),
+          lastContinuityAt: new Date(request.body.lastContinuityAt) },
+      ));
+    },
+  );
+
+  server.post<{ Params: { qualificationId: string }; Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string } }>(
+    "/v1/welder-qualifications/:qualificationId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.reviewWelderQualification(access.context, access.assignments, request.params.qualificationId,
+        request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/execution-disciplines", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return executionDisciplines.snapshot(access.context, access.assignments, request.params.projectId);
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateWeldInput }>(
+    "/v1/projects/:projectId/welds",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.createWeld(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{ Params: { weldId: string }; Body: RecordWeldEventHttp }>("/v1/welds/:weldId/events", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return executionDisciplines.recordWeldEvent(access.context, access.assignments, request.params.weldId,
+      { ...request.body, performedAt: new Date(request.body.performedAt) });
+  });
+
+  server.get<{ Params: { weldId: string } }>("/v1/welds/:weldId/release-readiness", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return { blockers: await executionDisciplines.weldReleaseReadiness(access.context, access.assignments, request.params.weldId) };
+  });
+
+  server.post<{ Params: { weldId: string }; Body: { expectedVersion: number; reason: string } }>(
+    "/v1/welds/:weldId/release",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.releaseWeld(access.context, access.assignments, request.params.weldId,
+        request.body.expectedVersion, request.body.reason);
+    },
+  );
+
+  server.post<{ Params: { projectId: string }; Body: CreateNdeRequestHttp }>(
+    "/v1/projects/:projectId/nde-requests",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.createNdeRequest(
+        access.context, access.assignments, request.params.projectId, { ...request.body, dueAt: new Date(request.body.dueAt) },
+      ));
+    },
+  );
+
+  server.post<{ Params: { requestId: string }; Body: SubmitNdeReportHttp }>(
+    "/v1/nde-requests/:requestId/reports",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.submitNdeReport(
+        access.context, access.assignments, request.params.requestId,
+        { ...request.body, performedAt: new Date(request.body.performedAt) },
+      ));
+    },
+  );
+
+  server.post<{ Params: { reportId: string }; Body: { expectedVersion: number; decision: "accept" | "reject"; reason: string } }>(
+    "/v1/nde-reports/:reportId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.reviewNdeReport(access.context, access.assignments, request.params.reportId,
+        request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.post<{ Params: { projectId: string }; Body: SubmitPwhtCycleHttp }>(
+    "/v1/projects/:projectId/pwht-cycles",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.submitPwhtCycle(
+        access.context, access.assignments, request.params.projectId,
+        { ...request.body, performedAt: new Date(request.body.performedAt) },
+      ));
+    },
+  );
+
+  server.post<{ Params: { cycleId: string }; Body: { expectedVersion: number; decision: "accept" | "reject"; reason: string } }>(
+    "/v1/pwht-cycles/:cycleId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.reviewPwhtCycle(access.context, access.assignments, request.params.cycleId,
+        request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.post<{ Params: { projectId: string }; Body: CreateTestPackageInput }>(
+    "/v1/projects/:projectId/test-packages",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await executionDisciplines.createTestPackage(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{ Params: { testPackageId: string }; Body: { expectedVersion: number } }>(
+    "/v1/test-packages/:testPackageId/readiness",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.refreshTestReadiness(access.context, access.assignments,
+        request.params.testPackageId, request.body.expectedVersion);
+    },
+  );
+
+  server.post<{ Params: { testPackageId: string }; Body: SubmitTestResultHttp }>(
+    "/v1/test-packages/:testPackageId/results",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.submitTestResult(access.context, access.assignments, request.params.testPackageId,
+        { ...request.body, performedAt: new Date(request.body.performedAt) });
+    },
+  );
+
+  server.post<{ Params: { testPackageId: string }; Body: { expectedVersion: number; decision: "accept" | "reject"; reason: string } }>(
+    "/v1/test-packages/:testPackageId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return executionDisciplines.reviewTestResult(access.context, access.assignments, request.params.testPackageId,
+        request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
 
   server.get("/v1/session", async (request) => {
     const access = await accessFor(request, dependencies);

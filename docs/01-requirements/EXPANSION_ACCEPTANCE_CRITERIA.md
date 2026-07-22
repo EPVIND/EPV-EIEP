@@ -1,7 +1,7 @@
 # Enterprise Expansion Acceptance Criteria
 
-Status: EX-AC-01 through EX-AC-05 have local controlled-pilot evidence and are
-promoted through AC-11/AC-12; EX-AC-06 onward remain proposed for active implementation
+Status: EX-AC-01 through EX-AC-07 have local controlled-pilot evidence and are
+promoted through AC-11/AC-12/AC-13; EX-AC-08 onward remain proposed for active implementation
 Date: 2026-07-21
 
 ## EX-AC-01 Advanced estimate lifecycle

@@ -176,6 +176,74 @@ try {
       reviewedBy: "postgres-schedule-reviewer", reviewReason: "Persistent schedule verified.",
       version: 3, createdAt: now, createdBy: "postgres-scheduler",
     });
+    transaction.insertWeldingProcedure({
+      id: "postgres-wps", businessScopeOrganizationId: "org-epv", projectId: project.id, procedureType: "wps",
+      number: "PG-WPS-001", revision: "0", governingDocumentRevisionId: "postgres-wps-document-revision",
+      supportingPqrIds: ["postgres-pqr"], processCodes: ["GTAW"], materialGroupCodes: ["P1"], positionCodes: ["6G"],
+      thicknessMinimum: "0.1", thicknessMaximum: "1", diameterMinimum: "2", diameterMaximum: "24",
+      jointDesignCodes: ["BW-V"], consumableClassifications: ["ER70S-2"], preheatMinimum: "100",
+      interpassMaximum: "350", effectiveFrom: new Date("2026-01-01T00:00:00.000Z"), effectiveTo: null,
+      state: "approved", supersedesRevisionId: null, submittedAt: now, submittedBy: "postgres-wps-author",
+      reviewedAt: now, reviewedBy: "postgres-wps-reviewer", reviewReason: "Persistent WPS.", version: 2,
+    });
+    transaction.insertWelderQualification({
+      id: "postgres-wpq", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      welderUserId: "postgres-welder", employerOrganizationId: "org-epv", qualificationNumber: "PG-WPQ-001",
+      governingDocumentRevisionId: "postgres-wpq-document-revision", processCodes: ["GTAW"], materialGroupCodes: ["P1"],
+      positionCodes: ["6G"], thicknessMinimum: "0.1", thicknessMaximum: "1", diameterMinimum: "2", diameterMaximum: "24",
+      qualifiedAt: new Date("2026-01-01T00:00:00.000Z"), validTo: new Date("2027-01-01T00:00:00.000Z"),
+      continuityIntervalDays: 180, lastContinuityAt: new Date("2026-07-01T00:00:00.000Z"), evidenceFileIds: ["postgres-wpq-file"],
+      state: "active", submittedAt: now, submittedBy: "postgres-wpq-author", reviewedAt: now,
+      reviewedBy: "postgres-wpq-reviewer", reviewReason: "Persistent qualification.", version: 2,
+    });
+    transaction.insertWeld({
+      id: "postgres-weld", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-W-001",
+      systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-PIPING", componentReferences: ["ISO-001"],
+      materialItemIds: ["postgres-material"], drawingRevisionId: "postgres-drawing-revision", weldMapLocation: "ISO-001 / J1",
+      wpsRevisionId: "postgres-wps", processCode: "GTAW", materialGroupCode: "P1", positionCode: "6G",
+      thickness: "0.25", diameter: "4", jointDesignCode: "BW-V", requiredExaminationMethods: ["RT"], pwhtRequired: true,
+      completionBoundaryId: "postgres-boundary", repairCycle: 1, events: [{ id: "postgres-weld-event", eventType: "repair_weld",
+        repairCycle: 1, performedAt: now, performedBy: "postgres-welder", welderQualificationIds: ["postgres-wpq"],
+        consumableClassification: "ER70S-2", observations: { INTERPASS_TEMPERATURE: "300" },
+        evidenceFileIds: ["postgres-weld-file"], result: "pass" }], state: "pending_examination", releasedAt: null,
+      releasedBy: null, version: 4, createdAt: now, createdBy: "postgres-weld-coordinator", updatedAt: now, updatedBy: "postgres-welder",
+    });
+    transaction.insertNdeRequest({
+      id: "postgres-nde-request", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-NDE-001",
+      weldId: "postgres-weld", repairCycle: 1, methodCode: "RT", extent: "100%",
+      techniqueDocumentRevisionId: "postgres-nde-technique", acceptanceReference: "PG-SPEC", examinationStage: "FINAL",
+      requiredPersonnelQualification: "NDE_RT_LEVEL_II", dueAt: new Date("2026-07-22T00:00:00.000Z"),
+      holdWitnessContext: "OWNER HOLD", reportRevisionIds: ["postgres-nde-report"], state: "accepted", version: 3,
+      createdAt: now, createdBy: "postgres-nde-coordinator", updatedAt: now, updatedBy: "postgres-nde-reviewer",
+    });
+    transaction.insertNdeReport({
+      id: "postgres-nde-report", requestId: "postgres-nde-request", revision: "1", examinerUserId: "postgres-nde-examiner",
+      examinerOrganizationId: "org-nde", personnelQualificationReference: "RT LEVEL II", equipmentIds: ["postgres-rt-equipment"],
+      mediaFileIds: ["postgres-nde-media"], performedAt: now, conditions: { SOURCE_DISTANCE: "24 IN" }, indications: [], result: "accept",
+      evidenceFileIds: ["postgres-nde-file"], repairCycle: 1, state: "accepted", submittedAt: now,
+      submittedBy: "postgres-nde-examiner", reviewedAt: now, reviewedBy: "postgres-nde-reviewer",
+      reviewReason: "Persistent accepted NDE report.", version: 2,
+    });
+    transaction.insertPwhtCycle({
+      id: "postgres-pwht", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-PWHT-001",
+      procedureDocumentRevisionId: "postgres-pwht-procedure", weldIds: ["postgres-weld"], heatingRate: "300", coolingRate: "300",
+      soakTemperatureMinimum: "1100", soakTemperatureMaximum: "1150", soakDurationMinutes: "60",
+      thermocouples: [{ thermocoupleId: "TC-1", location: "CENTERLINE", minimumTemperature: "1110", maximumTemperature: "1140", withinTolerance: true }],
+      equipmentIds: ["postgres-pwht-equipment"], chartFileId: "postgres-pwht-chart", evidenceFileIds: ["postgres-pwht-file"],
+      interruptions: [], result: "pass", state: "accepted", performedAt: now, performedBy: "postgres-pwht-operator",
+      reviewedAt: now, reviewedBy: "postgres-pwht-reviewer", reviewReason: "Persistent accepted PWHT cycle.", version: 2,
+    });
+    transaction.insertTestPackage({
+      id: "postgres-test-package", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-TP-001",
+      testType: "pressure", completionBoundaryId: "postgres-boundary", governingDocumentRevisionIds: ["postgres-test-procedure"],
+      drawingRevisionIds: ["postgres-drawing-revision"], testMedium: "WATER", targetPressure: "225", holdDurationMinutes: "30",
+      hazardPermitReferences: ["PG-JHA-001"], prerequisiteReferences: ["PG-LINE-WALK"], blindValveInstrumentReferences: ["PG-BLIND-LIST"],
+      gaugeEquipmentIds: ["postgres-gauge"], participantUserIds: ["postgres-test-director"], witnessUserIds: ["postgres-owner-witness"],
+      evidenceFileIds: ["postgres-test-file"], result: "pass", deficiencyNcrIds: [], restorationConfirmation: "Restored.",
+      state: "accepted", performedAt: now, performedBy: "postgres-test-director", reviewedAt: now,
+      reviewedBy: "postgres-test-reviewer", reviewReason: "Persistent accepted test.", version: 3,
+      createdAt: now, createdBy: "postgres-test-manager", updatedAt: now, updatedBy: "postgres-test-reviewer",
+    });
   });
   await store.close();
 
@@ -196,6 +264,13 @@ try {
     controlsPolicy: transaction.projectControlsAuthorityPolicyById("postgres-controls-policy"),
     schedule: transaction.scheduleProgramById("postgres-schedule"),
     scheduleRevision: transaction.scheduleRevisionById("postgres-schedule-revision"),
+    weldingProcedure: transaction.weldingProcedureById("postgres-wps"),
+    welderQualification: transaction.welderQualificationById("postgres-wpq"),
+    weld: transaction.weldById("postgres-weld"),
+    ndeRequest: transaction.ndeRequestById("postgres-nde-request"),
+    ndeReport: transaction.ndeReportById("postgres-nde-report"),
+    pwhtCycle: transaction.pwhtCycleById("postgres-pwht"),
+    testPackage: transaction.testPackageById("postgres-test-package"),
   }));
   assert.equal(persisted.applicationIdentityBootstrap.identityAccounts.length, 2);
   assert.equal(persisted.applicationIdentityBootstrap.externalIdentities.length, 2);
@@ -221,6 +296,17 @@ try {
   assert.equal(persisted.controlsPolicy?.standardChangeApprovalLimit, "1000.00");
   assert.equal(persisted.schedule?.currentRevisionId, persisted.scheduleRevision?.id);
   assert.ok(persisted.scheduleRevision?.dataDate instanceof Date);
+  assert.equal(persisted.weldingProcedure?.number, "PG-WPS-001");
+  assert.ok(persisted.weldingProcedure?.effectiveFrom instanceof Date);
+  assert.ok(persisted.welderQualification?.validTo instanceof Date);
+  assert.equal(persisted.weld?.events[0]?.repairCycle, 1);
+  assert.ok(persisted.weld?.events[0]?.performedAt instanceof Date);
+  assert.equal(persisted.ndeRequest?.repairCycle, persisted.ndeReport?.repairCycle);
+  assert.ok(persisted.ndeRequest?.dueAt instanceof Date);
+  assert.equal(persisted.pwhtCycle?.thermocouples[0]?.withinTolerance, true);
+  assert.ok(persisted.pwhtCycle?.performedAt instanceof Date);
+  assert.equal(persisted.testPackage?.restorationConfirmation, "Restored.");
+  assert.ok(persisted.testPackage?.performedAt instanceof Date);
 
   const claim = {
     interfaceCodes: new Set(["export.worker"]), limit: 1, now,
@@ -310,7 +396,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

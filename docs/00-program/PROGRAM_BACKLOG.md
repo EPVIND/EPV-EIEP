@@ -23,8 +23,9 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
   comparison, printable proposal, and immutable award handoff: locally implemented
   controlled pilot; production migration/configuration/deployment acceptance remains.
 - Project cost/quantity controls, change, procurement/expediting, schedule baselines,
-  updates, look-aheads, and P6/Project exchange.
-- Welding/WPS/PQR/WPQ, NDE, PWHT, pressure/leak testing, and test-package workflows.
+  updates, look-aheads, and P6/Project exchange: locally implemented controlled pilot.
+- Welding/WPS/PQR/WPQ, NDE repair cycles, PWHT, pressure/leak/functional testing, and
+  completion-boundary test-package workflows: locally implemented controlled pilot.
 - Governed Bluebeam collaboration import followed by a separately approved live
   adapter.
 - Structural member and assembly tracking.

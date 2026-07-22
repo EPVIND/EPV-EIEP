@@ -1367,6 +1367,240 @@ export interface ScheduleImportRecord {
   readonly committedBy: string | null;
 }
 
+export type WeldingProcedureType = "pqr" | "wps";
+export interface WeldingProcedureRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly procedureType: WeldingProcedureType;
+  readonly number: string;
+  readonly revision: string;
+  readonly governingDocumentRevisionId: string;
+  readonly supportingPqrIds: readonly string[];
+  readonly processCodes: readonly string[];
+  readonly materialGroupCodes: readonly string[];
+  readonly positionCodes: readonly string[];
+  readonly thicknessMinimum: string;
+  readonly thicknessMaximum: string;
+  readonly diameterMinimum: string;
+  readonly diameterMaximum: string;
+  readonly jointDesignCodes: readonly string[];
+  readonly consumableClassifications: readonly string[];
+  readonly preheatMinimum: string;
+  readonly interpassMaximum: string;
+  readonly effectiveFrom: Date;
+  readonly effectiveTo: Date | null;
+  readonly state: "under_review" | "approved" | "rejected" | "superseded";
+  readonly supersedesRevisionId: string | null;
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface WelderQualificationRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly welderUserId: string;
+  readonly employerOrganizationId: string;
+  readonly qualificationNumber: string;
+  readonly governingDocumentRevisionId: string;
+  readonly processCodes: readonly string[];
+  readonly materialGroupCodes: readonly string[];
+  readonly positionCodes: readonly string[];
+  readonly thicknessMinimum: string;
+  readonly thicknessMaximum: string;
+  readonly diameterMinimum: string;
+  readonly diameterMaximum: string;
+  readonly qualifiedAt: Date;
+  readonly validTo: Date;
+  readonly continuityIntervalDays: number;
+  readonly lastContinuityAt: Date;
+  readonly evidenceFileIds: readonly string[];
+  readonly state: "under_review" | "active" | "rejected" | "expired" | "revoked";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export type WeldExecutionEventType =
+  | "fit_up"
+  | "consumable_issue"
+  | "preheat_observation"
+  | "weld_pass"
+  | "visual_examination"
+  | "repair_excavation"
+  | "repair_weld";
+export interface WeldExecutionEvent {
+  readonly id: string;
+  readonly eventType: WeldExecutionEventType;
+  readonly repairCycle: number;
+  readonly performedAt: Date;
+  readonly performedBy: string;
+  readonly welderQualificationIds: readonly string[];
+  readonly consumableClassification: string | null;
+  readonly observations: Readonly<Record<string, string>>;
+  readonly evidenceFileIds: readonly string[];
+  readonly result: "pass" | "fail" | "observed";
+}
+
+export interface WeldJointRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly systemCode: string;
+  readonly areaCode: string;
+  readonly workPackageCode: string;
+  readonly componentReferences: readonly string[];
+  readonly materialItemIds: readonly string[];
+  readonly drawingRevisionId: string;
+  readonly weldMapLocation: string;
+  readonly wpsRevisionId: string;
+  readonly processCode: string;
+  readonly materialGroupCode: string;
+  readonly positionCode: string;
+  readonly thickness: string;
+  readonly diameter: string;
+  readonly jointDesignCode: string;
+  readonly requiredExaminationMethods: readonly string[];
+  readonly pwhtRequired: boolean;
+  readonly completionBoundaryId: string;
+  readonly repairCycle: number;
+  readonly events: readonly WeldExecutionEvent[];
+  readonly state: "planned" | "fit_up_accepted" | "welded" | "visual_accepted" | "pending_examination" | "repair_required" | "ready_for_release" | "released";
+  readonly releasedAt: Date | null;
+  readonly releasedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface NdeRequestRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly weldId: string;
+  readonly repairCycle: number;
+  readonly methodCode: string;
+  readonly extent: string;
+  readonly techniqueDocumentRevisionId: string;
+  readonly acceptanceReference: string;
+  readonly examinationStage: string;
+  readonly requiredPersonnelQualification: string;
+  readonly dueAt: Date;
+  readonly holdWitnessContext: string;
+  readonly reportRevisionIds: readonly string[];
+  readonly state: "requested" | "submitted" | "accepted" | "rejected" | "superseded";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface NdeReportRevisionRecord {
+  readonly id: string;
+  readonly requestId: string;
+  readonly revision: string;
+  readonly examinerUserId: string;
+  readonly examinerOrganizationId: string;
+  readonly personnelQualificationReference: string;
+  readonly equipmentIds: readonly string[];
+  readonly mediaFileIds: readonly string[];
+  readonly performedAt: Date;
+  readonly conditions: Readonly<Record<string, string>>;
+  readonly indications: readonly string[];
+  readonly result: "accept" | "reject";
+  readonly evidenceFileIds: readonly string[];
+  readonly repairCycle: number;
+  readonly state: "submitted" | "accepted" | "rejected" | "superseded";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface PwhtThermocoupleReading {
+  readonly thermocoupleId: string;
+  readonly location: string;
+  readonly minimumTemperature: string;
+  readonly maximumTemperature: string;
+  readonly withinTolerance: boolean;
+}
+export interface PwhtCycleRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly procedureDocumentRevisionId: string;
+  readonly weldIds: readonly string[];
+  readonly heatingRate: string;
+  readonly coolingRate: string;
+  readonly soakTemperatureMinimum: string;
+  readonly soakTemperatureMaximum: string;
+  readonly soakDurationMinutes: string;
+  readonly thermocouples: readonly PwhtThermocoupleReading[];
+  readonly equipmentIds: readonly string[];
+  readonly chartFileId: string;
+  readonly evidenceFileIds: readonly string[];
+  readonly interruptions: readonly string[];
+  readonly result: "pass" | "fail";
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly performedAt: Date;
+  readonly performedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface TestPackageRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly testType: "pressure" | "leak" | "functional";
+  readonly completionBoundaryId: string;
+  readonly governingDocumentRevisionIds: readonly string[];
+  readonly drawingRevisionIds: readonly string[];
+  readonly testMedium: string;
+  readonly targetPressure: string | null;
+  readonly holdDurationMinutes: string;
+  readonly hazardPermitReferences: readonly string[];
+  readonly prerequisiteReferences: readonly string[];
+  readonly blindValveInstrumentReferences: readonly string[];
+  readonly gaugeEquipmentIds: readonly string[];
+  readonly participantUserIds: readonly string[];
+  readonly witnessUserIds: readonly string[];
+  readonly evidenceFileIds: readonly string[];
+  readonly result: "pass" | "fail" | null;
+  readonly deficiencyNcrIds: readonly string[];
+  readonly restorationConfirmation: string | null;
+  readonly state: "draft" | "ready" | "submitted" | "accepted" | "rejected";
+  readonly performedAt: Date | null;
+  readonly performedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
 export type ProjectStructureType = "system" | "area" | "wbs" | "work_package";
 
 export interface ProjectStructureElementRecord {

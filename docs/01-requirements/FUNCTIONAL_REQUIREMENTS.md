@@ -48,6 +48,17 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-SCH-003** Look-aheads shall derive from the current approved schedule update, expose constraints and required documents/materials/inspections, and keep field claim progress distinct from accepted progress.
 - **FR-SCH-004** P6 and Microsoft Project exchange shall use released exact source files, versioned mappings, preview validation, stable external IDs, idempotent commit, conflict/reconciliation, and independent schedule approval.
 
+## Welding, NDE, PWHT, and testing
+
+- **FR-WLD-001** Welding procedure specifications, PQRs, welder/operator qualifications, continuity, processes, materials, positions, thickness/diameter ranges, consumables, and governing references shall be versioned and effective at the work time without reproducing copyrighted standards.
+- **FR-WLD-002** A weld/joint shall link the exact project, system/area/work package, components/material heat identity, drawing/isometric revision, weld-map location, WPS revision, joint design, required examinations, turnover boundary, and stable weld number.
+- **FR-WLD-003** Fit-up, welding, consumable control, preheat/interpass observations, welder attribution, visual examination, repair/excavation, and final status shall preserve event history and deny release for expired qualification, wrong WPS applicability, material hold, open rejection, or incomplete required examination.
+- **FR-NDE-001** NDE requests shall identify exact weld/component, repair cycle, method, extent, technique/procedure revision, acceptance reference, examination stage, required personnel qualification, due/status, and hold/witness context.
+- **FR-NDE-002** NDE results shall preserve examiner/organization, qualification, equipment/media, calibration/verification, event conditions/time, indications, result, evidence, report revision, independent acceptance, and linked repair cycle.
+- **FR-PWH-001** PWHT requirements and cycles shall preserve governing procedure, component/weld scope, heating/cooling/soak parameters and tolerances, thermocouple layout/readings, equipment/calibration, chart/source evidence, interruptions, result, reviewer, and exact affected welds.
+- **FR-TST-001** Pressure, leak, and functional test packages shall define boundaries, drawings, test medium/pressure/duration, hazards/permits owned by the approved safety process, prerequisites, blinds/valves/instruments, calibrated gauges, participants/witnesses, results, deficiencies, restoration, and acceptance.
+- **FR-TST-002** Welding, NDE, PWHT, and test readiness/release shall be projections of authoritative current records and shall feed deficiencies, completion, progress, and turnover without allowing software to replace qualified inspection, engineering, Authorized Inspector, client, or regulatory judgment.
+
 ## Documents
 
 - **FR-DOC-001** The system shall register a controlled document with number, title, type, discipline, revision, status, source, and project applicability.
