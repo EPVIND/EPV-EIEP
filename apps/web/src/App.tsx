@@ -7,6 +7,7 @@ import { ProjectSetup } from "./ProjectSetup.js";
 import { ProjectControlsWorkspace } from "./ProjectControlsWorkspace.js";
 import { DocumentCollaborationWorkspace } from "./DocumentCollaborationWorkspace.js";
 import { CommandCenterWorkspace } from "./CommandCenterWorkspace.js";
+import { FabricationWorkspace } from "./FabricationWorkspace.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -60,7 +61,7 @@ interface ProjectReadinessStatus {
   readonly blockers: readonly string[];
 }
 
-type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
+type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "fabrication" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
 
 const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "overview", label: "Overview", eyebrow: "Control room" },
@@ -71,6 +72,7 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "welding", label: "Welding", eyebrow: "WPS · WPQ · weld map" },
   { key: "nde", label: "NDE / PWHT", eyebrow: "Examination · heat treatment" },
   { key: "testing", label: "Testing", eyebrow: "Boundaries · safety · results" },
+  { key: "fabrication", label: "Fabrication & Spools", eyebrow: "BOM · traveler · shop release" },
   { key: "bluebeam", label: "Bluebeam", eyebrow: "Markup · reconcile · evidence" },
   { key: "projects", label: "Projects", eyebrow: "Setup & structure" },
   { key: "documents", label: "Documents", eyebrow: "Current for work" },
@@ -81,6 +83,44 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "integrations", label: "Integrations", eyebrow: "Jobs & interchange" },
   { key: "administration", label: "Administration", eyebrow: "Access & governance" },
 ];
+
+function initialModule(): ModuleKey {
+  const requested = window.location.hash.replace(/^#/u, "") as ModuleKey;
+  return modules.some((module) => module.key === requested) ? requested : "overview";
+}
+
+function FabricationCapabilityPreview() {
+  const controlStages = [
+    ["01", "Revision-controlled assembly", "Spool, skid, structural assembly, or custom fabrication definition with immutable lineage."],
+    ["02", "Exact material & weld scope", "BOM, cut list, released drawings, procedures, material items, welds, and inspection points remain connected."],
+    ["03", "Independent engineering review", "Submit, reject, approve, and supersede through qualified authority with creator/reviewer separation."],
+    ["04", "Issued shop traveler", "Sequenced operations declare qualifications, procedures, material scope, weld scope, evidence, and hold points."],
+    ["05", "Controlled execution", "Append-only start, complete, hold, rework, scrap, and independent hold-release events preserve exact history."],
+    ["06", "Independent quality acceptance", "Acceptance is blocked until inspection, weld release, material, NCR, and traveler prerequisites are satisfied."],
+  ] as const;
+  return <section className="fabrication-capability-preview" aria-labelledby="fabrication-capability-heading">
+    <div className="workspace-hero fabrication-preview-hero">
+      <div><p className="section-label">Implemented control surface</p><h2 id="fabrication-capability-heading">Fabrication & spool governance</h2>
+        <p>The governed workflow is live in this build. Apply an authorized review identity and select an assigned project to load its permission-scoped records.</p></div>
+      <div className="preview-status"><span aria-hidden="true" />Available in pilot build</div>
+    </div>
+    <div className="fabrication-preview-metrics" aria-label="Fabrication capability summary">
+      <article><strong>6</strong><span>Controlled stages</span></article>
+      <article><strong>3</strong><span>Independent authorities</span></article>
+      <article><strong>6</strong><span>Execution event types</span></article>
+      <article><strong>100%</strong><span>Linked evidence trail</span></article>
+    </div>
+    <div className="fabrication-control-path">
+      {controlStages.map(([number, title, description]) => <article key={number}>
+        <span>{number}</span><div><h3>{title}</h3><p>{description}</p></div>
+      </article>)}
+    </div>
+    <div className="fabrication-preview-footer">
+      <div><strong>Connected records</strong><p>Drawings · procedures · materials · welds · inspections · NCRs · evidence files · audit events</p></div>
+      <p className="truth-notice"><strong>Data truth:</strong> No production counts or sample work objects are displayed without an authorized project context.</p>
+    </div>
+  </section>;
+}
 
 function storedIdentity(): IdentitySettings {
   return {
@@ -104,7 +144,7 @@ export function App() {
   const [session, setSession] = useState<SessionStatus | null>(null);
   const [projects, setProjects] = useState<readonly ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [activeModule, setActiveModule] = useState<ModuleKey>("overview");
+  const [activeModule, setActiveModule] = useState<ModuleKey>(initialModule);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<readonly SearchResult[]>([]);
   const [working, setWorking] = useState(false);
@@ -196,6 +236,11 @@ export function App() {
 
   useEffect(() => { void refreshWorkspace(); }, [refreshWorkspace]);
   useEffect(() => { setReadinessStatus(null); setActivationConfirmation(""); }, [selectedProjectId]);
+  useEffect(() => {
+    const followHash = () => setActiveModule(initialModule());
+    window.addEventListener("hashchange", followHash);
+    return () => window.removeEventListener("hashchange", followHash);
+  }, []);
 
   const moduleCounts = useMemo(() => ({
     projects: projects.length,
@@ -462,6 +507,18 @@ export function App() {
             setWorking={setWorking}
             notify={notify}
           /> : null}
+
+          {selectedProject && session && activeModule === "fabrication" ? <FabricationWorkspace
+            key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:fabrication`}
+            projectId={selectedProject.id}
+            projectNumber={selectedProject.number}
+            request={request}
+            working={working}
+            setWorking={setWorking}
+            notify={notify}
+          /> : null}
+
+          {activeModule === "fabrication" && (!selectedProject || !session) ? <FabricationCapabilityPreview /> : null}
 
           {selectedProject && (activeModule === "documents" || activeModule === "materials" || activeModule === "quality" || activeModule === "turnover" || activeModule === "reports")
             ? <OperationalChain

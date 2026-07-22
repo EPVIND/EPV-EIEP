@@ -37,13 +37,17 @@ The implementation sequence is dependency driven:
    qualification, deficiency, and turnover identities.
 4. Bluebeam document/markup exchange through a provider adapter.
 5. Unified permission-filtered project command center across the delivered modules.
+6. Governed fabrication/spool revision, traveler, shop execution, hold, and quality acceptance.
+7. Controlled CNC/waterjet/profiling handoff followed by engineering registers,
+   customer/portfolio surfaces, and separately governed enterprise finance/payroll.
 
 Shared cost codes, organizations/vendors, files, documents, requirements, work
 packages, qualifications, audit, jobs, exports, and turnover links are reused rather
-than duplicated. CRM, payroll, billing, general ledger, robotic/machine control,
-automatic engineering acceptance, and unapproved vendor-specific writes remain
-outside the current implementation change even where the vision reserves a future
-integration surface.
+than duplicated. Payroll, billing, general ledger, and CRM are now explicit future
+governed tranches, but are not part of this verified fabrication increment. Robotic/
+machine control, automatic engineering acceptance, real payment execution, tax
+filing, and unapproved vendor-specific writes remain outside the current increment
+and require separately approved boundaries.
 
 ## Repository implementation status
 
@@ -83,6 +87,15 @@ integration surface.
   health, owned/authorized work, separately authorized activity, quick actions, and
   authoritative drill-through. Complete local and hosted gate results are recorded
   after the increment's verification run.
+- Sequence 6 now has a locally verified controlled-pilot implementation for exact
+  fabrication/spool revision lineage, BOM/cut/material/weld scope, independent
+  engineering and shop release, revision-controlled sequenced travelers, qualified
+  append-only execution, independent hold release, and distinct final quality
+  acceptance. The authenticated API, tablet interface, and command-center tasks are
+  covered by local positive/negative tests across 203 active secured `/v1` routes.
+  Dedicated physical fabrication tables/indexes, representative shop volume and
+  device validation, owner dictionaries, and named engineering/fabrication/quality
+  approval remain external production gates.
 
 ## Controlled impact
 

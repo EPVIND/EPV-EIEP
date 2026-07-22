@@ -59,6 +59,15 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-TST-001** Pressure, leak, and functional test packages shall define boundaries, drawings, test medium/pressure/duration, hazards/permits owned by the approved safety process, prerequisites, blinds/valves/instruments, calibrated gauges, participants/witnesses, results, deficiencies, restoration, and acceptance.
 - **FR-TST-002** Welding, NDE, PWHT, and test readiness/release shall be projections of authoritative current records and shall feed deficiencies, completion, progress, and turnover without allowing software to replace qualified inspection, engineering, Authorized Inspector, client, or regulatory judgment.
 
+## Fabrication and spool control
+
+- **FR-FAB-001** Fabrication assembly revisions shall identify spool, structural assembly, equipment skid, or module; retain immutable parent/revision reason and exact manual or model-import source/version/hash; and link project system, area, work package, completion boundary, and released drawings.
+- **FR-FAB-002** A fabrication revision shall retain an exact bill of material and cut list mapped to released material items, piece marks, quantities, units, cut geometry, welds, required inspections, and governing document revisions without breaking heat/lot genealogy.
+- **FR-FAB-003** Submission, engineering approval/rejection, successor creation, traveler creation, and shop release shall enforce current version, state, scope, assurance, required qualification, independent authority, and audit; an executing parent revision shall not be silently superseded.
+- **FR-FAB-004** A revision-controlled shop traveler shall preserve ordered operations, work centers, planned hours, qualifications, exact procedure revision, material/weld scope, instructions, and hold points; release shall fail for unapproved assemblies, unreleased source material/documents, or mismatched weld lineage.
+- **FR-FAB-005** Fabrication execution shall append immutable, sequential start, complete, hold, independent hold-release, rework, and scrap events with exact operation, actor, time, controlled result meaning, quantity/unit, observations, and released evidence; later operations shall not start before required predecessors complete.
+- **FR-FAB-006** Fabrication completion shall remain distinct from independent quality acceptance, which shall fail closed for incomplete travelers, unaccepted required inspections, unreleased welds, open affected NCRs, or violated creator/reviewer/releaser/performer separation of duty.
+
 ## Bluebeam and provider-neutral document collaboration
 
 - **FR-BBM-001** A provider-neutral collaboration adapter shall ingest an approved Bluebeam Studio/export package only after exact project, released document revision, active user/organization, and protected source-file mapping succeeds.
@@ -72,7 +81,7 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-CMD-001** The command center shall derive project metrics and module health on demand from authorized current source records, preserve generation time and exact schedule-revision lineage, and shall not store or imply an independent workflow state.
 - **FR-CMD-002** “My open tasks” shall include only work explicitly owned by the current user or currently authorized under the exact action, organization, project, object, assurance, qualification, and separation-of-duty boundary; source identity/version, due date, overdue state, and priority shall remain visible.
 - **FR-CMD-003** Recent activity shall be a separately authorized, permission-filtered projection of immutable audit events preserving actor, time, action, object identity, module, and prior/new state without exposing protected changed-field content.
-- **FR-CMD-004** Document, material, quality, estimating handoff, controls, procurement, schedule, welding, NDE/PWHT, testing, collaboration, and turnover summaries shall expose explicit numerators/denominators, distinguish absent data from zero percent, and drill through to the authoritative module.
+- **FR-CMD-004** Document, material, quality, estimating handoff, controls, procurement, schedule, welding, NDE/PWHT, testing, fabrication, collaboration, and turnover summaries shall expose explicit numerators/denominators, distinguish absent data from zero percent, and drill through to the authoritative module.
 
 ## Documents
 

@@ -321,6 +321,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/projects/:projectId/fabrication": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "GET /v1/projects/:projectId/notifications": {
     "params": {
       "type": "object",
@@ -1640,6 +1654,257 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "exportJobId"
+      ]
+    }
+  },
+  "POST /v1/fabrication-assemblies/:assemblyId/accept": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assemblyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assemblyId"
+      ]
+    }
+  },
+  "POST /v1/fabrication-assemblies/:assemblyId/release": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedAssemblyVersion": {
+          "type": "number"
+        },
+        "expectedTravelerVersion": {
+          "type": "number"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expectedAssemblyVersion",
+        "expectedTravelerVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assemblyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assemblyId"
+      ]
+    }
+  },
+  "POST /v1/fabrication-assemblies/:assemblyId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assemblyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assemblyId"
+      ]
+    }
+  },
+  "POST /v1/fabrication-assemblies/:assemblyId/submit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assemblyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assemblyId"
+      ]
+    }
+  },
+  "POST /v1/fabrication-assemblies/:assemblyId/travelers": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "operationKey": {
+                "type": "string"
+              },
+              "sequence": {
+                "type": "number"
+              },
+              "operationType": {
+                "type": "string",
+                "enum": [
+                  "inspection",
+                  "fit_up",
+                  "layout",
+                  "cut",
+                  "bevel",
+                  "weld",
+                  "machine",
+                  "surface_prep",
+                  "assembly",
+                  "package"
+                ]
+              },
+              "workCenterCode": {
+                "type": "string"
+              },
+              "requiredQualificationCodes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "procedureDocumentRevisionId": {
+                "type": "string",
+                "nullable": true
+              },
+              "holdPoint": {
+                "type": "boolean"
+              },
+              "materialItemIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "weldIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "plannedHours": {
+                "type": "string"
+              },
+              "instructions": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "holdPoint",
+              "instructions",
+              "materialItemIds",
+              "operationKey",
+              "operationType",
+              "plannedHours",
+              "procedureDocumentRevisionId",
+              "requiredQualificationCodes",
+              "sequence",
+              "weldIds",
+              "workCenterCode"
+            ]
+          }
+        }
+      },
+      "required": [
+        "number",
+        "operations",
+        "revision"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "assemblyId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "assemblyId"
+      ]
+    }
+  },
+  "POST /v1/fabrication-travelers/:travelerId/events": {
+    "body": {},
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "travelerId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "travelerId"
       ]
     }
   },
@@ -3755,6 +4020,198 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "recipientOrganizationId",
         "recordClass",
         "recordIds"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/fabrication-assemblies": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "assemblyType": {
+          "type": "string",
+          "enum": [
+            "pipe_spool",
+            "structural_assembly",
+            "equipment_skid",
+            "module"
+          ]
+        },
+        "parentRevisionId": {
+          "type": "string",
+          "nullable": true
+        },
+        "revisionReason": {
+          "type": "string"
+        },
+        "sourceSystem": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "model_import"
+          ]
+        },
+        "sourceVersion": {
+          "type": "string",
+          "nullable": true
+        },
+        "sourceSha256": {
+          "type": "string",
+          "nullable": true
+        },
+        "systemCode": {
+          "type": "string"
+        },
+        "areaCode": {
+          "type": "string"
+        },
+        "workPackageCode": {
+          "type": "string"
+        },
+        "completionBoundaryId": {
+          "type": "string"
+        },
+        "drawingRevisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "materialItemIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "weldIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requiredInspectionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bomLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "lineKey": {
+                "type": "string"
+              },
+              "materialItemId": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "unitCode": {
+                "type": "string"
+              },
+              "pieceMark": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "description",
+              "lineKey",
+              "materialItemId",
+              "pieceMark",
+              "quantity",
+              "unitCode"
+            ]
+          }
+        },
+        "cutLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "lineKey": {
+                "type": "string"
+              },
+              "bomLineKey": {
+                "type": "string"
+              },
+              "materialItemId": {
+                "type": "string"
+              },
+              "cutLength": {
+                "type": "string"
+              },
+              "lengthUnitCode": {
+                "type": "string"
+              },
+              "cutAngleDegrees": {
+                "type": "string"
+              },
+              "bevelCode": {
+                "type": "string",
+                "nullable": true
+              },
+              "quantity": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "bevelCode",
+              "bomLineKey",
+              "cutAngleDegrees",
+              "cutLength",
+              "lengthUnitCode",
+              "lineKey",
+              "materialItemId",
+              "quantity"
+            ]
+          }
+        }
+      },
+      "required": [
+        "areaCode",
+        "assemblyType",
+        "bomLines",
+        "completionBoundaryId",
+        "cutLines",
+        "drawingRevisionIds",
+        "materialItemIds",
+        "number",
+        "parentRevisionId",
+        "requiredInspectionIds",
+        "revision",
+        "revisionReason",
+        "sourceSha256",
+        "sourceSystem",
+        "sourceVersion",
+        "systemCode",
+        "weldIds",
+        "workPackageCode"
       ]
     },
     "params": {

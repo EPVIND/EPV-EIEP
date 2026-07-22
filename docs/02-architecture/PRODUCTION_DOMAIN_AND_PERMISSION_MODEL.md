@@ -45,6 +45,7 @@ development, but production use requires accepted ADRs and data/security review.
 | `subcontract` | Profiles, credential requirements/evidence, lower tiers, mobilization, deliverables | Parties, projects, work packages, files |
 | `turnover` | Completion boundaries, requirements/status, packages/versions/items/manifests | Projects and exact accepted source revisions/files |
 | `estimate` | Opportunity estimates, immutable revisions/lines, assembly, productivity, and authority-policy catalogs, quote comparisons, proposal artifacts/manifests, award handoffs | Parties, facilities, files, projects, WBS/work packages, cost codes, qualifications, audit |
+| `fabrication` | Assembly/spool revisions, exact BOM/cut lists, shop travelers, ordered operations, append-only execution/hold events, engineering/release/quality decisions | Projects, materials, welds, inspections, NCRs, exact document/file revisions, qualifications, completion boundaries, audit |
 | `collaboration` | Protected provider imports, exact mappings, markups/comments/replies/status evidence, reconciliation, independent evidence review, outbound capability boundary | Projects, released document revisions, files, accounts, organizations, audit |
 | `platform` | File metadata, audit, outbox/inbox/jobs, imports/exports, retention/legal hold, code lists | Stable IDs from all modules |
 
@@ -151,6 +152,28 @@ versions atomically.
 - The record-normalized PostgreSQL adapter persists these types during the pilot;
   normalized physical migrations remain required before production promotion.
 
+### Fabrication and spool control
+
+- `fabrication_assembly_revision` owns immutable assembly identity, revision lineage,
+  source/import fingerprint, project-structure and completion-boundary scope, and the
+  exact released drawing, material, weld, and inspection references.
+- `fabrication_bom_line` and `fabrication_cut_line` retain controlled quantities,
+  units, piece marks, cut geometry, and material-item identity; they never replace
+  material genealogy or receiving authority.
+- `fabrication_traveler` and `fabrication_traveler_operation` preserve the exact
+  revision-controlled shop route, sequence, work center, planned hours,
+  qualifications, procedure revision, material/weld scope, instructions, and hold
+  points independently released to shop.
+- `fabrication_execution_event` is append-only and monotonically sequenced per
+  traveler. It retains event type, controlled result meaning, quantity/unit,
+  observations, evidence, event time, and performer. Current traveler/assembly state
+  is a transactionally updated projection and never erases event history.
+- Engineering approval, shop release, hold release, and final quality acceptance are
+  distinct authorities with exact version/state and separation-of-duty checks.
+- The record-normalized PostgreSQL adapter persists these pilot records; dedicated
+  normalized fabrication tables, indexes, volume tests, and rollback evidence remain
+  required before production promotion.
+
 ### Inspection and PMI
 
 - `inspection_plan` has versioned `inspection_plan_revision` records; assignments
@@ -193,6 +216,8 @@ versions atomically.
 | Estimate revision | `draft -> under_review -> approved/rejected -> superseded`; correction creates a successor | Mutate submitted line; self-approve; approve stale parent; use unapproved assembly/factor |
 | Estimate quote | `normalized -> selected/not_selected`; immutable source file/hash | Select expired/incomplete/cross-scope source or self-select own normalization |
 | Estimate proposal | `draft -> approved -> issued`; rejected draft becomes superseded | Generate from noncurrent/nonapproved revision; self-approve; issue expired/unapproved proposal |
+| Fabrication assembly revision | `draft -> under_review -> approved -> released_to_fabrication -> in_fabrication -> fabrication_complete -> accepted`; governed `rejected/superseded` | Self-review/release/accept; execute from unreleased inputs; supersede executing parent; equate completion with acceptance |
+| Fabrication traveler | `draft -> issued -> in_progress -> on_hold -> in_progress -> complete`; governed `superseded` | Execute out of sequence; skip hold release; use unqualified performer; mutate prior event; release mismatched scope |
 
 Transitions are commands with preconditions and audit, never arbitrary state-field
 updates.
@@ -264,6 +289,12 @@ trusted without server lookup and relationship validation.
 | `estimate.quote.manage/select` | Organization/estimate/quote | Released source file/hash; complete current scope; independent selection and above-limit qualification |
 | `estimate.proposal.generate/approve/issue/download` | Organization/estimate/proposal | Current approved source; commercial authority and separation; above-limit qualification; future validity; artifact-hash verification before download |
 | `estimate.handoff` | Organization/estimate/project | Project-controls authority; same organization; exact reconciliation |
+| `fabrication.plan/submit/read` | Assigned project/assembly | Exact released source scope; current version/state; project structure and completion boundary |
+| `fabrication.approve` | Assigned project/assembly revision | Step-up fabrication engineering authority; independent of creator/submitter; exact lineage and current parent |
+| `fabrication.traveler.create/release` | Assigned project/assembly/traveler | Ordered exact scope; release requires independent fabrication release authority and approved inputs |
+| `fabrication.execute` | Assigned project/traveler/operation | MFA; active issued traveler; required operation qualifications; exact sequence/evidence/result meaning |
+| `fabrication.hold.release` | Assigned project/traveler/operation | Step-up hold authority independent of operation performers; current unresolved hold only |
+| `fabrication.accept` | Assigned project/assembly revision | Step-up fabrication quality authority independent of plan/review/release/execution; all inspection/weld/NCR/traveler prerequisites |
 | `collaboration.import.preview` | Assigned project/import source | MFA; released clean source/hash; exact mappings; creates no collaboration item |
 | `collaboration.import.commit` | Assigned project/import | Step-up collaboration-import authority, independent of previewer; current valid preview; atomic commit |
 | `collaboration.read` | Assigned project/item | Search/export/download reauthorize the underlying project and exact source/document scope |

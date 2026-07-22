@@ -9,6 +9,7 @@ import { EstimatingService } from "./domain/estimating-service.js";
 import { ExecutionDisciplineService } from "./domain/execution-discipline-service.js";
 import { ProjectControlsService } from "./domain/project-controls-service.js";
 import { DocumentCollaborationService } from "./domain/document-collaboration-service.js";
+import { FabricationService } from "./domain/fabrication-service.js";
 import { InMemoryFoundationStore } from "./domain/in-memory-foundation-store.js";
 import { OperationalService } from "./domain/operational-service.js";
 import { PlatformService } from "./domain/platform-service.js";
@@ -36,6 +37,7 @@ const estimating = new EstimatingService(store);
 const executionDisciplines = new ExecutionDisciplineService(store);
 const projectControls = new ProjectControlsService(store);
 const documentCollaboration = new DocumentCollaborationService(store);
+const fabrication = new FabricationService(store);
 const operations = new OperationalService(store);
 const platform = new PlatformService(store);
 const reporting = new ReportingService(store, config.environment.trainingBanner);
@@ -58,6 +60,7 @@ const server = await buildServer({
   executionDisciplines,
   projectControls,
   documentCollaboration,
+  fabrication,
   operations,
   platform,
   reporting,

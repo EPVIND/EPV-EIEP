@@ -1,7 +1,7 @@
 # Enterprise Expansion Requirements
 
 Status: Estimating, project-controls/procurement/scheduling, welding/NDE/PWHT/
-testing, and governed Bluebeam collaboration requirements promoted into the controlled baseline
+testing, fabrication/spools, and governed Bluebeam collaboration requirements promoted into the controlled baseline
 Date: 2026-07-21
 
 These requirements define the active post-MVP expansion. They supplement rather
@@ -114,6 +114,31 @@ recovery, and data requirements.
   authoritative current records and shall feed deficiencies, completion, progress,
   and turnover without allowing software to replace qualified inspection,
   engineering, Authorized Inspector, client, or regulatory judgment.
+
+## Fabrication and spool control
+
+- **FR-FAB-001** Fabrication assembly revisions shall define a pipe spool, structural
+  assembly, equipment skid, or module with immutable parent/reason lineage, exact
+  manual or model-import source/version/hash, and project system, area, work package,
+  completion boundary, and released-drawing scope.
+- **FR-FAB-002** Each revision shall preserve an exact bill of material and cut list
+  linked to released material items, heat/lot genealogy, piece marks, quantities,
+  units, cut geometry, welds, required inspections, and governing revisions.
+- **FR-FAB-003** Submit, engineering review, successor creation, traveler creation,
+  and shop release shall enforce state/version, exact scope, assurance,
+  qualification, independent authority, audit, and no silent supersession of an
+  executing parent.
+- **FR-FAB-004** A revision-controlled traveler shall preserve ordered operations,
+  work centers, planned hours, qualifications, exact procedure revision,
+  material/weld scope, instructions, and hold points; release shall fail closed for
+  unapproved assemblies or unreleased/mismatched drawing, material, or weld inputs.
+- **FR-FAB-005** Execution shall append immutable sequential start, complete, hold,
+  independent hold-release, rework, and scrap events with exact operation, actor,
+  time, controlled result, quantity/unit, observations, and released evidence.
+- **FR-FAB-006** Fabrication completion shall not equal acceptance. Independent
+  quality acceptance shall require a complete traveler, accepted required
+  inspections, released welds, no open affected NCR, and creator/reviewer/releaser/
+  performer separation of duty.
 
 ## Bluebeam document collaboration
 

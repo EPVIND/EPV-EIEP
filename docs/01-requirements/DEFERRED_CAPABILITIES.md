@@ -5,7 +5,7 @@ Deferred means intentionally excluded from MVP acceptance, not rejected from the
 ## Activated expansion
 
 As directed on 2026-07-21, advanced estimating/proposals, project controls,
-procurement, scheduling, welding/NDE/PWHT/testing, and governed Bluebeam
+procurement, scheduling, welding/NDE/PWHT/testing, governed fabrication/spools, and governed Bluebeam
 collaboration are no longer deferred from active repository implementation. They
 remain outside the MVP acceptance claim and are governed by
 `EXPANSION_REQUIREMENTS.md`, `EXPANSION_ACCEPTANCE_CRITERIA.md`, and the controlled

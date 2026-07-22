@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 type CommandCenterModule =
   | "projects" | "estimating" | "controls" | "procurement" | "scheduling" | "documents"
-  | "materials" | "quality" | "welding" | "nde" | "testing" | "bluebeam" | "turnover";
+  | "materials" | "quality" | "welding" | "nde" | "testing" | "fabrication" | "bluebeam" | "turnover";
 
 interface CommandCenterTask {
   readonly id: string;
@@ -77,6 +77,7 @@ interface CommandCenterWorkspaceProps {
 }
 
 const quickActions: readonly { readonly module: CommandCenterModule; readonly label: string; readonly description: string }[] = [
+  { module: "fabrication", label: "Fabrication", description: "Open assemblies, spools, travelers, and holds" },
   { module: "welding", label: "Weld map", description: "Open connected weld execution" },
   { module: "materials", label: "Material lookup", description: "Trace receipt, MTR, PMI, and issue" },
   { module: "quality", label: "Quality action", description: "Open inspections, NCRs, and punch" },

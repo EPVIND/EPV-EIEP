@@ -36,6 +36,9 @@ import type {
   NdeReportRevisionRecord,
   PwhtCycleRecord,
   TestPackageRecord,
+  FabricationAssemblyRevisionRecord,
+  FabricationTravelerRecord,
+  FabricationExecutionEventRecord,
   DocumentCollaborationImportRecord,
   CollaborationItemRecord,
   CollaborationReconciliationRecord,
@@ -242,6 +245,19 @@ export interface FoundationTransaction {
   testPackages(projectId: string): readonly TestPackageRecord[];
   insertTestPackage(testPackage: TestPackageRecord): void;
   updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void;
+  fabricationAssemblyById(id: string): FabricationAssemblyRevisionRecord | null;
+  fabricationAssemblyByRevision(projectId: string, number: string, revision: string): FabricationAssemblyRevisionRecord | null;
+  fabricationAssemblies(projectId: string): readonly FabricationAssemblyRevisionRecord[];
+  insertFabricationAssembly(assembly: FabricationAssemblyRevisionRecord): void;
+  updateFabricationAssembly(assembly: FabricationAssemblyRevisionRecord, expectedVersion: number): void;
+  fabricationTravelerById(id: string): FabricationTravelerRecord | null;
+  fabricationTravelerForAssembly(assemblyRevisionId: string): FabricationTravelerRecord | null;
+  fabricationTravelers(projectId: string): readonly FabricationTravelerRecord[];
+  insertFabricationTraveler(traveler: FabricationTravelerRecord): void;
+  updateFabricationTraveler(traveler: FabricationTravelerRecord, expectedVersion: number): void;
+  fabricationExecutionEventById(id: string): FabricationExecutionEventRecord | null;
+  fabricationExecutionEvents(travelerId: string): readonly FabricationExecutionEventRecord[];
+  insertFabricationExecutionEvent(event: FabricationExecutionEventRecord): void;
   collaborationImportById(id: string): DocumentCollaborationImportRecord | null;
   collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null;
   collaborationImportBySource(

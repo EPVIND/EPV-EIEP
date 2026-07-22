@@ -1,8 +1,8 @@
 # Enterprise Expansion Acceptance Criteria
 
-Status: EX-AC-01 through EX-AC-08 have local controlled-pilot evidence and are
-promoted through AC-11/AC-12/AC-13/AC-14. The command-center subset is promoted
-through AC-15; EX-AC-09 remains proposed for its external and production evidence.
+Status: EX-AC-01 through EX-AC-08 and EX-AC-10 have local controlled-pilot evidence
+and are promoted through AC-11/AC-12/AC-13/AC-14/AC-16. The command-center subset
+is promoted through AC-15; EX-AC-09 remains proposed for its external and production evidence.
 Date: 2026-07-21
 
 ## EX-AC-01 Advanced estimate lifecycle
@@ -94,3 +94,19 @@ Date: 2026-07-21
 - Production authorization still requires named product, estimating/commercial,
   procurement/project-controls, industrial/QC, welding/NDE/PWHT/testing, security,
   records, operations, vendor/integration, and production owners.
+
+## EX-AC-10 Fabrication and spool control
+
+- A representative pipe-spool revision retains exact released drawing/material/weld/
+  inspection/boundary, BOM, cut-list, and source lineage and receives an independent
+  engineering disposition without overwriting its parent.
+- An independently released traveler executes at least two qualified sequenced
+  operations, including an explicit hold point, append-only evidence, performer
+  self-release denial, and separate hold-authority release.
+- Final operation completion changes fabrication state but not quality acceptance;
+  acceptance fails until exact inspection, weld, NCR, traveler, version, and
+  separation-of-duty prerequisites pass.
+- API authentication/scope, command-center task projection, generic normalized
+  PostgreSQL restart, tablet workflow, accessibility, and audit evidence pass
+  locally. Dedicated production tables, owner configuration, representative volume,
+  deployed shop validation, and named approvals remain external.

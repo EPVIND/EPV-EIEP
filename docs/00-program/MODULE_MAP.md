@@ -67,7 +67,8 @@ Only the shared foundation and the first operational vertical slice are implemen
 
 Task-owner direction on 2026-07-21 activates advanced estimating/proposals first,
 then project controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed
-Bluebeam collaboration, followed by a unified project command center. All five increments now have locally verified controlled-pilot
+Bluebeam collaboration, followed by a unified project command center and governed
+fabrication/spool control. All six increments now have locally verified controlled-pilot
 slices; live Bluebeam outbound/write remains explicitly disabled pending its external
 contract, sandbox, identity, tenancy, retention, and authorization gates. These are separate controlled releases under
 `../01-requirements/EXPANSION_REQUIREMENTS.md`; activation does not enlarge the MVP
@@ -76,7 +77,7 @@ acceptance claim or authorize production use.
 The command-center slice now derives permission-filtered module health, owned/currently
 authorized tasks, accepted schedule progress, quick actions, and recent audit activity
 without duplicating authoritative state. The preserved vision also includes the adjacent
-engineering database, fabrication, spool generation, CNC/waterjet/profiling, customer
+engineering database, CNC/waterjet/profiling, customer
 portal, cross-project portfolio analytics, offline, and deployed system-status surfaces. Their sequencing follows the
 dependency order in the product-vision baseline; none is silently represented as
 available before executable acceptance evidence exists.

@@ -104,6 +104,12 @@ import {
 import {
   DocumentCollaborationService,
 } from "./domain/document-collaboration-service.js";
+import {
+  FabricationService,
+  type CreateFabricationAssemblyInput,
+  type CreateFabricationTravelerInput,
+  type RecordFabricationEventInput,
+} from "./domain/fabrication-service.js";
 
 export interface ServerDependencies {
   readonly service: FoundationService;
@@ -116,6 +122,7 @@ export interface ServerDependencies {
   readonly executionDisciplines?: ExecutionDisciplineService;
   readonly projectControls?: ProjectControlsService;
   readonly documentCollaboration?: DocumentCollaborationService;
+  readonly fabrication?: FabricationService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
   readonly environment: string;
@@ -183,6 +190,7 @@ function openApiTag(url: string): string {
     "procurement-requisitions": "procurement", "procurement-bid-packages": "procurement",
     "procurement-commitments": "procurement", schedules: "scheduling", "schedule-revisions": "scheduling",
     "schedule-imports": "scheduling",
+    "fabrication-assemblies": "fabrication", "fabrication-travelers": "fabrication",
     "collaboration-imports": "collaboration", "collaboration-items": "collaboration",
     "collaboration-reconciliations": "collaboration", collaboration: "collaboration",
   };
@@ -288,6 +296,7 @@ interface SubmitTestResultHttp {
   readonly expectedVersion: number; readonly performedAt: string; readonly result: "pass" | "fail";
   readonly evidenceFileIds: readonly string[]; readonly deficiencyNcrIds: readonly string[]; readonly restorationConfirmation: string;
 }
+type RecordFabricationEventHttp = Omit<RecordFabricationEventInput, "performedAt"> & { readonly performedAt: string };
 interface PreviewDocumentCollaborationHttp {
   readonly provider: "bluebeam_export";
   readonly providerProduct: string;
@@ -336,6 +345,7 @@ export async function buildServer(dependencies: ServerDependencies) {
   const executionDisciplines = dependencies.executionDisciplines ?? new ExecutionDisciplineService(dependencies.store);
   const projectControls = dependencies.projectControls ?? new ProjectControlsService(dependencies.store);
   const documentCollaboration = dependencies.documentCollaboration ?? new DocumentCollaborationService(dependencies.store);
+  const fabrication = dependencies.fabrication ?? new FabricationService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
     logger: {
@@ -1515,6 +1525,75 @@ export async function buildServer(dependencies: ServerDependencies) {
       const access = await accessFor(request, dependencies);
       return executionDisciplines.reviewTestResult(access.context, access.assignments, request.params.testPackageId,
         request.body.expectedVersion, request.body.decision, request.body.reason);
+    },
+  );
+
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/fabrication", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return fabrication.snapshot(access.context, access.assignments, request.params.projectId);
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateFabricationAssemblyInput }>(
+    "/v1/projects/:projectId/fabrication-assemblies",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await fabrication.createAssembly(
+        access.context, access.assignments, request.params.projectId, request.body,
+      ));
+    },
+  );
+
+  server.post<{ Params: { assemblyId: string }; Body: { expectedVersion: number } }>(
+    "/v1/fabrication-assemblies/:assemblyId/submit",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return fabrication.submitAssembly(access.context, access.assignments, request.params.assemblyId, request.body.expectedVersion);
+    },
+  );
+
+  server.post<{
+    Params: { assemblyId: string };
+    Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string };
+  }>("/v1/fabrication-assemblies/:assemblyId/review", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return fabrication.reviewAssembly(access.context, access.assignments, request.params.assemblyId,
+      request.body.expectedVersion, request.body.decision, request.body.reason);
+  });
+
+  server.post<{ Params: { assemblyId: string }; Body: CreateFabricationTravelerInput }>(
+    "/v1/fabrication-assemblies/:assemblyId/travelers",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await fabrication.createTraveler(
+        access.context, access.assignments, request.params.assemblyId, request.body,
+      ));
+    },
+  );
+
+  server.post<{
+    Params: { assemblyId: string };
+    Body: { expectedAssemblyVersion: number; expectedTravelerVersion: number; reason: string };
+  }>("/v1/fabrication-assemblies/:assemblyId/release", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return fabrication.releaseAssembly(access.context, access.assignments, request.params.assemblyId,
+      request.body.expectedAssemblyVersion, request.body.expectedTravelerVersion, request.body.reason);
+  });
+
+  server.post<{ Params: { travelerId: string }; Body: RecordFabricationEventHttp }>(
+    "/v1/fabrication-travelers/:travelerId/events",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return fabrication.recordEvent(access.context, access.assignments, request.params.travelerId,
+        { ...request.body, performedAt: new Date(request.body.performedAt) });
+    },
+  );
+
+  server.post<{ Params: { assemblyId: string }; Body: { expectedVersion: number; reason: string } }>(
+    "/v1/fabrication-assemblies/:assemblyId/accept",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return fabrication.acceptAssembly(access.context, access.assignments, request.params.assemblyId,
+        request.body.expectedVersion, request.body.reason);
     },
   );
 

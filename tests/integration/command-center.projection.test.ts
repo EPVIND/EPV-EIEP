@@ -51,6 +51,15 @@ async function commandCenterFixture() {
       ], dependencies: [{ predecessorActivityKey: "complete", successorActivityKey: "late", relationship: "FS", lagDays: "0" }],
       baselineVarianceDays: "1", state: "approved", submittedAt: now, submittedBy: "scheduler", reviewedAt: now,
       reviewedBy: "schedule-authority", reviewReason: "Approved baseline", version: 2, createdAt: now, createdBy: "scheduler" });
+    transaction.insertFabricationAssembly({ id: "command-fabrication", businessScopeOrganizationId: "org-epv", projectId,
+      number: "SP-CMD-001", revision: "0", assemblyType: "pipe_spool", parentRevisionId: null,
+      revisionReason: "Initial command-center fabrication scope.", sourceSystem: "manual", sourceVersion: null, sourceSha256: null,
+      systemCode: "SYS-CMD", areaCode: "AREA-CMD", workPackageCode: "WP-FAB", completionBoundaryId: "boundary-command",
+      drawingRevisionIds: ["command-document-current"], materialItemIds: [], weldIds: [], requiredInspectionIds: [],
+      bomLines: [], cutLines: [], state: "under_review", submittedAt: now, submittedBy: "fabrication-planner",
+      reviewedAt: null, reviewedBy: null, reviewReason: null, releasedAt: null, releasedBy: null,
+      acceptedAt: null, acceptedBy: null, version: 2, createdAt: now, createdBy: "fabrication-planner",
+      updatedAt: now, updatedBy: "fabrication-planner" });
     for (const [id, number, ownerUserId] of [["owned-punch", "P-001", "operator"], ["other-punch", "P-002", "other-user"]] as const) {
       transaction.insertPunch({ id, projectId, number, type: "completion", priority: "high", systemId: null, areaId: null,
         workPackageId: null, assetId: null, description: `${number} controlled completion work`, ownerUserId,
@@ -124,4 +133,15 @@ test("FR-CMD-001-003 / AC-02, AC-15: dashboard counts, tasks, and activity fail 
 
   await assert.rejects(service.commandCenter(context("other-reader", "mfa"),
     [assignment("other-report", "other-reader", ["report.read"], scope("other-project"))], projectId), AuthorizationDeniedError);
+});
+
+test("FR-CMD-002 / FR-FAB-003: command center projects permission-scoped fabrication review work", async () => {
+  const { service } = await commandCenterFixture();
+  const reviewer = context("fabrication-reviewer", "step-up", ["fabrication_engineering_authority"]);
+  const snapshot = await service.commandCenter(reviewer, [assignment("fabrication-command-access", "fabrication-reviewer",
+    ["report.read", "fabrication.read", "fabrication.approve"], scope(projectId))], projectId);
+  assert.equal(snapshot.modules.find((module) => module.module === "fabrication")?.total, 1);
+  assert.equal(snapshot.modules.find((module) => module.module === "fabrication")?.attention, 1);
+  assert.equal(snapshot.tasks.some((task) => task.recordId === "command-fabrication"
+    && task.action === "fabrication.approve"), true);
 });

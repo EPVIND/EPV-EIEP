@@ -468,6 +468,66 @@ test("FR-WLD-001-003, FR-NDE-001-002, FR-PWH-001, FR-TST-001-002 / AC-02-03, EX-
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-FAB-001-006 / AC-02-03, AC-09: fabrication workspace exposes exact spool lineage, traveler sequence, and hold state at tablet size", async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem("eiep.userId", "fabrication-reader");
+    sessionStorage.setItem("eiep.organizationId", "org-epv");
+    sessionStorage.setItem("eiep.assurance", "step-up");
+  });
+  const snapshot = {
+    assemblies: [{ id: "assembly-1", number: "SP-100", revision: "0", assemblyType: "pipe_spool", parentRevisionId: null,
+      revisionReason: "Issued spool definition from released isometric.", sourceSystem: "manual", sourceVersion: null, sourceSha256: null,
+      systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-FAB", completionBoundaryId: "boundary-1",
+      drawingRevisionIds: ["drawing-revision-1"], materialItemIds: ["material-1"], weldIds: ["weld-1"],
+      requiredInspectionIds: ["inspection-1"], bomLines: [{ lineKey: "BOM-001", materialItemId: "material-1",
+        description: "NPS 4 pipe", quantity: "10", unitCode: "FT", pieceMark: "P-100" }],
+      cutLines: [{ lineKey: "CUT-001", bomLineKey: "BOM-001", materialItemId: "material-1", cutLength: "120",
+        lengthUnitCode: "IN", cutAngleDegrees: "0", bevelCode: "BW-V", quantity: "1" }],
+      state: "in_fabrication", submittedBy: "fabrication-planner", reviewedBy: "fabrication-engineer",
+      releasedBy: "fabrication-release", acceptedBy: null, version: 5 }],
+    travelers: [{ id: "traveler-1", assemblyRevisionId: "assembly-1", number: "TRV-SP-100", revision: "0", state: "on_hold",
+      issuedBy: "fabrication-release", version: 6, operations: [
+        { operationKey: "CUT", sequence: 10, operationType: "cut", workCenterCode: "SAW-01",
+          requiredQualificationCodes: ["FABRICATOR"], procedureDocumentRevisionId: "drawing-revision-1", holdPoint: false,
+          materialItemIds: ["material-1"], weldIds: [], plannedHours: "1.5", instructions: "Cut and preserve heat identity." },
+        { operationKey: "FIT", sequence: 20, operationType: "fit_up", workCenterCode: "FIT-BAY-01",
+          requiredQualificationCodes: ["FABRICATOR"], procedureDocumentRevisionId: "drawing-revision-1", holdPoint: true,
+          materialItemIds: ["material-1"], weldIds: ["weld-1"], plannedHours: "2", instructions: "Fit spool and present hold point." },
+      ] }],
+    events: [
+      { id: "event-1", sequence: 1, travelerId: "traveler-1", operationKey: "CUT", eventType: "start", result: "observed", performedBy: "fabricator-1", performedAt: "2026-07-21T16:00:00.000Z" },
+      { id: "event-2", sequence: 2, travelerId: "traveler-1", operationKey: "CUT", eventType: "complete", result: "pass", performedBy: "fabricator-1", performedAt: "2026-07-21T16:30:00.000Z" },
+      { id: "event-3", sequence: 3, travelerId: "traveler-1", operationKey: "FIT", eventType: "start", result: "observed", performedBy: "fabricator-1", performedAt: "2026-07-21T17:00:00.000Z" },
+      { id: "event-4", sequence: 4, travelerId: "traveler-1", operationKey: "FIT", eventType: "hold", result: "observed", performedBy: "fabricator-1", performedAt: "2026-07-21T17:30:00.000Z" },
+    ],
+    releaseReadiness: [{ assemblyRevisionId: "assembly-1", blockers: [] }],
+    acceptanceReadiness: [{ assemblyRevisionId: "assembly-1", blockers: ["traveler_incomplete", "inspection_not_accepted:inspection-1"] }],
+  };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname;
+    const respond = async (json: unknown, status = 200) => route.fulfill({ status, headers: corsHeaders, json });
+    if (path === "/health") return respond({ status: "ok", environment: "test", training: false, productionReady: false, blockers: ["external_pilot_approval"] });
+    if (path === "/v1/session") return respond({ userId: "fabrication-reader", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 9, environment: "test", training: false });
+    if (path === "/v1/projects") return respond([{ id: "project-1", number: "FAB-001", name: "Fabrication controlled pilot",
+      customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/fabrication") return respond(snapshot);
+    return respond({ error: "not_found" }, 404);
+  });
+  await page.setViewportSize({ width: 900, height: 1100 });
+  await page.goto("/#fabrication");
+  await expect(page.getByRole("heading", { name: "Fabrication & spool generation — FAB-001" })).toBeVisible();
+  await expect(page.getByText("SP-100 · revision 0").first()).toBeVisible();
+  await expect(page.getByText("TRV-SP-100 · revision 0")).toBeVisible();
+  await expect(page.getByText("FIT · fit up")).toBeVisible();
+  await expect(page.getByText("FIT-BAY-01 · 2 h · HOLD POINT")).toBeVisible();
+  await expect(page.getByText("hold · observed · fabricator-1")).toBeVisible();
+  await expect(page.getByText(/traveler incomplete · inspection not accepted:inspection-1/u)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Append immutable event" })).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed import fidelity, reconciliation, and disabled outbound boundary at tablet size", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "collaboration-reader");

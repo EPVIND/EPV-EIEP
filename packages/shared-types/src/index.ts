@@ -1601,6 +1601,142 @@ export interface TestPackageRecord {
   readonly updatedBy: string;
 }
 
+export type FabricationAssemblyType = "pipe_spool" | "structural_assembly" | "equipment_skid" | "module";
+export type FabricationAssemblyState =
+  | "draft"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "superseded"
+  | "released_to_fabrication"
+  | "in_fabrication"
+  | "fabrication_complete"
+  | "accepted";
+
+export interface FabricationBomLine {
+  readonly lineKey: string;
+  readonly materialItemId: string;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly pieceMark: string;
+}
+
+export interface FabricationCutLine {
+  readonly lineKey: string;
+  readonly bomLineKey: string;
+  readonly materialItemId: string;
+  readonly cutLength: string;
+  readonly lengthUnitCode: string;
+  readonly cutAngleDegrees: string;
+  readonly bevelCode: string | null;
+  readonly quantity: string;
+}
+
+export interface FabricationAssemblyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly assemblyType: FabricationAssemblyType;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly sourceSystem: "manual" | "model_import";
+  readonly sourceVersion: string | null;
+  readonly sourceSha256: string | null;
+  readonly systemCode: string;
+  readonly areaCode: string;
+  readonly workPackageCode: string;
+  readonly completionBoundaryId: string;
+  readonly drawingRevisionIds: readonly string[];
+  readonly materialItemIds: readonly string[];
+  readonly weldIds: readonly string[];
+  readonly requiredInspectionIds: readonly string[];
+  readonly bomLines: readonly FabricationBomLine[];
+  readonly cutLines: readonly FabricationCutLine[];
+  readonly state: FabricationAssemblyState;
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly releasedAt: Date | null;
+  readonly releasedBy: string | null;
+  readonly acceptedAt: Date | null;
+  readonly acceptedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type FabricationOperationType =
+  | "layout"
+  | "cut"
+  | "bevel"
+  | "fit_up"
+  | "weld"
+  | "machine"
+  | "surface_prep"
+  | "inspection"
+  | "assembly"
+  | "package";
+
+export interface FabricationTravelerOperation {
+  readonly operationKey: string;
+  readonly sequence: number;
+  readonly operationType: FabricationOperationType;
+  readonly workCenterCode: string;
+  readonly requiredQualificationCodes: readonly string[];
+  readonly procedureDocumentRevisionId: string | null;
+  readonly holdPoint: boolean;
+  readonly materialItemIds: readonly string[];
+  readonly weldIds: readonly string[];
+  readonly plannedHours: string;
+  readonly instructions: string;
+}
+
+export interface FabricationTravelerRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly assemblyRevisionId: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly operations: readonly FabricationTravelerOperation[];
+  readonly state: "draft" | "issued" | "in_progress" | "on_hold" | "complete" | "superseded";
+  readonly issuedAt: Date | null;
+  readonly issuedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type FabricationExecutionEventType = "start" | "complete" | "hold" | "release_hold" | "rework" | "scrap";
+
+export interface FabricationExecutionEventRecord {
+  readonly id: string;
+  readonly sequence: number;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly assemblyRevisionId: string;
+  readonly travelerId: string;
+  readonly operationKey: string;
+  readonly eventType: FabricationExecutionEventType;
+  readonly result: "pass" | "fail" | "observed";
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly observations: Readonly<Record<string, string>>;
+  readonly evidenceFileIds: readonly string[];
+  readonly performedAt: Date;
+  readonly performedBy: string;
+  readonly version: 1;
+}
+
 export type CollaborationEvidenceStatus = "open" | "resolved_claim" | "closed_claim" | "unknown";
 export interface CollaborationDocumentMapping {
   readonly providerDocumentId: string;

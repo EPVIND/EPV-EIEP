@@ -244,6 +244,39 @@ try {
       reviewedBy: "postgres-test-reviewer", reviewReason: "Persistent accepted test.", version: 3,
       createdAt: now, createdBy: "postgres-test-manager", updatedAt: now, updatedBy: "postgres-test-reviewer",
     });
+    transaction.insertFabricationAssembly({
+      id: "postgres-fabrication-assembly", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      number: "PG-SP-001", revision: "0", assemblyType: "pipe_spool", parentRevisionId: null,
+      revisionReason: "Persistent fabrication spool revision.", sourceSystem: "model_import", sourceVersion: "MODEL-7",
+      sourceSha256: "e".repeat(64), systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-PIPING",
+      completionBoundaryId: "postgres-boundary", drawingRevisionIds: ["postgres-drawing-revision"],
+      materialItemIds: ["postgres-material"], weldIds: ["postgres-weld"], requiredInspectionIds: [],
+      bomLines: [{ lineKey: "PG-BOM-001", materialItemId: "postgres-material", description: "NPS 2 pipe",
+        quantity: "1", unitCode: "EA", pieceMark: "PG-P-001" }],
+      cutLines: [{ lineKey: "PG-CUT-001", bomLineKey: "PG-BOM-001", materialItemId: "postgres-material",
+        cutLength: "24", lengthUnitCode: "IN", cutAngleDegrees: "0", bevelCode: "BW-V", quantity: "1" }],
+      state: "in_fabrication", submittedAt: now, submittedBy: "postgres-fabrication-planner", reviewedAt: now,
+      reviewedBy: "postgres-fabrication-engineer", reviewReason: "Persistent engineering approval.", releasedAt: now,
+      releasedBy: "postgres-fabrication-release", acceptedAt: null, acceptedBy: null, version: 5,
+      createdAt: now, createdBy: "postgres-fabrication-planner", updatedAt: now, updatedBy: "postgres-fabricator",
+    });
+    transaction.insertFabricationTraveler({
+      id: "postgres-fabrication-traveler", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      assemblyRevisionId: "postgres-fabrication-assembly", number: "PG-TRV-001", revision: "0",
+      operations: [{ operationKey: "CUT", sequence: 10, operationType: "cut", workCenterCode: "PG-SAW",
+        requiredQualificationCodes: ["FABRICATOR"], procedureDocumentRevisionId: "postgres-drawing-revision",
+        holdPoint: true, materialItemIds: ["postgres-material"], weldIds: [], plannedHours: "1.5",
+        instructions: "Cut and preserve material identity." }], state: "on_hold", issuedAt: now,
+      issuedBy: "postgres-fabrication-release", version: 4, createdAt: now,
+      createdBy: "postgres-fabrication-planner", updatedAt: now, updatedBy: "postgres-fabricator",
+    });
+    transaction.insertFabricationExecutionEvent({
+      id: "postgres-fabrication-event", sequence: 2, businessScopeOrganizationId: "org-epv", projectId: project.id,
+      assemblyRevisionId: "postgres-fabrication-assembly", travelerId: "postgres-fabrication-traveler",
+      operationKey: "CUT", eventType: "hold", result: "observed", quantity: "1", unitCode: "EA",
+      observations: { REASON: "DIMENSIONAL_HOLD" }, evidenceFileIds: ["postgres-fabrication-evidence"],
+      performedAt: now, performedBy: "postgres-fabricator", version: 1,
+    });
     transaction.insertCollaborationImport({
       id: "postgres-collaboration-import", businessScopeOrganizationId: "org-epv", projectId: project.id,
       provider: "bluebeam_export", providerProduct: "Bluebeam Revu Studio export", providerProjectId: "PG-BB-PROJECT",
@@ -305,6 +338,9 @@ try {
     ndeReport: transaction.ndeReportById("postgres-nde-report"),
     pwhtCycle: transaction.pwhtCycleById("postgres-pwht"),
     testPackage: transaction.testPackageById("postgres-test-package"),
+    fabricationAssembly: transaction.fabricationAssemblyById("postgres-fabrication-assembly"),
+    fabricationTraveler: transaction.fabricationTravelerForAssembly("postgres-fabrication-assembly"),
+    fabricationEvents: transaction.fabricationExecutionEvents("postgres-fabrication-traveler"),
     collaborationImport: transaction.collaborationImportById("postgres-collaboration-import"),
     collaborationItem: transaction.collaborationItemById("postgres-collaboration-item"),
     collaborationReconciliation: transaction.collaborationReconciliationById("postgres-collaboration-reconciliation"),
@@ -344,6 +380,12 @@ try {
   assert.ok(persisted.pwhtCycle?.performedAt instanceof Date);
   assert.equal(persisted.testPackage?.restorationConfirmation, "Restored.");
   assert.ok(persisted.testPackage?.performedAt instanceof Date);
+  assert.equal(persisted.fabricationAssembly?.sourceVersion, "MODEL-7");
+  assert.ok(persisted.fabricationAssembly?.releasedAt instanceof Date);
+  assert.equal(persisted.fabricationTraveler?.operations[0]?.holdPoint, true);
+  assert.ok(persisted.fabricationTraveler?.issuedAt instanceof Date);
+  assert.equal(persisted.fabricationEvents[0]?.eventType, "hold");
+  assert.ok(persisted.fabricationEvents[0]?.performedAt instanceof Date);
   assert.equal(persisted.collaborationImport?.providerSessionId, "PG-BB-SESSION");
   assert.ok(persisted.collaborationImport?.committedAt instanceof Date);
   assert.equal(persisted.collaborationItem?.documentRevisionId, "postgres-drawing-revision");
@@ -439,7 +481,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/fabrication/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

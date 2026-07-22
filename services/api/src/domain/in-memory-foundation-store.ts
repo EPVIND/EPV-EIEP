@@ -37,6 +37,9 @@ import type {
   NdeReportRevisionRecord,
   PwhtCycleRecord,
   TestPackageRecord,
+  FabricationAssemblyRevisionRecord,
+  FabricationTravelerRecord,
+  FabricationExecutionEventRecord,
   DocumentCollaborationImportRecord,
   CollaborationItemRecord,
   CollaborationReconciliationRecord,
@@ -162,6 +165,9 @@ export interface MemoryState {
   ndeReports: Map<string, NdeReportRevisionRecord>;
   pwhtCycles: Map<string, PwhtCycleRecord>;
   testPackages: Map<string, TestPackageRecord>;
+  fabricationAssemblies: Map<string, FabricationAssemblyRevisionRecord>;
+  fabricationTravelers: Map<string, FabricationTravelerRecord>;
+  fabricationExecutionEvents: Map<string, FabricationExecutionEventRecord>;
   collaborationImports: Map<string, DocumentCollaborationImportRecord>;
   collaborationItems: Map<string, CollaborationItemRecord>;
   collaborationReconciliations: Map<string, CollaborationReconciliationRecord>;
@@ -970,6 +976,58 @@ class MemoryTransaction implements FoundationTransaction {
   }
   public updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void {
     const current = this.state.testPackages.get(testPackage.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.testPackages.set(testPackage.id, cloneValue(testPackage));
+  }
+
+  public fabricationAssemblyById(id: string): FabricationAssemblyRevisionRecord | null {
+    const record = this.state.fabricationAssemblies.get(id); return record ? cloneValue(record) : null;
+  }
+  public fabricationAssemblyByRevision(projectId: string, number: string, revision: string): FabricationAssemblyRevisionRecord | null {
+    const record = [...this.state.fabricationAssemblies.values()].find(
+      (item) => item.projectId === projectId && item.number === number && item.revision === revision,
+    ); return record ? cloneValue(record) : null;
+  }
+  public fabricationAssemblies(projectId: string): readonly FabricationAssemblyRevisionRecord[] {
+    return cloneValue([...this.state.fabricationAssemblies.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertFabricationAssembly(assembly: FabricationAssemblyRevisionRecord): void {
+    if (this.state.fabricationAssemblies.has(assembly.id)
+      || this.fabricationAssemblyByRevision(assembly.projectId, assembly.number, assembly.revision)) throw new ConflictError();
+    this.state.fabricationAssemblies.set(assembly.id, cloneValue(assembly));
+  }
+  public updateFabricationAssembly(assembly: FabricationAssemblyRevisionRecord, expectedVersion: number): void {
+    const current = this.state.fabricationAssemblies.get(assembly.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.fabricationAssemblies.set(assembly.id, cloneValue(assembly));
+  }
+  public fabricationTravelerById(id: string): FabricationTravelerRecord | null {
+    const record = this.state.fabricationTravelers.get(id); return record ? cloneValue(record) : null;
+  }
+  public fabricationTravelerForAssembly(assemblyRevisionId: string): FabricationTravelerRecord | null {
+    const record = [...this.state.fabricationTravelers.values()].find((item) => item.assemblyRevisionId === assemblyRevisionId && item.state !== "superseded");
+    return record ? cloneValue(record) : null;
+  }
+  public fabricationTravelers(projectId: string): readonly FabricationTravelerRecord[] {
+    return cloneValue([...this.state.fabricationTravelers.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertFabricationTraveler(traveler: FabricationTravelerRecord): void {
+    if (this.state.fabricationTravelers.has(traveler.id) || this.fabricationTravelerForAssembly(traveler.assemblyRevisionId)) throw new ConflictError();
+    this.state.fabricationTravelers.set(traveler.id, cloneValue(traveler));
+  }
+  public updateFabricationTraveler(traveler: FabricationTravelerRecord, expectedVersion: number): void {
+    const current = this.state.fabricationTravelers.get(traveler.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.fabricationTravelers.set(traveler.id, cloneValue(traveler));
+  }
+  public fabricationExecutionEventById(id: string): FabricationExecutionEventRecord | null {
+    const record = this.state.fabricationExecutionEvents.get(id); return record ? cloneValue(record) : null;
+  }
+  public fabricationExecutionEvents(travelerId: string): readonly FabricationExecutionEventRecord[] {
+    return cloneValue([...this.state.fabricationExecutionEvents.values()].filter((item) => item.travelerId === travelerId)
+      .sort((left, right) => left.sequence - right.sequence));
+  }
+  public insertFabricationExecutionEvent(event: FabricationExecutionEventRecord): void {
+    if (this.state.fabricationExecutionEvents.has(event.id)) throw new ConflictError();
+    this.state.fabricationExecutionEvents.set(event.id, cloneValue(event));
   }
 
   public collaborationImportById(id: string): DocumentCollaborationImportRecord | null {
@@ -2097,6 +2155,9 @@ export function createEmptyMemoryState(): MemoryState {
     ndeReports: new Map(),
     pwhtCycles: new Map(),
     testPackages: new Map(),
+    fabricationAssemblies: new Map(),
+    fabricationTravelers: new Map(),
+    fabricationExecutionEvents: new Map(),
     collaborationImports: new Map(),
     collaborationItems: new Map(),
     collaborationReconciliations: new Map(),

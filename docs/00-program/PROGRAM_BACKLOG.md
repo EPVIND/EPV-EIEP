@@ -34,12 +34,15 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
   progress, owned/currently authorized task queue, safe recent activity, filters,
   quick actions, and source/module drill-through: locally implemented controlled
   pilot. Cross-project portfolio thresholds and deployed service health remain expansion.
+- Fabrication/spool revisions, exact BOM/cut/material/weld/inspection scope,
+  independently released sequenced travelers, append-only shop execution and hold
+  events, and independent quality acceptance: locally implemented controlled pilot.
 - Structural member and assembly tracking.
 - Civil, earthwork, concrete placement, testing, and foundation release.
 - Work packages, travelers, daily reports, quantities, look-aheads, and progress.
 - Focused subcontractor portal, mobilization, and deliverables.
 - Pressure/leak testing, coating, alignment, grouting, and commissioning packages.
-- Dashboard-derived engineering register, fabrication, spool, cross-project portfolio,
+- Dashboard-derived engineering register, cross-project portfolio,
   and customer/reports projections needed by the controlled product-vision baseline.
 
 ## Later - remaining enterprise expansion

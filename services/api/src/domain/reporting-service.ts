@@ -75,6 +75,7 @@ export type CommandCenterModule =
   | "welding"
   | "nde"
   | "testing"
+  | "fabrication"
   | "bluebeam"
   | "turnover";
 
@@ -243,6 +244,7 @@ function ageDays(now: Date, createdAt: Date): number {
 
 function moduleForObjectType(objectType: string): CommandCenterModule {
   const value = objectType.toLowerCase();
+  if (value.includes("fabrication") || value.includes("traveler")) return "fabrication";
   if (value.includes("estimate") || value.includes("proposal")) return "estimating";
   if (value.includes("procurement") || value.includes("requisition") || value.includes("bid_package") || value.includes("commitment")) return "procurement";
   if (value.includes("schedule")) return "scheduling";
@@ -616,6 +618,55 @@ export class ReportingService {
         state: testPackage.state, dueAt: testPackage.performedAt, action: "testing.approve", version: testPackage.version, preferredPriority: "high",
         authorized: permitted("testing.approve", testPackage.id, ["testing_acceptance_authority"], [testPackage.performedBy ?? testPackage.createdBy], "step-up") });
 
+      const fabricationAssemblies = transaction.fabricationAssemblies(project.id)
+        .filter((record) => permitted("fabrication.read", record.id));
+      const fabricationTravelers = transaction.fabricationTravelers(project.id)
+        .filter((traveler) => fabricationAssemblies.some((assembly) => assembly.id === traveler.assemblyRevisionId));
+      for (const assembly of fabricationAssemblies.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "fabrication", recordType: "fabrication_assembly_revision", recordId: assembly.id,
+        title: `Review fabrication ${assembly.number} revision ${assembly.revision}`, state: assembly.state, dueAt: null,
+        action: "fabrication.approve", version: assembly.version, preferredPriority: "high",
+        authorized: permitted("fabrication.approve", assembly.id, ["fabrication_engineering_authority"],
+          [assembly.createdBy, assembly.submittedBy ?? assembly.createdBy], "step-up") });
+      for (const assembly of fabricationAssemblies.filter((candidate) => candidate.state === "approved")) {
+        const traveler = fabricationTravelers.find((candidate) => candidate.assemblyRevisionId === assembly.id);
+        addTask({ module: "fabrication", recordType: traveler ? "fabrication_traveler" : "fabrication_assembly_revision",
+          recordId: traveler?.id ?? assembly.id,
+          title: traveler ? `Release traveler ${traveler.number} revision ${traveler.revision}` : `Create shop traveler for ${assembly.number}`,
+          state: traveler?.state ?? assembly.state, dueAt: null,
+          action: traveler ? "fabrication.release" : "fabrication.traveler.create", version: traveler?.version ?? assembly.version,
+          preferredPriority: "high",
+          authorized: traveler
+            ? permitted("fabrication.release", assembly.id, ["fabrication_release_authority"],
+              [assembly.createdBy, assembly.submittedBy ?? assembly.createdBy, assembly.reviewedBy ?? "", traveler.createdBy], "step-up")
+            : permitted("fabrication.traveler.create", assembly.id, [], [], "mfa") });
+      }
+      for (const traveler of fabricationTravelers.filter((candidate) => candidate.state === "on_hold")) {
+        const assembly = fabricationAssemblies.find((candidate) => candidate.id === traveler.assemblyRevisionId);
+        const events = transaction.fabricationExecutionEvents(traveler.id);
+        const heldOperation = traveler.operations.find((operation) => {
+          const lastControlEvent = events.filter((event) => event.operationKey === operation.operationKey
+            && ["hold", "release_hold"].includes(event.eventType)).at(-1);
+          return lastControlEvent?.eventType === "hold";
+        });
+        if (!assembly || !heldOperation) continue;
+        const operationActors = events.filter((event) => event.operationKey === heldOperation.operationKey).map((event) => event.performedBy);
+        addTask({ module: "fabrication", recordType: "fabrication_traveler_operation",
+          recordId: `${traveler.id}:${heldOperation.operationKey}`, title: `Release hold on ${traveler.number} · ${heldOperation.operationKey}`,
+          state: traveler.state, dueAt: null, action: "fabrication.hold.release", version: traveler.version, preferredPriority: "critical",
+          authorized: permitted("fabrication.hold.release", traveler.id, ["fabrication_hold_authority"], operationActors, "step-up") });
+      }
+      for (const assembly of fabricationAssemblies.filter((candidate) => candidate.state === "fabrication_complete")) {
+        const traveler = fabricationTravelers.find((candidate) => candidate.assemblyRevisionId === assembly.id);
+        const eventPerformers = traveler ? transaction.fabricationExecutionEvents(traveler.id).map((event) => event.performedBy) : [];
+        addTask({ module: "fabrication", recordType: "fabrication_assembly_revision", recordId: assembly.id,
+          title: `Accept completed fabrication ${assembly.number} revision ${assembly.revision}`, state: assembly.state, dueAt: null,
+          action: "fabrication.accept", version: assembly.version, preferredPriority: "high",
+          authorized: permitted("fabrication.accept", assembly.id, ["fabrication_quality_authority"],
+            [assembly.createdBy, assembly.submittedBy ?? "", assembly.reviewedBy ?? "", assembly.releasedBy ?? "",
+              traveler?.createdBy ?? "", ...eventPerformers], "step-up") });
+      }
+
       const collaborationImports = transaction.collaborationImports(project.id);
       const collaborationItems = transaction.collaborationItems(project.id).filter((record) => permitted("collaboration.read", record.id));
       const reconciliationIssues = transaction.collaborationReconciliations(project.id)
@@ -692,6 +743,10 @@ export class ReportingService {
         ndeRequests.filter((record) => ["requested", "rejected"].includes(record.state)).length + pwhtCycles.filter((record) => record.state === "rejected").length);
       summary("testing", "Testing", testPackages.length, testPackages.filter((record) => record.state === "accepted").length,
         testPackages.filter((record) => ["draft", "rejected"].includes(record.state)).length);
+      summary("fabrication", "Fabrication & spools", fabricationAssemblies.length,
+        fabricationAssemblies.filter((record) => ["accepted", "superseded"].includes(record.state)).length,
+        fabricationAssemblies.filter((record) => ["under_review", "rejected", "fabrication_complete"].includes(record.state)
+          || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length);
       summary("bluebeam", "Document collaboration", collaborationItems.length + reconciliationIssues.length,
         collaborationItems.filter((record) => ["accepted", "rejected"].includes(record.state)).length
           + reconciliationIssues.filter((record) => ["resolved", "waived"].includes(record.state)).length,
@@ -719,7 +774,9 @@ export class ReportingService {
           executionAccepted,
           executionTotal,
           openExceptions: openNcrs + openPunches + commitments.filter((record) => record.state === "exception").length
-            + reconciliationIssues.filter((record) => record.state === "open").length,
+            + reconciliationIssues.filter((record) => record.state === "open").length
+            + fabricationAssemblies.filter((record) => record.state === "rejected"
+              || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length,
           scheduleProgressPercent,
           openTasks: allOrderedTasks.length,
         },

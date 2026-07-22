@@ -99,6 +99,15 @@
 - Recent activity requires separate audit-read authority and exposes only safe actor/time/action/object/prior/new-state fields with authoritative module drill-through.
 - The tablet command center supports module and priority filters, module-health drill-through, quick actions, 44-pixel controls, and no serious or critical automated accessibility findings.
 
+## AC-16 Fabrication and spool control
+
+- A pipe-spool revision preserves immutable parent/reason and exact released drawing, material, weld, inspection, project-structure, completion-boundary, BOM, and cut-list lineage; a model import additionally preserves version and SHA-256.
+- Independent engineering approval and shop release enforce exact version/state, required authority, scope, assurance, and separation from creators, submitters, reviewers, and traveler authors; an executing parent cannot be silently superseded.
+- A released traveler preserves ordered operations, qualifications, exact procedure revision, material/weld scope, hours, instructions, and hold points. Qualified execution appends immutable, sequential actor/time/result/quantity/evidence events and blocks out-of-order work.
+- A hold blocks completion until a separate step-up hold authority resolves the current hold; the operation's performer cannot self-release it.
+- Fabrication completion remains distinct from quality acceptance. Acceptance is denied for incomplete traveler, missing/rejected inspection, unreleased weld, open affected NCR, stale version, or quality-authority separation-of-duty failure.
+- The authenticated tablet workspace and command center expose exact source state and currently authorized tasks with no serious or critical automated accessibility findings.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.

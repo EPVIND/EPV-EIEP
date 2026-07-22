@@ -173,7 +173,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-99 unit/integration/security/acceptance tests, 103-requirement/227-path traceability,
+102 unit/integration/security/acceptance tests, 109-requirement/240-path traceability,
 and compiled runtime process smoke tests. `pnpm run build` builds the two web
 applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
@@ -186,7 +186,7 @@ That PostgreSQL path also creates, exactly retries, restarts, and verifies the g
 first-application-authority bootstrap; the production operator contract is in
 `docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
 
-`pnpm run test:browser` runs ten internal/portal workflow cases in a Chromium tablet
+`pnpm run test:browser` runs eleven internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 
 Local review servers:
