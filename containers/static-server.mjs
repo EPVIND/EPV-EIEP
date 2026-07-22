@@ -1,6 +1,7 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
-import { createServer } from "node:http";
+import { createServer, request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
 import { extname, resolve, sep } from "node:path";
 
 const allowedEnvironments = new Set(["development", "test", "training", "production"]);
@@ -16,6 +17,18 @@ if (apiBaseUrl.origin !== rawApiBaseUrl || apiBaseUrl.username || apiBaseUrl.pas
 }
 if (environment !== "development" && apiBaseUrl.protocol !== "https:") {
   throw new Error("Nondevelopment API_BASE_URL requires HTTPS.");
+}
+
+const rawApiUpstreamUrl = process.env.API_UPSTREAM_URL?.trim();
+const apiUpstreamUrl = rawApiUpstreamUrl ? new URL(rawApiUpstreamUrl) : null;
+if (apiUpstreamUrl && (apiUpstreamUrl.origin !== rawApiUpstreamUrl
+  || apiUpstreamUrl.username || apiUpstreamUrl.password || apiUpstreamUrl.pathname !== "/"
+  || apiUpstreamUrl.search || apiUpstreamUrl.hash
+  || (apiUpstreamUrl.protocol !== "http:" && apiUpstreamUrl.protocol !== "https:"))) {
+  throw new Error("API_UPSTREAM_URL must be an exact HTTP(S) origin without credentials, path, query, or fragment.");
+}
+if (apiUpstreamUrl && environment !== "development" && apiUpstreamUrl.protocol !== "https:") {
+  throw new Error("Nondevelopment API_UPSTREAM_URL requires HTTPS.");
 }
 
 const host = process.env.HOST?.trim() || "0.0.0.0";
@@ -42,6 +55,41 @@ function commonHeaders(response) {
   response.setHeader("content-security-policy", `default-src 'none'; base-uri 'none'; connect-src ${apiBaseUrl.origin}; font-src 'self'; frame-ancestors 'none'; img-src 'self' data:; script-src 'self'; style-src 'self'`);
 }
 
+const hopByHopHeaders = new Set([
+  "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+  "te", "trailer", "transfer-encoding", "upgrade",
+]);
+
+function apiPath(pathname) {
+  return pathname === "/health" || pathname === "/v1" || pathname.startsWith("/v1/");
+}
+
+function proxyApi(request, response, requestUrl) {
+  const target = new URL(`${requestUrl.pathname}${requestUrl.search}`, apiUpstreamUrl);
+  const headers = Object.fromEntries(Object.entries(request.headers)
+    .filter(([name, value]) => value !== undefined && name !== "host" && !hopByHopHeaders.has(name.toLowerCase())));
+  headers["x-forwarded-host"] = request.headers.host ?? "";
+  headers["x-forwarded-proto"] = request.headers["x-forwarded-proto"] ?? "https";
+
+  const send = target.protocol === "https:" ? httpsRequest : httpRequest;
+  const upstream = send(target, { method: request.method, headers }, (upstreamResponse) => {
+    const responseHeaders = Object.fromEntries(Object.entries(upstreamResponse.headers)
+      .filter(([name, value]) => value !== undefined && !hopByHopHeaders.has(name.toLowerCase())));
+    response.writeHead(upstreamResponse.statusCode ?? 502, responseHeaders);
+    upstreamResponse.pipe(response);
+  });
+  upstream.setTimeout(120_000, () => upstream.destroy(new Error("API upstream timed out.")));
+  upstream.on("error", () => {
+    if (response.headersSent) response.destroy();
+    else {
+      response.writeHead(502, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      response.end(JSON.stringify({ error: "api_upstream_unavailable" }));
+    }
+  });
+  request.on("aborted", () => upstream.destroy());
+  request.pipe(upstream);
+}
+
 async function existingFile(pathname) {
   let decoded;
   try {
@@ -61,13 +109,18 @@ async function existingFile(pathname) {
 }
 
 const server = createServer(async (request, response) => {
+  const requestUrl = new URL(request.url ?? "/", "http://runtime.invalid");
+  if (apiUpstreamUrl && apiPath(requestUrl.pathname)) {
+    proxyApi(request, response, requestUrl);
+    return;
+  }
+
   commonHeaders(response);
   if (request.method !== "GET" && request.method !== "HEAD") {
     response.writeHead(405, { allow: "GET, HEAD", "cache-control": "no-store" });
     response.end();
     return;
   }
-  const requestUrl = new URL(request.url ?? "/", "http://runtime.invalid");
   if (requestUrl.pathname === "/healthz") {
     const body = JSON.stringify({ status: "ok", environment });
     response.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });

@@ -40,10 +40,11 @@ for (const excluded of [".git", ".env", "source-intake", "training-demo", "tests
 if (!workspace.includes("injectWorkspacePackages: true") || !workspace.includes("syncInjectedDepsAfterScripts:")) {
   throw new Error("Portable pnpm workspace deployment settings are missing.");
 }
-if (!staticServer.includes("API_BASE_URL") || !staticServer.includes("/runtime-config.js")
+if (!staticServer.includes("API_BASE_URL") || !staticServer.includes("API_UPSTREAM_URL")
+  || !staticServer.includes("/runtime-config.js")
   || !staticServer.includes("content-security-policy") || !staticServer.includes("/healthz")
   || !staticServer.includes('decoded.endsWith(".map")')) {
-  throw new Error("Browser containers require validated runtime API configuration, health, and security headers.");
+  throw new Error("Browser containers require validated runtime API/proxy configuration, health, and security headers.");
 }
 if (webVite.includes("sourcemap: true") || portalVite.includes("sourcemap: true")) {
   throw new Error("Production browser bundles must not publish source maps.");
