@@ -335,6 +335,20 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/projects/:projectId/engineering-registers": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "GET /v1/projects/:projectId/execution-disciplines": {
     "params": {
       "type": "object",
@@ -1284,6 +1298,70 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       },
       "required": [
         "documentId"
+      ]
+    }
+  },
+  "POST /v1/engineering-register-items/:itemId/review": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "reject",
+            "approve"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "decision",
+        "expectedVersion",
+        "reason"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "itemId"
+      ]
+    }
+  },
+  "POST /v1/engineering-register-items/:itemId/submit": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expectedVersion": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "expectedVersion"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "itemId"
       ]
     }
   },
@@ -4627,6 +4705,122 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         "number",
         "title",
         "type"
+      ]
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "POST /v1/projects/:projectId/engineering-register-items": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "registerType": {
+          "type": "string",
+          "enum": [
+            "system",
+            "equipment",
+            "requirement",
+            "deliverable",
+            "line",
+            "instrument",
+            "component",
+            "tag"
+          ]
+        },
+        "tag": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        },
+        "parentRevisionId": {
+          "type": "string",
+          "nullable": true
+        },
+        "revisionReason": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "disciplineCode": {
+          "type": "string"
+        },
+        "systemCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "areaCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "workPackageCode": {
+          "type": "string",
+          "nullable": true
+        },
+        "responsibleOrganizationId": {
+          "type": "string"
+        },
+        "documentRevisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relatedItemRevisionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "plannedIssueDate": {
+          "type": "string",
+          "nullable": true
+        },
+        "forecastIssueDate": {
+          "type": "string",
+          "nullable": true
+        },
+        "actualIssueDate": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "required": [
+        "actualIssueDate",
+        "areaCode",
+        "attributes",
+        "disciplineCode",
+        "documentRevisionIds",
+        "forecastIssueDate",
+        "parentRevisionId",
+        "plannedIssueDate",
+        "registerType",
+        "relatedItemRevisionIds",
+        "responsibleOrganizationId",
+        "revision",
+        "revisionReason",
+        "systemCode",
+        "tag",
+        "title",
+        "workPackageCode"
       ]
     },
     "params": {

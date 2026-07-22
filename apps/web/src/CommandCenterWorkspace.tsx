@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 type CommandCenterModule =
   | "projects" | "estimating" | "controls" | "procurement" | "scheduling" | "documents"
-  | "materials" | "quality" | "welding" | "nde" | "testing" | "fabrication" | "cnc" | "bluebeam" | "turnover";
+  | "materials" | "quality" | "welding" | "nde" | "testing" | "fabrication" | "cnc" | "engineering" | "bluebeam" | "turnover";
 
 interface CommandCenterTask {
   readonly id: string;
@@ -79,6 +79,7 @@ interface CommandCenterWorkspaceProps {
 const quickActions: readonly { readonly module: CommandCenterModule; readonly label: string; readonly description: string }[] = [
   { module: "fabrication", label: "Fabrication", description: "Open assemblies, spools, travelers, and holds" },
   { module: "cnc", label: "CNC / waterjet", description: "Open profiles, validated jobs, releases, and reconciliation" },
+  { module: "engineering", label: "Engineering", description: "Open requirements, deliverables, systems, tags, and review findings" },
   { module: "welding", label: "Weld map", description: "Open connected weld execution" },
   { module: "materials", label: "Material lookup", description: "Trace receipt, MTR, PMI, and issue" },
   { module: "quality", label: "Quality action", description: "Open inspections, NCRs, and punch" },

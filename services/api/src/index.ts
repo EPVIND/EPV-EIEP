@@ -11,6 +11,7 @@ export * from "./domain/project-controls-service.js";
 export * from "./domain/document-collaboration-service.js";
 export * from "./domain/fabrication-service.js";
 export * from "./domain/cnc-service.js";
+export * from "./domain/engineering-register-service.js";
 export * from "./domain/authoritative-project-readiness.js";
 export * from "./domain/azure-postgres-authentication.js";
 export * from "./domain/foundation-service.js";

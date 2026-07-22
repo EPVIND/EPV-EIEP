@@ -128,8 +128,19 @@ Implemented review surfaces include:
   metrics, exact-revision schedule progress, module health, authorized or explicitly
   owned work, recent audit activity, quick actions, and authoritative drill-through
   without creating a competing workflow-state aggregate;
+- governed fabrication/spool revisions with exact BOM/cut/material/weld/inspection
+  scope, independent engineering/shop release, revision-controlled travelers,
+  append-only execution/hold events, and distinct independent quality acceptance;
+- governed CNC/waterjet/profiling handoff with approved machine profiles, exact
+  source/fabrication/material lineage, deterministic machine-neutral packages,
+  independent technical approval/release, exact-hash downloads, execution genealogy,
+  and reconciliation while direct machine control remains prohibited;
+- a multidisciplinary engineering-register workspace and service for revisioned
+  requirements, deliverables, systems, equipment, lines, instruments, components,
+  and tags with exact controlled relationships, deterministic validation/hash,
+  independent approval, immutable supersession, audit, persistence, and command-center projection;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 195 active `/v1` routes and 155 request bodies, drift verification, bearer security,
+  schemas for 217 active `/v1` routes and 173 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -173,7 +184,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-105 unit/integration/security/acceptance tests, 115-requirement/262-path traceability,
+107 unit/integration/security/acceptance tests, 121-requirement/278-path traceability,
 and compiled runtime process smoke tests. `pnpm run build` builds the two web
 applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
@@ -186,7 +197,7 @@ That PostgreSQL path also creates, exactly retries, restarts, and verifies the g
 first-application-authority bootstrap; the production operator contract is in
 `docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
 
-`pnpm run test:browser` runs twelve internal/portal workflow cases in a Chromium tablet
+`pnpm run test:browser` runs thirteen internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
 
 Local review servers:

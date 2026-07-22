@@ -77,6 +77,15 @@ Requirement IDs are stable traceability anchors. Splitting or superseding an ID 
 - **FR-CNC-005** Execution shall require the exact released artifact hash, approved work center, process-qualified operator, attributable time/result/quantities, released evidence, controlled exceptions, and parent/child material genealogy for produced pieces and remnants.
 - **FR-CNC-006** A distinct qualified authority shall reconcile execution against the released program, artifact hash, operator/work center, quantities, evidence, genealogy, and closed exceptions; creator/submitter/reviewer/releaser/operator self-reconciliation shall fail closed and history shall remain immutable.
 
+## Multidisciplinary engineering registers
+
+- **FR-ENG-001** Requirements, deliverables, systems, equipment, lines, instruments, components, and tags shall use stable project-scoped identity with immutable revision, parent, reason, title, discipline, responsible organization, and lifecycle history.
+- **FR-ENG-002** Each revision shall preserve exact system, area, work-package, released-document, and approved related-register links plus controlled attributes without duplicating shared project, organization, document, or structure identity.
+- **FR-ENG-003** Server-side deterministic validation shall expose invalid structure, organization, document, relationship, required system, deliverable date, and actual-issue evidence findings before submission and preserve a canonical SHA-256.
+- **FR-ENG-004** Submission and approval/rejection shall enforce current version, project/object scope, MFA or step-up assurance, qualified independent engineering authority, creator/submitter separation of duty, and attributable audit.
+- **FR-ENG-005** An approved successor shall supersede rather than overwrite its approved parent; rejected, approved, and superseded revisions and their exact hashes shall remain retained and searchable.
+- **FR-ENG-006** Permission-scoped engineering projections shall distinguish each register class, current approved revisions, draft/rejected validation findings, exact source links, and an explicit no-data state without presenting illustrative records as project truth.
+
 ## Bluebeam and provider-neutral document collaboration
 
 - **FR-BBM-001** A provider-neutral collaboration adapter shall ingest an approved Bluebeam Studio/export package only after exact project, released document revision, active user/organization, and protected source-file mapping succeeds.

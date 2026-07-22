@@ -114,6 +114,7 @@ import {
   CncService,
   type CreateCncProgramInput,
 } from "./domain/cnc-service.js";
+import { EngineeringRegisterService } from "./domain/engineering-register-service.js";
 
 export interface ServerDependencies {
   readonly service: FoundationService;
@@ -128,6 +129,7 @@ export interface ServerDependencies {
   readonly documentCollaboration?: DocumentCollaborationService;
   readonly fabrication?: FabricationService;
   readonly cnc?: CncService;
+  readonly engineeringRegisters?: EngineeringRegisterService;
   readonly store: FoundationStore;
   readonly authenticator: Authenticator;
   readonly environment: string;
@@ -197,6 +199,7 @@ function openApiTag(url: string): string {
     "schedule-imports": "scheduling",
     "fabrication-assemblies": "fabrication", "fabrication-travelers": "fabrication",
     "cnc-machine-profiles": "cnc", "cnc-programs": "cnc", "cnc-executions": "cnc",
+    "engineering-register-items": "engineering",
     "collaboration-imports": "collaboration", "collaboration-items": "collaboration",
     "collaboration-reconciliations": "collaboration", collaboration: "collaboration",
   };
@@ -322,6 +325,14 @@ interface RecordCncExecutionHttp {
   readonly evidenceFileIds: readonly string[]; readonly exceptionNcrIds: readonly string[];
   readonly result: "complete" | "complete_with_exception" | "aborted";
 }
+interface CreateEngineeringRegisterItemHttp {
+  readonly registerType: "requirement" | "deliverable" | "system" | "equipment" | "line" | "instrument" | "component" | "tag";
+  readonly tag: string; readonly revision: string; readonly parentRevisionId: string | null; readonly revisionReason: string;
+  readonly title: string; readonly disciplineCode: string; readonly systemCode: string | null; readonly areaCode: string | null;
+  readonly workPackageCode: string | null; readonly responsibleOrganizationId: string; readonly documentRevisionIds: readonly string[];
+  readonly relatedItemRevisionIds: readonly string[]; readonly attributes: Readonly<Record<string, string>>;
+  readonly plannedIssueDate: string | null; readonly forecastIssueDate: string | null; readonly actualIssueDate: string | null;
+}
 interface PreviewDocumentCollaborationHttp {
   readonly provider: "bluebeam_export";
   readonly providerProduct: string;
@@ -372,6 +383,7 @@ export async function buildServer(dependencies: ServerDependencies) {
   const documentCollaboration = dependencies.documentCollaboration ?? new DocumentCollaborationService(dependencies.store);
   const fabrication = dependencies.fabrication ?? new FabricationService(dependencies.store);
   const cnc = dependencies.cnc ?? new CncService(dependencies.store);
+  const engineeringRegisters = dependencies.engineeringRegisters ?? new EngineeringRegisterService(dependencies.store);
   const metrics = new ApiMetrics();
   const server = Fastify({
     logger: {
@@ -1709,6 +1721,41 @@ export async function buildServer(dependencies: ServerDependencies) {
     return cnc.reconcileExecution(access.context, access.assignments, request.params.executionId,
       request.body.expectedExecutionVersion, request.body.expectedProgramVersion, request.body.decision, request.body.reason);
   });
+
+  server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/engineering-registers", async (request) => {
+    const access = await accessFor(request, dependencies);
+    return engineeringRegisters.snapshot(access.context, access.assignments, request.params.projectId);
+  });
+
+  server.post<{ Params: { projectId: string }; Body: CreateEngineeringRegisterItemHttp }>(
+    "/v1/projects/:projectId/engineering-register-items",
+    async (request, reply) => {
+      const access = await accessFor(request, dependencies);
+      return reply.code(201).send(await engineeringRegisters.create(access.context, access.assignments, request.params.projectId, {
+        ...request.body,
+        plannedIssueDate: request.body.plannedIssueDate ? new Date(request.body.plannedIssueDate) : null,
+        forecastIssueDate: request.body.forecastIssueDate ? new Date(request.body.forecastIssueDate) : null,
+        actualIssueDate: request.body.actualIssueDate ? new Date(request.body.actualIssueDate) : null,
+      }));
+    },
+  );
+
+  server.post<{ Params: { itemId: string }; Body: { expectedVersion: number } }>(
+    "/v1/engineering-register-items/:itemId/submit",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return engineeringRegisters.submit(access.context, access.assignments, request.params.itemId, request.body.expectedVersion);
+    },
+  );
+
+  server.post<{ Params: { itemId: string }; Body: { expectedVersion: number; decision: "approve" | "reject"; reason: string } }>(
+    "/v1/engineering-register-items/:itemId/review",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return engineeringRegisters.review(access.context, access.assignments, request.params.itemId, request.body.expectedVersion,
+        request.body.decision, request.body.reason);
+    },
+  );
 
   server.post<{ Params: { projectId: string }; Body: PreviewDocumentCollaborationHttp }>(
     "/v1/projects/:projectId/collaboration-imports/preview",

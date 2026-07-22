@@ -42,6 +42,7 @@ import type {
   CncMachineProfileRevisionRecord,
   CncProgramRevisionRecord,
   CncExecutionRecord,
+  EngineeringRegisterItemRevisionRecord,
   DocumentCollaborationImportRecord,
   CollaborationItemRecord,
   CollaborationReconciliationRecord,
@@ -276,6 +277,11 @@ export interface FoundationTransaction {
   cncExecutions(projectId: string): readonly CncExecutionRecord[];
   insertCncExecution(execution: CncExecutionRecord): void;
   updateCncExecution(execution: CncExecutionRecord, expectedVersion: number): void;
+  engineeringRegisterItemById(id: string): EngineeringRegisterItemRevisionRecord | null;
+  engineeringRegisterItemByRevision(projectId: string, registerType: string, tag: string, revision: string): EngineeringRegisterItemRevisionRecord | null;
+  engineeringRegisterItems(projectId: string): readonly EngineeringRegisterItemRevisionRecord[];
+  insertEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord): void;
+  updateEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord, expectedVersion: number): void;
   collaborationImportById(id: string): DocumentCollaborationImportRecord | null;
   collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null;
   collaborationImportBySource(

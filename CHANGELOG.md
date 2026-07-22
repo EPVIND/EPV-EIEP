@@ -2,6 +2,50 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.16.0 - Multidisciplinary engineering registers
+
+- Added revisioned requirement, deliverable, system, equipment, line, instrument,
+  component, and tag records using existing project, structure, organization, file,
+  document, and related-register identities rather than parallel master data.
+- Added deterministic project/source validation with explicit errors and warnings,
+  canonical SHA-256 identity, exact revision lineage, current-version submission,
+  qualified independent step-up approval/rejection, separation of duty, immutable
+  supersession, and attributable audit history.
+- Added four authenticated API operations, record-normalized PostgreSQL hydration,
+  command-center module health/review tasks, and a responsive author/reviewer workspace
+  with truthful scoped and no-data states.
+- Local verification passes 107 source tests, thirteen tablet/axe workflows, strict
+  typecheck, 217 active `/v1` operations with 173 request bodies, and 121 controlled
+  requirements with 278 evidence paths. Owner dictionaries, representative volume,
+  customer mappings, named authorities, deployment, and pilot acceptance remain gated.
+
+## 0.15.0 - Governed CNC, waterjet, and profiling handoff
+
+- Added effective revisioned machine profiles and deterministic machine-neutral
+  program packages bound to exact released source, fabrication, traveler, material,
+  piece/BOM, and capability-envelope records.
+- Added explicit validation findings, separate technical approval and job release,
+  integrity-checked authorized artifact download, qualified execution, produced-piece/
+  remnant genealogy, controlled exceptions, and independent reconciliation.
+- Direct machine control is explicitly prohibited. Representative vendor files,
+  physical work-center/device trials, production volume, and named technical/release/
+  reconciliation authorities remain external gates.
+- Local and hosted verification cover 105 source tests, twelve tablet/axe workflows,
+  213 secured `/v1` operations, PostgreSQL restart/concurrency, and retained CI evidence.
+
+## 0.14.0 - Governed fabrication and spool control
+
+- Added immutable spool/assembly revision lineage, exact BOM, cut, material, weld,
+  inspection, released-drawing, model-source, system/area/work-package, and completion-
+  boundary scope with deterministic readiness findings.
+- Added independent engineering and shop release, sequenced revision-controlled
+  travelers, qualified append-only execution, explicit holds and independent release,
+  rework/scrap history, and quality acceptance distinct from fabrication completion.
+- Added authenticated API, PostgreSQL persistence, command-center work/health
+  projection, and responsive fabrication planning/execution surfaces. Dedicated
+  physical tables, representative shop volume/device evidence, owner dictionaries,
+  deployment, and named approvals remain external gates.
+
 ## 0.13.0 - Unified enterprise command center
 
 - Added a project-scoped enterprise command center derived on demand from authorized

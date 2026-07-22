@@ -38,13 +38,14 @@ The implementation sequence is dependency driven:
 4. Bluebeam document/markup exchange through a provider adapter.
 5. Unified permission-filtered project command center across the delivered modules.
 6. Governed fabrication/spool revision, traveler, shop execution, hold, and quality acceptance.
-7. Controlled CNC/waterjet/profiling handoff followed by engineering registers,
-   customer/portfolio surfaces, and separately governed enterprise finance/payroll.
+7. Controlled CNC/waterjet/profiling handoff.
+8. Multidisciplinary engineering registers followed by customer/portfolio surfaces.
+9. Separately governed enterprise finance/payroll.
 
 Shared cost codes, organizations/vendors, files, documents, requirements, work
 packages, qualifications, audit, jobs, exports, and turnover links are reused rather
 than duplicated. Payroll, billing, general ledger, and CRM are now explicit future
-governed tranches, but are not part of this verified CNC increment. Robotic/direct
+governed tranches, but are not part of this verified engineering-register increment. Robotic/direct
 machine control, automatic engineering acceptance, real payment execution, tax
 filing, and unapproved vendor-specific writes remain outside the current increment
 and require separately approved boundaries.
@@ -111,6 +112,17 @@ and require separately approved boundaries.
   concurrency verification. Representative machine/vendor files, owner-approved
   capability dictionaries, dedicated physical tables/volume, shop-device trials,
   and named technical/release/reconciliation acceptance remain external gates.
+- Sequence 8 now has a locally implemented multidisciplinary engineering-register
+  pilot spanning requirements, deliverables, systems, equipment, lines, instruments,
+  components, and tags. Exact project/document/relationship scope, deterministic
+  validation and canonical SHA-256, current-version submission, independent qualified
+  approval, immutable successor supersession, audit, authenticated API, permission-
+  scoped command-center/tablet projection, and record-normalized PostgreSQL hydration
+  are implemented. Complete local gates cover 107 source tests, thirteen tablet/
+  accessibility workflows, 121 controlled requirements with 278 evidence paths, and
+  217 active secured `/v1` routes. Owner discipline dictionaries, representative
+  volume, governed bulk/customer mappings, deployed validation, named authorities,
+  and pilot acceptance remain external gates.
 
 ## Controlled impact
 

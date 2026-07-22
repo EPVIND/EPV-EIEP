@@ -1,7 +1,7 @@
 # Enterprise Expansion Acceptance Criteria
 
-Status: EX-AC-01 through EX-AC-08 and EX-AC-10/EX-AC-11 have local controlled-pilot evidence
-and are promoted through AC-11/AC-12/AC-13/AC-14/AC-16/AC-17. The command-center subset
+Status: EX-AC-01 through EX-AC-08 and EX-AC-10/EX-AC-11/EX-AC-12 have local controlled-pilot evidence
+and are promoted through AC-11/AC-12/AC-13/AC-14/AC-16/AC-17/AC-18. The command-center subset
 is promoted through AC-15; EX-AC-09 remains proposed for its external and production evidence.
 Date: 2026-07-21
 
@@ -132,3 +132,16 @@ Date: 2026-07-21
   audit evidence pass locally. Representative machines/files, owner profiles,
   physical production tables/volume, field validation, and named approvals remain
   external production gates.
+
+## EX-AC-12 Multidisciplinary engineering registers
+
+- Requirement, deliverable, system, equipment, line, instrument, component, and tag
+  revisions preserve stable project identity, parent/reason, exact scope and source
+  relationships, controlled attributes, validation findings, canonical hash, and
+  attributable lifecycle history.
+- Invalid structures, organizations, documents, relationships, required system/date/
+  actual-issue evidence, duplicate revision, stale version, or self-approval fail
+  closed with no cross-project disclosure.
+- An independently approved successor supersedes rather than overwrites its parent;
+  permission-scoped projections distinguish every class, current approval, findings,
+  and no-data state without seeded demonstration records.

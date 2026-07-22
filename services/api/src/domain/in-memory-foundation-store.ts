@@ -43,6 +43,7 @@ import type {
   CncMachineProfileRevisionRecord,
   CncProgramRevisionRecord,
   CncExecutionRecord,
+  EngineeringRegisterItemRevisionRecord,
   DocumentCollaborationImportRecord,
   CollaborationItemRecord,
   CollaborationReconciliationRecord,
@@ -174,6 +175,7 @@ export interface MemoryState {
   cncMachineProfiles: Map<string, CncMachineProfileRevisionRecord>;
   cncPrograms: Map<string, CncProgramRevisionRecord>;
   cncExecutions: Map<string, CncExecutionRecord>;
+  engineeringRegisterItems: Map<string, EngineeringRegisterItemRevisionRecord>;
   collaborationImports: Map<string, DocumentCollaborationImportRecord>;
   collaborationItems: Map<string, CollaborationItemRecord>;
   collaborationReconciliations: Map<string, CollaborationReconciliationRecord>;
@@ -1093,6 +1095,28 @@ class MemoryTransaction implements FoundationTransaction {
   public updateCncExecution(execution: CncExecutionRecord, expectedVersion: number): void {
     const current = this.state.cncExecutions.get(execution.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
     this.state.cncExecutions.set(execution.id, cloneValue(execution));
+  }
+  public engineeringRegisterItemById(id: string): EngineeringRegisterItemRevisionRecord | null {
+    const record = this.state.engineeringRegisterItems.get(id); return record ? cloneValue(record) : null;
+  }
+  public engineeringRegisterItemByRevision(projectId: string, registerType: string, tag: string, revision: string): EngineeringRegisterItemRevisionRecord | null {
+    const record = [...this.state.engineeringRegisterItems.values()].find((item) => item.projectId === projectId
+      && item.registerType === registerType && item.tag === tag && item.revision === revision);
+    return record ? cloneValue(record) : null;
+  }
+  public engineeringRegisterItems(projectId: string): readonly EngineeringRegisterItemRevisionRecord[] {
+    return cloneValue([...this.state.engineeringRegisterItems.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.registerType.localeCompare(right.registerType) || left.tag.localeCompare(right.tag)
+        || left.revision.localeCompare(right.revision)));
+  }
+  public insertEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord): void {
+    if (this.state.engineeringRegisterItems.has(item.id)
+      || this.engineeringRegisterItemByRevision(item.projectId, item.registerType, item.tag, item.revision)) throw new ConflictError();
+    this.state.engineeringRegisterItems.set(item.id, cloneValue(item));
+  }
+  public updateEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord, expectedVersion: number): void {
+    const current = this.state.engineeringRegisterItems.get(item.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.engineeringRegisterItems.set(item.id, cloneValue(item));
   }
 
   public collaborationImportById(id: string): DocumentCollaborationImportRecord | null {
@@ -2226,6 +2250,7 @@ export function createEmptyMemoryState(): MemoryState {
     cncMachineProfiles: new Map(),
     cncPrograms: new Map(),
     cncExecutions: new Map(),
+    engineeringRegisterItems: new Map(),
     collaborationImports: new Map(),
     collaborationItems: new Map(),
     collaborationReconciliations: new Map(),

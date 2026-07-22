@@ -117,6 +117,14 @@
 - Execution rejects a wrong artifact hash, work center, qualification, evidence, quantity/result meaning, exception scope, or produced/remnant genealogy. A distinct qualified authority reconciles the exact release, quantities, evidence, and genealogy; all participating program and operator actors are prohibited from self-reconciliation.
 - Authenticated/scoped API, command-center projection, PostgreSQL typed restart, tablet workflow, accessibility, and audit evidence pass locally. Approved machine fixtures, shop-device validation, physical production tables/volume, owner capability dictionaries, and named technical/release/reconciliation approvals remain production gates.
 
+## AC-18 Multidisciplinary engineering registers
+
+- Representative requirement, system, equipment, and deliverable revisions retain stable tags, immutable parent/reason, discipline, responsible organization, structure scope, controlled attributes, dates, exact released documents, approved related items, validation findings, and canonical SHA-256.
+- Invalid system/area/work-package, inactive organization, unreleased document, unapproved relationship, missing type-specific scope, duplicate identity, or actual issue without released evidence remains explicit and blocks submission.
+- Submission and review enforce project/object scope, exact version, MFA/step-up assurance, `engineering_authority`, and creator/submitter separation of duty; an approved successor supersedes without overwriting its parent.
+- Authenticated API, cross-organization denial, audit, record-normalized PostgreSQL restart, permission-scoped no-data projection, tablet workflow, and accessibility evidence pass locally.
+- Owner discipline dictionaries, representative register volume, governed bulk mappings, customer formats, named authorities, deployed validation, and pilot acceptance remain production gates.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.

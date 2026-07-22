@@ -580,6 +580,30 @@ test("FR-CNC-001-006 / AC-02-03, AC-17: CNC workspace exposes exact release iden
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+test("FR-ENG-001-006 / AC-02-03, AC-18: engineering workspace exposes stable revision identity, findings, hash, and independent approval at tablet size", async ({ page }) => {
+  await page.addInitScript(() => { sessionStorage.setItem("eiep.userId", "engineering-authority"); sessionStorage.setItem("eiep.organizationId", "org-epv"); sessionStorage.setItem("eiep.assurance", "step-up"); });
+  const item = { id: "eng-item-1", registerType: "equipment", tag: "P-101", revision: "0", parentRevisionId: null, title: "Transfer pump",
+    disciplineCode: "MECH", systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-01", responsibleOrganizationId: "org-epv",
+    documentRevisionIds: ["drawing-revision-1"], relatedItemRevisionIds: ["system-revision-1"], attributes: { SERVICE: "TRANSFER" },
+    validationFindings: [], canonicalSha256: "e".repeat(64), state: "under_review", version: 2, createdBy: "engineering-author",
+    submittedBy: "engineering-author", reviewedBy: null };
+  await page.route("http://127.0.0.1:3100/**", async (route) => {
+    const request = route.request(); if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
+    const path = new URL(request.url()).pathname; const respond = async (json: unknown, status = 200) => route.fulfill({ status, headers: corsHeaders, json });
+    if (path === "/health") return respond({ status: "ok", environment: "test", training: false, productionReady: false, blockers: ["external_pilot_approval"] });
+    if (path === "/v1/session") return respond({ userId: "engineering-authority", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 3, environment: "test", training: false });
+    if (path === "/v1/projects") return respond([{ id: "project-1", number: "ENG-001", name: "Engineering pilot", customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/engineering-registers") return respond({ generatedAt: "2026-07-21T20:00:00.000Z", items: [item], counts: { requirement: 0, deliverable: 0, system: 0, equipment: 1, line: 0, instrument: 0, component: 0, tag: 0 }, openValidationFindingCount: 0 });
+    if (path === "/v1/engineering-register-items/eng-item-1/review") return respond({ ...item, state: "approved", version: 3, reviewedBy: "engineering-authority" });
+    return respond({ error: "not_found" }, 404);
+  });
+  await page.setViewportSize({ width: 900, height: 1100 }); await page.goto("/#engineering");
+  await expect(page.getByRole("heading", { name: "Engineering registers · ENG-001" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "P-101 · Rev 0" })).toBeVisible(); await expect(page.getByText(/equipment · Rev 0 · MECH/u)).toBeVisible();
+  await expect(page.getByText(/eeeeeeeeeeeeeeee/u)).toBeVisible(); await expect(page.getByRole("button", { name: "Approve" })).toBeVisible();
+  await expect(page.getByText(/No illustrative engineering records/u)).not.toBeVisible(); await expectNoSeriousAccessibilityViolations(page);
+});
+
 test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed import fidelity, reconciliation, and disabled outbound boundary at tablet size", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("eiep.userId", "collaboration-reader");

@@ -172,6 +172,14 @@ recovery, and data requirements.
 - **FR-CMD-004** Cross-module summaries and schedule progress shall show their
   numerator/denominator or an explicit no-data state and link to authoritative modules.
 
+## Multidisciplinary engineering registers
+
+- **FR-ENG-001 through FR-ENG-006** establish stable revisioned requirements,
+  deliverables, systems, equipment, lines, instruments, components, and tags with
+  exact project/document/relationship scope, deterministic validation and hash,
+  qualified independent approval, immutable supersession, permission-scoped
+  projection, audit, and explicit production-data boundaries.
+
 ## Shared nonfunctional expansion constraints
 
 - Commercial calculations use bounded exact decimals with explicit currency, unit,

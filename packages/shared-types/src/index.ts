@@ -1885,6 +1885,52 @@ export interface CncExecutionRecord {
   readonly updatedBy: string;
 }
 
+export type EngineeringRegisterType = "requirement" | "deliverable" | "system" | "equipment" | "line"
+  | "instrument" | "component" | "tag";
+
+export interface EngineeringValidationFinding {
+  readonly code: string;
+  readonly severity: "error" | "warning";
+  readonly detail: string;
+}
+
+export interface EngineeringRegisterItemRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly registerType: EngineeringRegisterType;
+  readonly tag: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly title: string;
+  readonly disciplineCode: string;
+  readonly systemCode: string | null;
+  readonly areaCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly responsibleOrganizationId: string;
+  readonly documentRevisionIds: readonly string[];
+  readonly relatedItemRevisionIds: readonly string[];
+  readonly attributes: Readonly<Record<string, string>>;
+  readonly plannedIssueDate: Date | null;
+  readonly forecastIssueDate: Date | null;
+  readonly actualIssueDate: Date | null;
+  readonly validationRuleVersion: "engineering-register-v1";
+  readonly validationFindings: readonly EngineeringValidationFinding[];
+  readonly canonicalSha256: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "superseded";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
 export type CollaborationEvidenceStatus = "open" | "resolved_claim" | "closed_claim" | "unknown";
 export interface CollaborationDocumentMapping {
   readonly providerDocumentId: string;

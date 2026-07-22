@@ -316,6 +316,19 @@ try {
       reviewedAt: null, reviewedBy: null, reviewReason: null, version: 1, createdAt: now,
       createdBy: "postgres-cnc-operator", updatedAt: now, updatedBy: "postgres-cnc-operator",
     });
+    transaction.insertEngineeringRegisterItem({
+      id: "postgres-engineering-item", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      registerType: "equipment", tag: "PG-P-101", revision: "0", parentRevisionId: null,
+      revisionReason: "Persistent engineering register fixture.", title: "Persistent transfer pump",
+      disciplineCode: "MECH", systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-01",
+      responsibleOrganizationId: "org-epv", documentRevisionIds: ["postgres-drawing-revision"],
+      relatedItemRevisionIds: [], attributes: { SERVICE: "TRANSFER" }, plannedIssueDate: now,
+      forecastIssueDate: now, actualIssueDate: now, validationRuleVersion: "engineering-register-v1",
+      validationFindings: [], canonicalSha256: "e".repeat(64), state: "approved", submittedAt: now,
+      submittedBy: "postgres-engineering-author", reviewedAt: now, reviewedBy: "postgres-engineering-authority",
+      reviewReason: "Persistent independent engineering approval.", version: 3, createdAt: now,
+      createdBy: "postgres-engineering-author", updatedAt: now, updatedBy: "postgres-engineering-authority",
+    });
     transaction.insertCollaborationImport({
       id: "postgres-collaboration-import", businessScopeOrganizationId: "org-epv", projectId: project.id,
       provider: "bluebeam_export", providerProduct: "Bluebeam Revu Studio export", providerProjectId: "PG-BB-PROJECT",
@@ -383,6 +396,7 @@ try {
     cncProfile: transaction.cncMachineProfileById("postgres-cnc-profile"),
     cncProgram: transaction.cncProgramById("postgres-cnc-program"),
     cncExecution: transaction.cncExecutionForProgram("postgres-cnc-program"),
+    engineeringItem: transaction.engineeringRegisterItemById("postgres-engineering-item"),
     collaborationImport: transaction.collaborationImportById("postgres-collaboration-import"),
     collaborationItem: transaction.collaborationItemById("postgres-collaboration-item"),
     collaborationReconciliation: transaction.collaborationReconciliationById("postgres-collaboration-reconciliation"),
@@ -435,6 +449,8 @@ try {
   assert.ok(persisted.cncProgram?.releasedAt instanceof Date);
   assert.equal(persisted.cncExecution?.machineIdentifier, "PG-SAW-A");
   assert.ok(persisted.cncExecution?.completedAt instanceof Date);
+  assert.equal(persisted.engineeringItem?.attributes.SERVICE, "TRANSFER");
+  assert.ok(persisted.engineeringItem?.actualIssueDate instanceof Date);
   assert.equal(persisted.collaborationImport?.providerSessionId, "PG-BB-SESSION");
   assert.ok(persisted.collaborationImport?.committedAt instanceof Date);
   assert.equal(persisted.collaborationItem?.documentRevisionId, "postgres-drawing-revision");
@@ -530,7 +546,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/fabrication/CNC/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/fabrication/CNC/engineering/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

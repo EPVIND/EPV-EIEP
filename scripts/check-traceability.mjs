@@ -33,8 +33,8 @@ for (const duplicate of duplicates(mapped)) failures.push(`matrix occurrence ${d
 for (const requirement of controlledSet) if (!mappedSet.has(requirement)) failures.push(`missing matrix row ${requirement}`);
 for (const requirement of mappedSet) if (!controlledSet.has(requirement)) failures.push(`uncontrolled matrix row ${requirement}`);
 
-if (controlledSet.size !== 115) failures.push(`expected 115 controlled requirements, found ${controlledSet.size}`);
-if (mappedSet.size !== 115) failures.push(`expected 115 mapped requirements, found ${mappedSet.size}`);
+if (controlledSet.size !== 121) failures.push(`expected 121 controlled requirements, found ${controlledSet.size}`);
+if (mappedSet.size !== 121) failures.push(`expected 121 mapped requirements, found ${mappedSet.size}`);
 
 async function filesBelow(directory) {
   const entries = await readdir(directory, { withFileTypes: true });

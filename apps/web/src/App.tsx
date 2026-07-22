@@ -9,6 +9,7 @@ import { DocumentCollaborationWorkspace } from "./DocumentCollaborationWorkspace
 import { CommandCenterWorkspace } from "./CommandCenterWorkspace.js";
 import { FabricationWorkspace } from "./FabricationWorkspace.js";
 import { CncWorkspace } from "./CncWorkspace.js";
+import { EngineeringRegisterWorkspace } from "./EngineeringRegisterWorkspace.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -62,7 +63,7 @@ interface ProjectReadinessStatus {
   readonly blockers: readonly string[];
 }
 
-type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "welding" | "nde" | "testing" | "fabrication" | "cnc" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
+type ModuleKey = "overview" | "estimating" | "controls" | "procurement" | "scheduling" | "engineering" | "welding" | "nde" | "testing" | "fabrication" | "cnc" | "bluebeam" | "projects" | "documents" | "materials" | "quality" | "turnover" | "reports" | "integrations" | "administration";
 
 const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "overview", label: "Overview", eyebrow: "Control room" },
@@ -70,6 +71,7 @@ const modules: readonly { key: ModuleKey; label: string; eyebrow: string }[] = [
   { key: "controls", label: "Project Controls", eyebrow: "Budget · change · EAC" },
   { key: "procurement", label: "Procurement", eyebrow: "Bid · award · expedite" },
   { key: "scheduling", label: "Scheduling", eyebrow: "Logic · updates · look-ahead" },
+  { key: "engineering", label: "Engineering Database", eyebrow: "Requirements · tags · deliverables" },
   { key: "welding", label: "Welding", eyebrow: "WPS · WPQ · weld map" },
   { key: "nde", label: "NDE / PWHT", eyebrow: "Examination · heat treatment" },
   { key: "testing", label: "Testing", eyebrow: "Boundaries · safety · results" },
@@ -148,6 +150,26 @@ function CncCapabilityPreview() {
     <div className="fabrication-preview-footer"><div><strong>Connected records</strong><p>Source files · drawings/models · assemblies · travelers · materials · profiles · NCRs · evidence · audit</p></div>
       <p className="truth-notice"><strong>Safety boundary:</strong> No direct machine control, start/stop, interlock, or equipment configuration is performed.</p></div>
   </section>;
+}
+
+function EngineeringCapabilityPreview() {
+  const stages = [
+    ["01", "Stable engineering identity", "Requirements, deliverables, systems, equipment, lines, instruments, components, and tags share durable project identity."],
+    ["02", "Exact project scope", "Discipline, system, area, work package, and responsible organization resolve against active controlled structures."],
+    ["03", "Released-source linkage", "Exact released document revisions and approved related register revisions preserve the engineering digital thread."],
+    ["04", "Deterministic validation", "Missing scope, invalid relationships, duplicate identity, dates, and actual-issue evidence become explicit findings."],
+    ["05", "Independent approval", "Submit and review enforce current version, step-up engineering authority, and creator/submitter separation of duty."],
+    ["06", "Immutable successor history", "Approved successors supersede, never overwrite, exact canonical SHA-256 revisions and retain attributable audit history."],
+  ] as const;
+  return <section className="fabrication-capability-preview" aria-labelledby="engineering-capability-heading"><div className="workspace-hero fabrication-preview-hero">
+    <div><p className="section-label">Implemented controlled-pilot surface</p><h2 id="engineering-capability-heading">Multidisciplinary engineering registers</h2>
+      <p>The engineering database is live in this build. Apply an authorized identity and select a project to manage permission-scoped controlled register revisions.</p></div>
+    <div className="preview-status"><span aria-hidden="true" />Available in pilot build</div></div>
+    <div className="fabrication-preview-metrics"><article><strong>8</strong><span>Register classes</span></article><article><strong>6</strong><span>Control stages</span></article>
+      <article><strong>4</strong><span>Authenticated API actions</span></article><article><strong>SHA-256</strong><span>Canonical revision</span></article></div>
+    <div className="fabrication-control-path">{stages.map(([number, title, description]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>
+    <div className="fabrication-preview-footer"><div><strong>Connected records</strong><p>Project structures · organizations · documents · requirements · tags · deliverables · audit</p></div>
+      <p className="truth-notice"><strong>Data truth:</strong> No illustrative engineering records or project counts are shown without authorized scope.</p></div></section>;
 }
 
 function storedIdentity(): IdentitySettings {
@@ -559,6 +581,14 @@ export function App() {
           /> : null}
 
           {activeModule === "cnc" && (!selectedProject || !session) ? <CncCapabilityPreview /> : null}
+
+          {selectedProject && session && activeModule === "engineering" ? <EngineeringRegisterWorkspace
+            key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:engineering`}
+            projectId={selectedProject.id} projectNumber={selectedProject.number} request={request} working={working}
+            setWorking={setWorking} notify={notify}
+          /> : null}
+
+          {activeModule === "engineering" && (!selectedProject || !session) ? <EngineeringCapabilityPreview /> : null}
 
           {selectedProject && (activeModule === "documents" || activeModule === "materials" || activeModule === "quality" || activeModule === "turnover" || activeModule === "reports")
             ? <OperationalChain

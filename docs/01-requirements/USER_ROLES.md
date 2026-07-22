@@ -17,6 +17,8 @@ Roles are permission bundles, not job titles. Access is the intersection of role
 | Inspector | Assigned inspections, evidence, results, reinspection, recommendations. | Unassigned project access or self-approval where independence is required. |
 | Authorized Inspector/third party | Scope-limited hold/witness/review actions and evidence. | General project administration or commercial data. |
 | Engineer/technical authority | Technical review, approved disposition, requirement interpretation within delegation. | Commercial or security administration. |
+| Engineering register author | Create and submit revisioned requirements, deliverables, systems, equipment, line, instrument, component, and tag records with exact controlled scope and source links. | Approving their own authored or submitted revision; bypassing validation findings or source-document release. |
+| Engineering register authority | Independently approve or reject validation-complete register revisions within qualified project/discipline scope. | Creating/submitting and approving the same revision; treating register approval as automatic engineering acceptance outside delegated authority. |
 | Shop/field supervisor | Assigned work packages, readiness, daily execution and requests for inspection. | Bypassing hold points or accepting own controlled inspection. |
 | CNC programmer | Prepare deterministic machine-neutral packages from exact approved source, assembly, traveler, material, piece, and machine-profile records; submit validation-complete revisions. | Approving or releasing own program; altering released artifacts; directly controlling equipment. |
 | CNC machine-profile authority | Independently approve effective work-center capability, units, coordinates, envelope, features, operations, and postprocessor identity. | Approving a profile they proposed; granting process qualification; operating equipment by virtue of profile authority. |
@@ -37,6 +39,9 @@ Roles are permission bundles, not job titles. Access is the intersection of role
 - A receiver may capture MTR and PMI evidence but may not release material if QC approval is required.
 - A subcontractor may submit an inspection record but cannot grant EPV final acceptance.
 - An administrator may restore access but cannot silently alter an approved record.
+- An engineering register creator or submitter cannot approve the same revision; a
+  qualified independent authority must review its scope, relationships, findings,
+  lineage, and canonical hash.
 - A CNC programmer cannot technically approve or release their program; the operator and every prior program authority are excluded from final execution reconciliation.
 - Emergency access must be time-limited, justified, and reviewed.
 

@@ -77,6 +77,7 @@ export type CommandCenterModule =
   | "testing"
   | "fabrication"
   | "cnc"
+  | "engineering"
   | "bluebeam"
   | "turnover";
 
@@ -246,6 +247,7 @@ function ageDays(now: Date, createdAt: Date): number {
 function moduleForObjectType(objectType: string): CommandCenterModule {
   const value = objectType.toLowerCase();
   if (value.includes("cnc_")) return "cnc";
+  if (value.includes("engineering_register")) return "engineering";
   if (value.includes("fabrication") || value.includes("traveler")) return "fabrication";
   if (value.includes("estimate") || value.includes("proposal")) return "estimating";
   if (value.includes("procurement") || value.includes("requisition") || value.includes("bid_package") || value.includes("commitment")) return "procurement";
@@ -708,6 +710,15 @@ export class ReportingService {
             [program.createdBy, program.submittedBy ?? "", program.reviewedBy ?? "", program.releasedBy ?? "", execution.operatorUserId], "step-up") });
       }
 
+      const engineeringItems = transaction.engineeringRegisterItems(project.id)
+        .filter((record) => permitted("engineering.register.read", record.id));
+      for (const item of engineeringItems.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "engineering", recordType: "engineering_register_item_revision", recordId: item.id,
+        title: `Review ${item.registerType} ${item.tag} revision ${item.revision}`, state: item.state,
+        dueAt: item.forecastIssueDate ?? item.plannedIssueDate, action: "engineering.register.approve", version: item.version,
+        preferredPriority: "high", authorized: permitted("engineering.register.approve", item.id, ["engineering_authority"],
+          [item.createdBy, item.submittedBy ?? item.createdBy], "step-up") });
+
       const collaborationImports = transaction.collaborationImports(project.id);
       const collaborationItems = transaction.collaborationItems(project.id).filter((record) => permitted("collaboration.read", record.id));
       const reconciliationIssues = transaction.collaborationReconciliations(project.id)
@@ -795,6 +806,10 @@ export class ReportingService {
         cncMachineProfiles.filter((record) => ["under_review", "rejected"].includes(record.state)).length
           + cncPrograms.filter((record) => ["draft", "under_review", "rejected", "execution_recorded"].includes(record.state)).length
           + cncExecutions.filter((record) => ["submitted", "rejected"].includes(record.state)).length);
+      summary("engineering", "Engineering registers", engineeringItems.length,
+        engineeringItems.filter((record) => ["approved", "superseded"].includes(record.state)).length,
+        engineeringItems.filter((record) => ["draft", "under_review", "rejected"].includes(record.state)
+          || record.validationFindings.some((finding) => finding.severity === "error")).length);
       summary("bluebeam", "Document collaboration", collaborationItems.length + reconciliationIssues.length,
         collaborationItems.filter((record) => ["accepted", "rejected"].includes(record.state)).length
           + reconciliationIssues.filter((record) => ["resolved", "waived"].includes(record.state)).length,

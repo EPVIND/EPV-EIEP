@@ -37,13 +37,21 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 - Fabrication/spool revisions, exact BOM/cut/material/weld/inspection scope,
   independently released sequenced travelers, append-only shop execution and hold
   events, and independent quality acceptance: locally implemented controlled pilot.
+- CNC/waterjet/profiling machine profiles, exact source/fabrication/material lineage,
+  deterministic machine-neutral packages, independent technical approval/release,
+  exact-hash execution evidence, genealogy, and reconciliation: locally implemented
+  controlled pilot; direct machine control remains outside the authorized boundary.
+- Multidisciplinary revisioned requirements, deliverables, systems, equipment, lines,
+  instruments, components, and tags with exact controlled relationships, deterministic
+  validation/hash, independent approval, supersession, audit, API, persistence, and
+  tablet projection: locally implemented controlled pilot.
 - Structural member and assembly tracking.
 - Civil, earthwork, concrete placement, testing, and foundation release.
 - Work packages, travelers, daily reports, quantities, look-aheads, and progress.
 - Focused subcontractor portal, mobilization, and deliverables.
 - Pressure/leak testing, coating, alignment, grouting, and commissioning packages.
-- Dashboard-derived engineering register, cross-project portfolio,
-  and customer/reports projections needed by the controlled product-vision baseline.
+- Cross-project portfolio and customer/reports projections needed by the controlled
+  product-vision baseline.
 
 ## Later - remaining enterprise expansion
 
@@ -51,8 +59,8 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 - Automated estimating/optimization and advanced resource leveling/claims analytics.
 - Equipment/fleet and maintenance.
 - Electrical/instrumentation execution and loop packages.
-- Advanced model, CNC/waterjet/profiling, instrument, laser scan, and ERP
-  integrations; machine execution requires a separately authorized boundary.
+- Advanced model, instrument, laser-scan, ERP, and live machine integrations; direct
+  machine execution requires a separately authorized boundary.
 - Owner asset history, digital twin, governed analytics, and AI assistance.
 - Commercial multi-tenant product capabilities if approved.
 
