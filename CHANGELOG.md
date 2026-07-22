@@ -20,6 +20,9 @@ All notable controlled changes to the EIEP program definition and implementation
   workflow. The controlled baseline is now 78 functional and 25 nonfunctional
   requirements with 227 evidence paths; complete gate results are recorded in the
   local verification report.
+- Stabilized shared workspace notification and navigation callbacks so module effects
+  do not retrigger background refreshes on unrelated parent renders; the scheduling
+  workflow explicitly proves an enabled action and its matching look-ahead response.
 
 ## 0.12.0 - Governed Bluebeam document collaboration pilot
 

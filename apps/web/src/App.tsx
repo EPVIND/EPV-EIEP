@@ -149,6 +149,16 @@ export function App() {
     URL.revokeObjectURL(url);
   }, [apiBase, identity]);
 
+  const notify = useCallback((tone: "success" | "error", text: string) => {
+    setMessage({ tone, text });
+  }, []);
+
+  const openModule = useCallback((module: ModuleKey) => {
+    setActiveModule(module);
+    window.location.hash = module;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const refreshWorkspace = useCallback(async () => {
     if (!identity.userId || !identity.organizationId || apiUnavailable) return;
     setWorking(true);
@@ -286,12 +296,6 @@ export function App() {
     }
   }
 
-  function openModule(module: ModuleKey) {
-    setActiveModule(module);
-    window.location.hash = module;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   return (
     <div className="app-shell">
       <EnvironmentBanner environment={health?.environment ?? "unconnected"} training={health?.training ?? false} />
@@ -401,7 +405,7 @@ export function App() {
             request={request}
             working={working}
             setWorking={setWorking}
-            notify={(tone, text) => setMessage({ tone, text })}
+            notify={notify}
             openModule={openModule}
           /> : null}
 
@@ -411,7 +415,7 @@ export function App() {
             request={request}
             working={working}
             setWorking={setWorking}
-            notify={(tone, text) => setMessage({ tone, text })}
+            notify={notify}
             onChanged={() => setReadinessStatus(null)}
           /> : null}
 
@@ -423,7 +427,7 @@ export function App() {
             download={download}
             working={working}
             setWorking={setWorking}
-            notify={(tone, text) => setMessage({ tone, text })}
+            notify={notify}
           /> : null}
 
           {selectedProject && session && (activeModule === "controls" || activeModule === "procurement" || activeModule === "scheduling") ? <ProjectControlsWorkspace
@@ -435,7 +439,7 @@ export function App() {
             request={request}
             working={working}
             setWorking={setWorking}
-            notify={(tone, text) => setMessage({ tone, text })}
+            notify={notify}
           /> : null}
 
           {selectedProject && session && (activeModule === "welding" || activeModule === "nde" || activeModule === "testing") ? <ExecutionDisciplinesWorkspace
@@ -446,7 +450,7 @@ export function App() {
             request={request}
             working={working}
             setWorking={setWorking}
-            notify={(tone, text) => setMessage({ tone, text })}
+            notify={notify}
           /> : null}
 
           {selectedProject && session && activeModule === "bluebeam" ? <DocumentCollaborationWorkspace
@@ -456,7 +460,7 @@ export function App() {
             request={request}
             working={working}
             setWorking={setWorking}
-            notify={(tone, text) => setMessage({ tone, text })}
+            notify={notify}
           /> : null}
 
           {selectedProject && (activeModule === "documents" || activeModule === "materials" || activeModule === "quality" || activeModule === "turnover" || activeModule === "reports")
@@ -468,7 +472,7 @@ export function App() {
               download={download}
               working={working}
               setWorking={setWorking}
-              notify={(tone, text) => setMessage({ tone, text })}
+              notify={notify}
             />
             : null}
 

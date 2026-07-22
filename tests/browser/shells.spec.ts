@@ -390,11 +390,14 @@ test("FR-PJC-001-004, FR-PRC-001-003, FR-SCH-001-004, NFR-USE-001-003 / AC-02-03
   await page.getByRole("link", { name: /Scheduling/u }).click();
   await expect(page.getByText("U2 · update")).toBeVisible();
   await expect(page.getByText("p6 P6-24.12 → U2")).toBeVisible();
-  const lookAheadResponse = page.waitForResponse((response) =>
-    new URL(response.url()).pathname === "/v1/schedules/schedule-1/look-ahead" && response.status() === 200,
-  );
-  await page.getByRole("button", { name: "30-day look-ahead" }).click();
-  await lookAheadResponse;
+  const lookAheadButton = page.getByRole("button", { name: "30-day look-ahead" });
+  await expect(lookAheadButton).toBeEnabled();
+  await Promise.all([
+    page.waitForResponse((response) =>
+      new URL(response.url()).pathname === "/v1/schedules/schedule-1/look-ahead" && response.status() === 200,
+    ),
+    lookAheadButton.click(),
+  ]);
   await expect(page.getByRole("status").filter({ hasText: "30-day look-ahead derived" })).toBeVisible();
   await expect(page.getByText("A200 · Activity A200")).toBeVisible();
   await expect(page.getByText("MATERIAL-DELIVERY", { exact: true })).toBeVisible();
