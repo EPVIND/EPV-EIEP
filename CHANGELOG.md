@@ -2,6 +2,61 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.17.0 - Controlled local pilot runtime and interactive review workbenches
+
+- Routed the local pilot browser through the managed web origin for API calls, preserving authorization while avoiding browser-side secondary-port blocking in the visible demo.
+- Added 76 browser-session review documents across 19 enterprise modules with editable
+  fields, validation, simulated lifecycle history, audit visibility, and separate-tab
+  printable previews while explicitly excluding authoritative record claims.
+- Added a SHA-256-pinned, expiring external pilot manifest, persisted accounts,
+  qualifications, independently reviewed assignments, canonical audit events, exact
+  idempotency, conflict denial, and store-backed development authentication.
+- Added an isolated persistent PostgreSQL supervisor for the local API, governed-file
+  boundary, worker, and web UI, with status/stop controls and manifest-derived role
+  choices. The runtime rejects training, memory-store, OIDC, or production-data modes.
+- Expanded every desktop module into workflow and document/register pull-downs. Added
+  a code-profile-driven Welding Procedure Builder with 70+ structured variables,
+  ordered multi-process steps, code/application edition selection, base/filler groups,
+  joint, electrical, gas, thermal/PWHT, technique, examination/test, revision,
+  validation, printable preview, exact persistence, and independent review handoff.
+  Parent selections now filter and reset dependent application, qualification,
+  geometry, material, position, process, mode, current, polarity, transfer, filler,
+  gas, PWHT, and test-evidence choices with explicit unresolved findings. Filler
+  classification, F-number/A-number or profile-equivalent grouping, filler diameter,
+  base-metal thickness/diameter, preheat, interpass temperature, and interpass cleaning
+  now expose governed selections or bounded presets. PWHT is a construction-code result:
+  material, thickness, joint, or application changes invalidate it; a required
+  disposition forces heat-treatment controls and requires the released rule citation.
+- Imported the four ChatGPT `QC` project conversations into a private, Git-ignored,
+  hash-manifested source-intake package. Added an asset register entry and controlled
+  reconciliation that promotes object-first role UX as strategy while rejecting
+  unverified package/compliance claims and preserving current EIEP authority boundaries.
+- Added the first object-first field execution slice over authoritative weld records:
+  scan/search identity, exact WPS and current repair-cycle context, related NDE/PWHT,
+  explainable release blockers, immutable event history, role-organized inputs, and
+  server-authorized append/release actions. The role selector changes presentation only;
+  permissions, qualifications, assurance, separation of duty, and versions remain enforced.
+- Extended object-first execution to permission-filtered material lookup by item, heat,
+  receipt, purchase reference, location, or stable ID. The field view inherits exact MTR,
+  PMI rule, receipt, custody, exception and release-gate context and exposes independently
+  authorized receipt, review, PMI, custody, and release paths without duplicating records.
+- Added a permission-filtered quality-execution API and tablet field queues for existing
+  inspections, NCRs, punch items, and turnover packages. Users can reopen the exact
+  authoritative object, see its current target/state/version/turnover consequence, and
+  invoke independently authorized acceptance, disposition, verification, closure,
+  readiness, and immutable-generation paths without recreating browser-session records.
+- Expanded local pilot role catalogs with explicit inspection/NCR/punch read permissions
+  and the existing NCR disposition/reinspection permissions and qualifications required
+  by the governed lifecycle.
+- Completed the command-center My Work handoff: users can search and filter authorized
+  work by module, priority, state, title, source identity, or action; opening a card now
+  preserves exact source type, ID, expected version, and requested action in a shareable
+  URL. Quality, turnover, welding, NDE, PWHT, and testing workspaces use that target to
+  focus the authoritative object while still revalidating every server-side action.
+- Local verification passes 112 source tests and strict workspace typechecks. This is
+  a controlled design-validation runtime, not Azure deployment, production identity,
+  live-data authorization, pilot acceptance, or production approval.
+
 ## 0.16.0 - Multidisciplinary engineering registers
 
 - Added revisioned requirement, deliverable, system, equipment, line, instrument,

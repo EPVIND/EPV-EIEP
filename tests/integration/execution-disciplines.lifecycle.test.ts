@@ -91,9 +91,43 @@ async function configuredExecution() {
     ...commonProcedure, procedureType: "wps", number: "WPS-UNSUPPORTED", revision: "0", supportingPqrIds: [pqr.id],
     thicknessMaximum: "2.0",
   }), /supports its full applicability range/u);
+  const specification = {
+    codeProfileId: "ASME_BPVC_IX_2025", governingCode: "ASME BPVC Section IX", codeEdition: "2025",
+    constructionCode: "ASME B31.3", controlledCatalogVersion: "WELD-CAT-001-REV-0", qualificationRoute: "procedure_qualification",
+    procedureTitle: "Controlled GTAW procedure", serviceDescription: "Qualified carbon-steel pressure-piping butt weld.", units: "us_customary",
+    joint: { jointType: "Single-V groove", designReference: "DETAIL-BW-V", grooveAngle: "60 DEG +/- 5", rootOpening: "0.125 IN +/- 0.031",
+      rootFace: "0.062 IN +/- 0.031", backingType: "Gas backing", backingMaterial: "Argon", weldProgression: "Vertical up", misalignmentTolerance: "0.062 IN MAX" },
+    baseMetals: { materialSpecifications: ["SA-106"], materialGrades: ["GRADE B"], groupSystem: "ASME P-Number / Group Number",
+      groupCodes: ["P1"], productForms: ["Pipe"], thicknessRange: "0.1 – 1.0 IN", diameterRange: "2 – 24 IN",
+      qualificationRangeBasis: "Supporting approved PQR qualified range", dissimilarMetalBasis: "Not applicable" },
+    processSteps: [{ sequence: 1, processCode: "GTAW", operationMode: "manual", passScope: "Root through cap", transferMode: "Not applicable",
+      currentType: "DC", polarity: "DCEN", amperageRange: "70-120", voltageRange: "9-14", travelSpeedRange: "2-6 IN/MIN", heatInputRange: "Owner-controlled",
+      fillerSpecification: "ASME SFA-5.18", fillerClassification: "ER70S-2", fillerGroup: "F-NO 6 / A-NO 1", fillerDiameterRange: "0.062-0.094 IN",
+      electrodeConfiguration: "Single tungsten", shieldingGasComposition: "100% ARGON", shieldingGasFlowRange: "15-25 CFH", backingGasComposition: "100% ARGON",
+      backingGasFlowRange: "10-20 CFH", fluxOrBackingMaterial: "Not applicable" }],
+    thermalControl: { preheatMethod: "Resistance heating", preheatMaintenance: "Continuous through welding", temperatureMeasurementMethod: "Calibrated contact pyrometer",
+      temperatureControlBasis: "Supporting PQR and governing construction specification", pwhtDetermination: "not_required",
+      pwhtRuleCitation: "Controlled ASME B31.3 rule record PWHT-001", pwhtRequired: false, pwhtTemperatureRange: "Not applicable",
+      pwhtHoldingTime: "Not applicable", heatingRateLimit: "Not applicable", coolingRateLimit: "Not applicable" },
+    technique: { beadTechnique: "Stringer", cleaningMethod: "Power wire brush", backGougingMethod: "Not applicable", oscillation: "Not applicable", peening: "Not permitted",
+      contactTubeDistance: "Not applicable", interpassCleaning: "Brush and grind as required", singleOrMultiplePass: "Multiple pass", singleOrMultipleElectrode: "Single electrode" },
+    examinationAndTests: { visualAcceptanceReference: "Controlled construction-code profile", ndeMethods: ["VT", "RT"], mechanicalTests: ["Tension", "Guided bend"],
+      impactTestTemperature: "Not applicable", hardnessLimit: "Not applicable", macroOrFractureTests: ["Not required"], specimenReferences: ["PQR-LAB-001"],
+      essentialVariableNotes: "Exact essential and supplementary-essential variables resolve through the licensed controlled code profile." },
+    revisionReason: "Initial issue",
+  } as const;
+  await assert.rejects(service.submitProcedure(procedureAuthor.context, procedureAuthor.assignments, projectId, {
+    ...commonProcedure, procedureType: "pqr", number: "PQR-DUPLICATE-STEP", revision: "0", supportingPqrIds: [],
+    specification: { ...specification, processSteps: [specification.processSteps[0], specification.processSteps[0]] },
+  }), /sequences must be unique/u);
+  await assert.rejects(service.submitProcedure(procedureAuthor.context, procedureAuthor.assignments, projectId, {
+    ...commonProcedure, procedureType: "pqr", number: "PQR-PWHT-CONFLICT", revision: "0", supportingPqrIds: [],
+    specification: { ...specification, thermalControl: { ...specification.thermalControl, pwhtDetermination: "required", pwhtRequired: false } },
+  }), /PWHT requirement conflicts/u);
   const wpsSubmitted = await service.submitProcedure(procedureAuthor.context, procedureAuthor.assignments, projectId, {
-    ...commonProcedure, procedureType: "wps", number: "WPS-001", revision: "0", supportingPqrIds: [pqr.id],
+    ...commonProcedure, procedureType: "wps", number: "WPS-001", revision: "0", supportingPqrIds: [pqr.id], specification,
   });
+  assert.equal(wpsSubmitted.specification?.processSteps[0]?.fillerClassification, "ER70S-2");
   const wps = await service.reviewProcedure(procedureAuthority.context, procedureAuthority.assignments,
     wpsSubmitted.id, wpsSubmitted.version, "approve", "WPS ranges verified against exact PQR revision.");
 

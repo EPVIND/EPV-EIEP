@@ -24,6 +24,13 @@ interface ReviewCopy {
 interface Props {
   readonly moduleKey: string;
   readonly moduleLabel: string;
+  readonly requestedDocumentCode?: string;
+  readonly requestToken?: number;
+}
+
+export interface ReviewDocumentNavigationItem {
+  readonly code: string;
+  readonly title: string;
 }
 
 const template = (
@@ -151,6 +158,10 @@ const templatesByModule: Readonly<Record<string, readonly DocumentTemplate[]>> =
   ],
 };
 
+export function reviewDocumentNavigation(moduleKey: string): readonly ReviewDocumentNavigationItem[] {
+  return (templatesByModule[moduleKey] ?? []).map(({ code, title }) => ({ code, title }));
+}
+
 const emptyCopy: ReviewCopy = { state: "not_started", values: {}, events: [] };
 const stateLabel = (state: ReviewState) => state.replaceAll("_", " ");
 const fieldId = (field: string) => field.toLowerCase().replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "");
@@ -164,7 +175,7 @@ function readCopies(moduleKey: string): Record<string, ReviewCopy> {
   }
 }
 
-export function ModuleReviewWorkspace({ moduleKey, moduleLabel }: Props) {
+export function ModuleReviewWorkspace({ moduleKey, moduleLabel, requestedDocumentCode, requestToken }: Props) {
   const templates = templatesByModule[moduleKey] ?? [];
   const [selectedCode, setSelectedCode] = useState(templates[0]?.code ?? "");
   const [copies, setCopies] = useState<Record<string, ReviewCopy>>(() => readCopies(moduleKey));
@@ -175,6 +186,13 @@ export function ModuleReviewWorkspace({ moduleKey, moduleLabel }: Props) {
   useEffect(() => {
     sessionStorage.setItem(`eiep.review-copies.${moduleKey}`, JSON.stringify(copies));
   }, [copies, moduleKey]);
+
+  useEffect(() => {
+    if (requestedDocumentCode && templates.some((item) => item.code === requestedDocumentCode)) {
+      setSelectedCode(requestedDocumentCode);
+      setMessage(`${templates.find((item) => item.code === requestedDocumentCode)?.title ?? requestedDocumentCode} opened from enterprise navigation.`);
+    }
+  }, [requestToken, requestedDocumentCode, templates]);
 
   const completedFields = useMemo(() => selected
     ? selected.fields.filter((field) => copy.values[fieldId(field)]?.trim()).length
@@ -233,7 +251,7 @@ export function ModuleReviewWorkspace({ moduleKey, moduleLabel }: Props) {
   const startedCount = Object.values(copies).filter((item) => item.state !== "not_started").length;
   const reviewCount = Object.values(copies).filter((item) => item.state === "in_review").length;
 
-  return <section className="module-review-workspace" aria-labelledby={`${moduleKey}-review-heading`}>
+  return <section id={`${moduleKey}-review-documents`} className="module-review-workspace" aria-labelledby={`${moduleKey}-review-heading`}>
     <div className="workflow-heading module-review-heading"><div><p className="section-label">Controlled design review</p>
       <h2 id={`${moduleKey}-review-heading`}>Working documents and execution</h2>
       <p>Open document structures, enter a browser-session review copy, exercise validation and lifecycle controls, and inspect the audit sequence.</p></div>

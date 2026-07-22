@@ -68,9 +68,13 @@ match the dashboard presentation.
 1. Preserve and refine the completed controlled-pilot slices for estimating,
    project controls/procurement/scheduling, welding/NDE/PWHT/testing, provider-neutral
    Bluebeam collaboration, fabrication/spool control, CNC/profiling, and engineering registers.
-2. Extend the verified project command center into cross-project portfolio views and
+2. Extend the locally implemented welding and material field shells across assigned
+   work, inspections, NCRs, punch, and turnover. Each slice begins with a
+   scanned/searched controlled object, inherits known context, exposes only required
+   actuals/exceptions/next actions, and retains hierarchy selection as an authorized fallback.
+3. Extend the verified project command center into cross-project portfolio views and
    continue customer, reporting/analytics, and separately governed finance/payroll capabilities.
-3. Validate representative owner/provider fixtures and pursue separately approved
+4. Validate representative owner/provider fixtures and pursue separately approved
    live adapters only when contracts, credentials, sandboxes, tenancy, and production authorization exist.
 
 This ordering is dependency driven and does not remove any capability from the

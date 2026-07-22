@@ -1,4 +1,5 @@
 import { DevelopmentAuthenticator } from "./auth/development-authenticator.js";
+import { StoreBackedDevelopmentAuthenticator } from "./auth/store-backed-development-authenticator.js";
 import { resolve } from "node:path";
 import { AzureBlobStagedUploadStorage, LocalFilesystemObjectStorage } from "@eiep/document-processing";
 import { OidcAuthenticator } from "./auth/oidc-authenticator.js";
@@ -19,6 +20,7 @@ import { PostgresFoundationStore } from "./domain/postgres-foundation-store.js";
 import { ReportingService } from "./domain/reporting-service.js";
 import { buildServer } from "./server.js";
 import { createAzurePostgresAuthentication } from "./domain/azure-postgres-authentication.js";
+import { bootstrapLocalPilotAccess, loadLocalPilotBootstrapFile } from "./domain/local-pilot-bootstrap.js";
 
 const inferredRepositoryRoot = resolve(import.meta.dirname, "../../..");
 const configurationRoot = process.env.EIEP_CONFIG_ROOT?.trim()
@@ -34,6 +36,11 @@ const postgresStore = config.environment.dataStore === "postgres"
   ? await PostgresFoundationStore.connect(process.env.DATABASE_URL!, config.databaseRuntimeRole, databaseAuthentication)
   : null;
 const store = postgresStore ?? new InMemoryFoundationStore();
+if (config.localPilotBootstrapFile && config.localPilotBootstrapSha256) {
+  const pilot = await loadLocalPilotBootstrapFile(config.localPilotBootstrapFile, config.localPilotBootstrapSha256);
+  const result = await bootstrapLocalPilotAccess(store, pilot.input, pilot.manifestSha256);
+  process.stdout.write(`${JSON.stringify({ level: "info", event: "local_pilot_bootstrap", ...result })}\n`);
+}
 const service = new FoundationService(store);
 const estimating = new EstimatingService(store);
 const executionDisciplines = new ExecutionDisciplineService(store);
@@ -57,7 +64,7 @@ const stagedUpload = config.storageAccountName
 const authenticator =
   config.environment.authentication === "oidc"
     ? await OidcAuthenticator.create(config.oidcIssuer!, config.oidcAudience!, new StoreIdentityResolver(store))
-    : new DevelopmentAuthenticator();
+    : config.localPilotBootstrapFile ? new StoreBackedDevelopmentAuthenticator(store) : new DevelopmentAuthenticator();
 const server = await buildServer({
   service,
   estimating,

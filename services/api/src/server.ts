@@ -6,7 +6,7 @@ import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import { ImmutableStorageConflictError, type StagedUploadStoragePort } from "@eiep/document-processing";
 import { AuthorizationDeniedError } from "@eiep/rules-engine";
-import type { AccessContext, ProcurementOffer, ProcurementRequisitionItem, RoleAssignment, ScheduleActivity } from "@eiep/shared-types";
+import type { AccessContext, ProcurementOffer, ProcurementRequisitionItem, RoleAssignment, ScheduleActivity, WeldingProcedureSpecification } from "@eiep/shared-types";
 import { AuthenticationError, type Authenticator } from "./auth/authenticator.js";
 import { ConflictError, NotFoundError, ValidationError } from "./domain/errors.js";
 import { generatedRouteSchemas } from "./generated-route-schemas.js";
@@ -268,6 +268,7 @@ interface SubmitWeldingProcedureHttp {
   readonly jointDesignCodes: readonly string[]; readonly consumableClassifications: readonly string[];
   readonly preheatMinimum: string; readonly interpassMaximum: string; readonly effectiveFrom: string;
   readonly effectiveTo: string | null; readonly supersedesRevisionId: string | null;
+  readonly specification?: WeldingProcedureSpecification | null;
 }
 interface SubmitWelderQualificationHttp {
   readonly welderUserId: string; readonly employerOrganizationId: string; readonly qualificationNumber: string;
@@ -2355,6 +2356,22 @@ export async function buildServer(dependencies: ServerDependencies) {
       return dependencies.service.executeRetentionDisposition(
         access.context, access.assignments, request.params.dispositionId, request.body.expectedVersion,
       );
+    },
+  );
+
+  server.get<{ Params: { projectId: string } }>(
+    "/v1/projects/:projectId/materials",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return dependencies.operations.materials(access.context, access.assignments, request.params.projectId);
+    },
+  );
+
+  server.get<{ Params: { projectId: string } }>(
+    "/v1/projects/:projectId/quality-execution",
+    async (request) => {
+      const access = await accessFor(request, dependencies);
+      return dependencies.operations.qualityExecution(access.context, access.assignments, request.params.projectId);
     },
   );
 

@@ -1823,6 +1823,10 @@ class MemoryTransaction implements FoundationTransaction {
     return inspection ? cloneValue(inspection) : null;
   }
 
+  public inspectionsForProject(projectId: string): readonly InspectionRecord[] {
+    return cloneValue([...this.state.inspections.values()].filter((inspection) => inspection.projectId === projectId));
+  }
+
   public insertInspection(inspection: InspectionRecord): void {
     if (this.state.inspections.has(inspection.id)) throw new ConflictError();
     this.state.inspections.set(inspection.id, cloneValue(inspection));

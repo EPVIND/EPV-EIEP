@@ -19,6 +19,19 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
 
 ## Next - multidisciplinary execution
 
+- Object-first, role-based field entry: authoritative welding, material, inspection,
+  NCR, punch, and turnover slices are
+  locally implemented with scan/search, inherited WPS/current repair-cycle/NDE/PWHT or
+  MTR/PMI/custody/release-gate context, permission-filtered quality queues, package
+  readiness, immutable history, explainable blockers, and role-organized server actions.
+  My Work now preserves exact source/action/version deep links into authoritative
+  quality, turnover, welding, NDE, PWHT, and testing workspaces. Extend automatic
+  object focus to the remaining execution disciplines;
+  preserve inherited
+  project/drawing/material/procedure/schedule context, required actuals, exception,
+  and next permitted action. Internal IDs, provider metadata, and hierarchy selection
+  remain behind Details/Audit or an authorized fallback. Every slice must reuse
+  authoritative module state.
 - Advanced estimating, assemblies/productivity, monetary authority, quote
   comparison, printable proposal, and immutable award handoff: locally implemented
   controlled pilot; production migration/configuration/deployment acceptance remains.
@@ -32,7 +45,8 @@ This is the initial outcome-ordered backlog. Detailed user stories must referenc
   approved external-contract and sandbox deliverable.
 - Unified project command center with derived module health, accepted schedule
   progress, owned/currently authorized task queue, safe recent activity, filters,
-  quick actions, and source/module drill-through: locally implemented controlled
+  quick actions, searchable state/priority/module filters, shareable exact-source work
+  targets, and source/module drill-through: locally implemented controlled
   pilot. Cross-project portfolio thresholds and deployed service health remain expansion.
 - Fabrication/spool revisions, exact BOM/cut/material/weld/inspection scope,
   independently released sequenced travelers, append-only shop execution and hold

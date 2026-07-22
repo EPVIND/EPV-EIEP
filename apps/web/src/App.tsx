@@ -10,7 +10,8 @@ import { CommandCenterWorkspace } from "./CommandCenterWorkspace.js";
 import { FabricationWorkspace } from "./FabricationWorkspace.js";
 import { CncWorkspace } from "./CncWorkspace.js";
 import { EngineeringRegisterWorkspace } from "./EngineeringRegisterWorkspace.js";
-import { ModuleReviewWorkspace } from "./ModuleReviewWorkspace.js";
+import { ModuleReviewWorkspace, reviewDocumentNavigation } from "./ModuleReviewWorkspace.js";
+import type { WorkTarget } from "./work-target.js";
 
 interface HealthStatus {
   readonly status: string;
@@ -30,6 +31,12 @@ interface IdentitySettings {
   readonly userId: string;
   readonly organizationId: string;
   readonly assurance: "standard" | "mfa" | "step-up";
+}
+
+interface PilotIdentityProfile {
+  readonly displayName: string;
+  readonly userId: string;
+  readonly organizationId: string;
 }
 
 interface SessionStatus extends IdentitySettings {
@@ -115,13 +122,23 @@ function ModuleCapabilityLanding({ module }: { readonly module: (typeof modules)
       <p>{module.eyebrow}. The functional surface is available here; controlled project records remain hidden until an authorized identity and project are selected.</p></div><span className="policy-chip">Access boundary active</span></div>
     <div className="module-access-grid">{items.map(([title, description], index) => <article key={title}><span>{String(index + 1).padStart(2, "0")}</span><div><h3>{title}</h3><p>{description}</p></div></article>)}</div>
     <div className="module-access-note"><strong>Two execution layers</strong><p>Use the review workbench below to inspect and exercise document design now. Authoritative project actions load only after a controlled API identity and project are selected.</p></div>
-    <ModuleReviewWorkspace key={module.key} moduleKey={module.key} moduleLabel={module.label} />
   </section>;
 }
 
 function initialModule(): ModuleKey {
   const requested = window.location.hash.replace(/^#/u, "") as ModuleKey;
   return modules.some((module) => module.key === requested) ? requested : "overview";
+}
+
+function initialWorkTarget(): WorkTarget | null {
+  const query = new URLSearchParams(window.location.search);
+  const recordType = query.get("workRecordType")?.trim();
+  const recordId = query.get("workRecordId")?.trim();
+  const action = query.get("workAction")?.trim();
+  const version = Number(query.get("workVersion"));
+  return recordType && recordId && action && Number.isSafeInteger(version) && version > 0
+    ? { recordType, recordId, action, version }
+    : null;
 }
 
 function FabricationCapabilityPreview() {
@@ -211,6 +228,24 @@ function storedIdentity(): IdentitySettings {
   };
 }
 
+function localPilotIdentityProfiles(): readonly PilotIdentityProfile[] {
+  const source = import.meta.env.VITE_LOCAL_PILOT_IDENTITIES;
+  if (!source) return [];
+  try {
+    const parsed = JSON.parse(source) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+    return parsed.filter((value): value is PilotIdentityProfile => Boolean(value)
+      && typeof value === "object"
+      && typeof (value as PilotIdentityProfile).displayName === "string"
+      && (value as PilotIdentityProfile).displayName.length > 0
+      && uuid.test((value as PilotIdentityProfile).userId)
+      && uuid.test((value as PilotIdentityProfile).organizationId));
+  } catch {
+    return [];
+  }
+}
+
 function displayCode(value: string): string {
   return value.replaceAll("_", " ").replace(/\b\w/gu, (letter) => letter.toUpperCase());
 }
@@ -222,10 +257,14 @@ export function App() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [apiUnavailable, setApiUnavailable] = useState(false);
   const [identity, setIdentity] = useState<IdentitySettings>(storedIdentity);
+  const pilotIdentities = useMemo(localPilotIdentityProfiles, []);
   const [session, setSession] = useState<SessionStatus | null>(null);
   const [projects, setProjects] = useState<readonly ProjectRecord[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [activeModule, setActiveModule] = useState<ModuleKey>(initialModule);
+  const [workTarget, setWorkTarget] = useState<WorkTarget | null>(initialWorkTarget);
+  const [expandedModules, setExpandedModules] = useState<ReadonlySet<ModuleKey>>(() => new Set([initialModule()]));
+  const [reviewDocumentRequest, setReviewDocumentRequest] = useState<{ readonly moduleKey: ModuleKey; readonly code: string; readonly token: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<readonly SearchResult[]>([]);
   const [working, setWorking] = useState(false);
@@ -274,10 +313,27 @@ export function App() {
     setMessage({ tone, text });
   }, []);
 
-  const openModule = useCallback((module: ModuleKey) => {
+  const openModule = useCallback((module: ModuleKey, target?: WorkTarget) => {
     setActiveModule(module);
-    window.location.hash = module;
+    setWorkTarget(target ?? null);
+    const url = new URL(window.location.href);
+    for (const key of ["workRecordType", "workRecordId", "workAction", "workVersion"]) url.searchParams.delete(key);
+    if (target) {
+      url.searchParams.set("workRecordType", target.recordType);
+      url.searchParams.set("workRecordId", target.recordId);
+      url.searchParams.set("workAction", target.action);
+      url.searchParams.set("workVersion", String(target.version));
+    }
+    url.hash = module;
+    window.history.pushState(null, "", url);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const clearWorkTarget = useCallback(() => {
+    setWorkTarget(null);
+    const url = new URL(window.location.href);
+    for (const key of ["workRecordType", "workRecordId", "workAction", "workVersion"]) url.searchParams.delete(key);
+    window.history.replaceState(null, "", url);
   }, []);
 
   const refreshWorkspace = useCallback(async () => {
@@ -318,10 +374,19 @@ export function App() {
   useEffect(() => { void refreshWorkspace(); }, [refreshWorkspace]);
   useEffect(() => { setReadinessStatus(null); setActivationConfirmation(""); }, [selectedProjectId]);
   useEffect(() => {
-    const followHash = () => setActiveModule(initialModule());
+    const followHash = () => { setActiveModule(initialModule()); setWorkTarget(initialWorkTarget()); };
     window.addEventListener("hashchange", followHash);
-    return () => window.removeEventListener("hashchange", followHash);
+    window.addEventListener("popstate", followHash);
+    return () => { window.removeEventListener("hashchange", followHash); window.removeEventListener("popstate", followHash); };
   }, []);
+  useEffect(() => {
+    setExpandedModules((current) => new Set([...current, activeModule]));
+  }, [activeModule]);
+  useEffect(() => {
+    if (reviewDocumentRequest?.moduleKey !== activeModule) return;
+    const frame = window.requestAnimationFrame(() => document.getElementById(`${activeModule}-review-documents`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeModule, reviewDocumentRequest]);
 
   const moduleCounts = useMemo(() => ({
     projects: projects.length,
@@ -340,6 +405,19 @@ export function App() {
     sessionStorage.setItem("eiep.organizationId", identity.organizationId);
     sessionStorage.setItem("eiep.assurance", identity.assurance);
     void refreshWorkspace();
+  }
+
+  function toggleModuleNavigation(moduleKey: ModuleKey) {
+    setExpandedModules((current) => {
+      const next = new Set(current);
+      if (next.has(moduleKey)) next.delete(moduleKey); else next.add(moduleKey);
+      return next;
+    });
+  }
+
+  function openReviewDocument(moduleKey: ModuleKey, code: string) {
+    openModule(moduleKey);
+    setReviewDocumentRequest({ moduleKey, code, token: Date.now() });
   }
 
   async function createProject(event: FormEvent<HTMLFormElement>) {
@@ -443,19 +521,37 @@ export function App() {
       <div className="workspace">
         <aside className="sidebar">
           <nav aria-label="EIEP modules">
-            {modules.map((module) => (
-              <a
-                key={module.key}
-                href={`#${module.key}`}
-                aria-current={activeModule === module.key ? "page" : undefined}
-                onClick={() => openModule(module.key)}
-              >
-                <span>{module.label}</span><small>{module.eyebrow}</small>
-              </a>
-            ))}
+            {modules.map((module) => {
+              const capabilities = moduleCapabilityItems[module.key] ?? [];
+              const documents = reviewDocumentNavigation(module.key);
+              const expanded = expandedModules.has(module.key);
+              return <div key={module.key} className={`module-nav-group ${activeModule === module.key ? "is-active" : ""}`}>
+                <div className="module-nav-row">
+                  <a href={`#${module.key}`} aria-current={activeModule === module.key ? "page" : undefined} onClick={() => openModule(module.key)}>
+                    <span>{module.label}</span><small>{module.eyebrow}</small>
+                  </a>
+                  {module.key !== "overview" ? <button type="button" className="module-nav-toggle" aria-label={`${expanded ? "Collapse" : "Expand"} ${module.label} functions`}
+                    aria-expanded={expanded} onClick={() => toggleModuleNavigation(module.key)}><span aria-hidden="true">⌄</span></button> : null}
+                </div>
+                {module.key !== "overview" && expanded ? <div className="module-nav-children">
+                  <button type="button" className="module-nav-workspace" onClick={() => openModule(module.key)}>Open complete workspace</button>
+                  {capabilities.length > 0 ? <><span className="module-nav-label">Workflows</span>{capabilities.map(([title]) => <button key={title} type="button" onClick={() => openModule(module.key)}>{title}</button>)}</> : null}
+                  {documents.length > 0 ? <><span className="module-nav-label">Documents & registers</span>{documents.map((document) => <button key={document.code} type="button"
+                    onClick={() => openReviewDocument(module.key, document.code)}><small>{document.code}</small>{document.title}</button>)}</> : null}
+                </div> : null}
+              </div>;
+            })}
           </nav>
           <form className="identity-card" onSubmit={saveIdentity}>
             <div><p className="section-label">Review identity</p><span className="security-dot" title="Headers are development-only" /></div>
+            {pilotIdentities.length > 0 ? <label>Controlled pilot role<select value={pilotIdentities.find((profile) => profile.userId === identity.userId)?.userId ?? ""}
+              onChange={(event) => {
+                const profile = pilotIdentities.find((candidate) => candidate.userId === event.target.value);
+                if (profile) setIdentity({ ...identity, userId: profile.userId, organizationId: profile.organizationId });
+              }}>
+              <option value="">Custom identity</option>
+              {pilotIdentities.map((profile) => <option key={profile.userId} value={profile.userId}>{profile.displayName}</option>)}
+            </select></label> : null}
             <label>User ID<input value={identity.userId} onChange={(event) => setIdentity({ ...identity, userId: event.target.value })} required /></label>
             <label>Acting organization<input value={identity.organizationId} onChange={(event) => setIdentity({ ...identity, organizationId: event.target.value })} required /></label>
             <label>Assurance<select value={identity.assurance} onChange={(event) => setIdentity({ ...identity, assurance: event.target.value as IdentitySettings["assurance"] })}>
@@ -538,6 +634,12 @@ export function App() {
 
           {showGenericCapabilityLanding ? <ModuleCapabilityLanding module={activeModuleDefinition} /> : null}
 
+          {workTarget ? <section className="work-target-banner" aria-label="Selected My Work target">
+            <div><p className="section-label">My Work target</p><strong>{workTarget.title ?? displayCode(workTarget.action)}</strong>
+              <small>{displayCode(workTarget.recordType)} · {workTarget.recordId} · expected v{workTarget.version}</small></div>
+            <div><span className="policy-chip">Server revalidation required</span><button type="button" className="text-button" onClick={clearWorkTarget}>Clear target</button></div>
+          </section> : null}
+
           {selectedProject && session && activeModule === "overview" ? <CommandCenterWorkspace
             key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:command-center`}
             projectId={selectedProject.id}
@@ -587,6 +689,7 @@ export function App() {
             projectId={selectedProject.id}
             projectNumber={selectedProject.number}
             initialView={activeModule}
+            workTarget={workTarget}
             request={request}
             working={working}
             setWorking={setWorking}
@@ -640,6 +743,7 @@ export function App() {
               projectId={selectedProject.id}
               projectNumber={selectedProject.number}
               initialStep={activeModule}
+              workTarget={workTarget}
               request={request}
               download={download}
               working={working}
@@ -647,6 +751,15 @@ export function App() {
               notify={notify}
             />
             : null}
+
+          {activeModule !== "overview" ? <ModuleReviewWorkspace
+            key={`${activeModule}:review`}
+            moduleKey={activeModule}
+            moduleLabel={activeModuleDefinition.label}
+            {...(reviewDocumentRequest?.moduleKey === activeModule
+              ? { requestedDocumentCode: reviewDocumentRequest.code, requestToken: reviewDocumentRequest.token }
+              : {})}
+          /> : null}
 
           {health && !health.productionReady ? <section className="release-boundary" aria-labelledby="release-heading"><div><p className="section-label">Release boundary</p><h2 id="release-heading">Production authorization remains blocked</h2></div><ul>{health.blockers.map((blocker) => <li key={blocker}>{displayCode(blocker)}</li>)}</ul></section> : null}
         </main>

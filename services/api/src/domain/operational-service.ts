@@ -130,6 +130,13 @@ export interface SubmitInspectionInput {
   readonly result: "pass" | "fail";
 }
 
+export interface QualityExecutionWorkspace {
+  readonly inspections: readonly InspectionRecord[];
+  readonly ncrs: readonly NonconformanceRecord[];
+  readonly punches: readonly PunchItemRecord[];
+  readonly turnoverPackages: readonly TurnoverPackageRecord[];
+}
+
 export interface RecordPmiInput {
   readonly governingRule: string;
   readonly requiredMaterial: string;
@@ -357,6 +364,46 @@ export class OperationalService {
     private readonly clock: Clock = () => new Date(),
     private readonly idFactory: IdFactory = randomUUID,
   ) {}
+
+  public materials(
+    context: AccessContext,
+    assignments: readonly RoleAssignment[],
+    projectId: string,
+  ): Promise<readonly MaterialItemRecord[]> {
+    const now = this.clock();
+    return this.store.transaction((transaction) => {
+      const project = transaction.projectById(projectId);
+      if (!project) throw new NotFoundError();
+      return transaction.materialsForProject(project.id).filter((material) => authorize(context, assignments, {
+        action: "material.read",
+        resource: scope(project.businessScopeOrganizationId, project.id, material.id),
+        requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
+      }, now).allowed);
+    });
+  }
+
+  public qualityExecution(
+    context: AccessContext,
+    assignments: readonly RoleAssignment[],
+    projectId: string,
+  ): Promise<QualityExecutionWorkspace> {
+    const now = this.clock();
+    return this.store.transaction((transaction) => {
+      const project = transaction.projectById(projectId);
+      if (!project) throw new NotFoundError();
+      const permitted = (action: string, objectId: string) => authorize(context, assignments, {
+        action,
+        resource: scope(project.businessScopeOrganizationId, project.id, objectId),
+        requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
+      }, now).allowed;
+      return {
+        inspections: transaction.inspectionsForProject(project.id).filter((record) => permitted("inspection.read", record.id)),
+        ncrs: transaction.ncrForProject(project.id).filter((record) => permitted("ncr.read", record.id)),
+        punches: transaction.punchForProject(project.id).filter((record) => permitted("punch.read", record.id)),
+        turnoverPackages: transaction.turnoverPackagesForProject(project.id).filter((record) => permitted("turnover.read", record.id)),
+      };
+    });
+  }
 
   public receiveMaterial(
     context: AccessContext,

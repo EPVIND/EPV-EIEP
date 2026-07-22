@@ -410,6 +410,7 @@ export interface FoundationTransaction {
   insertInspectionPlan(plan: InspectionPlanRevisionRecord): void;
   updateInspectionPlan(plan: InspectionPlanRevisionRecord, expectedVersion: number): void;
   inspectionById(id: string): InspectionRecord | null;
+  inspectionsForProject(projectId: string): readonly InspectionRecord[];
   insertInspection(inspection: InspectionRecord): void;
   updateInspection(inspection: InspectionRecord, expectedVersion: number): void;
   pmiById(id: string): PmiRecord | null;

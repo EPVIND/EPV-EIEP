@@ -119,6 +119,11 @@ Implemented review surfaces include:
   revisions by repair cycle, PWHT parameters/thermocouples/chart evidence, independent
   acceptance/release, and completion-boundary pressure/leak/functional test readiness,
   evidence, deficiencies, restoration, and audit;
+- a code-profile-driven Welding Procedure Builder covering code/application edition,
+  revision basis, joint and metal groups, ordered multi-process/filler/electrical/gas
+  variables, preheat/interpass/PWHT, technique, examinations/tests, applicability,
+  validation, printable preview, exact persistence, and independent review; licensed
+  code tables and the owner-approved project profile remain external controlled inputs;
 - a provider-neutral Bluebeam collaboration workspace and service covering protected
   export preview, exact document/user/organization/status mapping, markup/comment/
   reply page-region/source fidelity, idempotent atomic commit, changed-source and
@@ -140,7 +145,7 @@ Implemented review surfaces include:
   and tags with exact controlled relationships, deterministic validation/hash,
   independent approval, immutable supersession, audit, persistence, and command-center projection;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 217 active `/v1` routes and 173 request bodies, drift verification, bearer security,
+  schemas for 219 active `/v1` routes and 173 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -184,7 +189,7 @@ pnpm run containers:verify
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
 OpenAPI drift, Bicep/container-definition checks, strict typechecks,
-107 unit/integration/security/acceptance tests, 121-requirement/278-path traceability,
+112 unit/integration/security/acceptance tests, 121-requirement traceability,
 and compiled runtime process smoke tests. `pnpm run build` builds the two web
 applications, API, worker/contracts,
 shared packages, and validates the migration runner syntax. `pnpm run
@@ -199,6 +204,36 @@ first-application-authority bootstrap; the production operator contract is in
 
 `pnpm run test:browser` runs thirteen internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
+
+### Controlled local pilot runtime
+
+The repository includes a nonproduction, persistent PostgreSQL pilot supervisor for
+design validation without Azure. It does not seed projects, customers, facilities,
+materials, employees, or production records. An external, SHA-256-pinned manifest
+creates three or more distinct, expiring pilot identities and a separate worker;
+the API resolves development headers only to those persisted active accounts.
+
+Create the first manifest with owner-supplied names and an authorization reference:
+
+```powershell
+pnpm run pilot:manifest -- --organization-id <uuid> --authorization-reference "<approved local pilot reference>" --coordinator-name "<name>" --author-name "<name>" --reviewer-name "<name>"
+```
+
+Use the emitted path and SHA-256 for the first start. Keep this supervisor terminal
+running; it owns PostgreSQL, API, worker, and—when port 3200 is free—the web UI.
+
+```powershell
+pnpm run pilot:run -- --manifest .eiep-pilot/pilot-manifest.json --sha256 <emitted-sha256>
+pnpm run pilot:status
+pnpm run pilot:stop
+```
+
+Later starts use `pnpm run pilot:run` without repeating the manifest arguments. The
+ignored `.eiep-pilot/` directory contains the protected manifest, generated database
+credential, persistent database, file boundary, logs, and status. Preserve that
+directory to preserve pilot records. The UI offers manifest-derived role choices only
+when the supervisor starts it; these profiles remain development-only and do not
+replace Entra/OIDC or production access approval.
 
 Local review servers:
 

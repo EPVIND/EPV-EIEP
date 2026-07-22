@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { WorkTarget } from "./work-target.js";
 
 type CommandCenterModule =
   | "projects" | "estimating" | "controls" | "procurement" | "scheduling" | "documents"
@@ -73,7 +74,7 @@ interface CommandCenterWorkspaceProps {
   readonly working: boolean;
   readonly setWorking: (working: boolean) => void;
   readonly notify: (tone: "success" | "error", text: string) => void;
-  readonly openModule: (module: CommandCenterModule) => void;
+  readonly openModule: (module: CommandCenterModule, workTarget?: WorkTarget) => void;
 }
 
 const quickActions: readonly { readonly module: CommandCenterModule; readonly label: string; readonly description: string }[] = [
@@ -107,6 +108,8 @@ export function CommandCenterWorkspace({
   const [snapshot, setSnapshot] = useState<CommandCenterSnapshot | null>(null);
   const [moduleFilter, setModuleFilter] = useState<"all" | CommandCenterModule>("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | CommandCenterTask["priority"]>("all");
+  const [stateFilter, setStateFilter] = useState("all");
+  const [taskQuery, setTaskQuery] = useState("");
 
   const refresh = useCallback(async () => {
     setWorking(true);
@@ -122,9 +125,15 @@ export function CommandCenterWorkspace({
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  const visibleTasks = useMemo(() => snapshot?.tasks.filter((task) =>
-    (moduleFilter === "all" || task.module === moduleFilter)
-    && (priorityFilter === "all" || task.priority === priorityFilter)) ?? [], [moduleFilter, priorityFilter, snapshot?.tasks]);
+  const taskStates = useMemo(() => [...new Set(snapshot?.tasks.map((task) => task.state) ?? [])].sort(), [snapshot?.tasks]);
+  const visibleTasks = useMemo(() => snapshot?.tasks.filter((task) => {
+    const query = taskQuery.trim().toLocaleLowerCase();
+    return (moduleFilter === "all" || task.module === moduleFilter)
+      && (priorityFilter === "all" || task.priority === priorityFilter)
+      && (stateFilter === "all" || task.state === stateFilter)
+      && (!query || [task.title, task.recordType, task.recordId, task.action, task.state]
+        .some((value) => value.toLocaleLowerCase().includes(query)));
+  }) ?? [], [moduleFilter, priorityFilter, snapshot?.tasks, stateFilter, taskQuery]);
 
   return <section className="command-center" aria-labelledby="command-center-heading">
     <div className="workspace-hero command-center-hero">
@@ -150,16 +159,21 @@ export function CommandCenterWorkspace({
           <div className="panel-heading"><div><p className="section-label">Action center</p><h3 id="command-tasks-heading">My open tasks</h3></div>
             <span className="policy-chip">{visibleTasks.length} shown</span></div>
           <div className="command-filters">
+            <label className="command-search-filter">Find work<input type="search" value={taskQuery} onChange={(event) => setTaskQuery(event.target.value)} placeholder="Title, record, action…" /></label>
             <label>Module<select value={moduleFilter} onChange={(event) => setModuleFilter(event.target.value as typeof moduleFilter)}>
               <option value="all">All modules</option>{snapshot.modules.map((module) => <option key={module.module} value={module.module}>{module.label}</option>)}</select></label>
             <label>Priority<select value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value as typeof priorityFilter)}>
               <option value="all">All priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="normal">Normal</option></select></label>
+            <label>State<select value={stateFilter} onChange={(event) => setStateFilter(event.target.value)}>
+              <option value="all">All states</option>{taskStates.map((state) => <option key={state} value={state}>{label(state)}</option>)}</select></label>
           </div>
           <div className="command-list" aria-live="polite">
-            {visibleTasks.map((task) => <button key={task.id} type="button" className="command-list-row" onClick={() => openModule(task.module)}>
+            {visibleTasks.map((task) => <button key={task.id} type="button" className="command-list-row"
+              aria-label={`Open ${task.title} · ${label(task.action)}`}
+              onClick={() => openModule(task.module, { recordType: task.recordType, recordId: task.recordId, action: task.action, version: task.version, title: task.title })}>
               <span className={`priority-dot priority-${task.priority}`} aria-label={`${task.priority} priority`} />
               <span><strong>{task.title}</strong><small>{label(task.module)} · {label(task.state)} · {dateLabel(task.dueAt)}{task.overdue ? " · Overdue" : ""}</small></span>
-              <span className="record-version">v{task.version}</span>
+              <span className="record-version">v{task.version}<small>Open →</small></span>
             </button>)}
             {visibleTasks.length === 0 ? <div className="empty-state"><strong>No matching work</strong><p>No currently authorized or owned tasks match these filters.</p></div> : null}
           </div>

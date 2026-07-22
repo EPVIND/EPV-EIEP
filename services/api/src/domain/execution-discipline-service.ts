@@ -3,6 +3,7 @@ import type {
   AccessContext, AuditEvent, NdeReportRevisionRecord, NdeRequestRecord, PwhtCycleRecord,
   PwhtThermocoupleReading, RoleAssignment, TestPackageRecord, WelderQualificationRecord,
   WeldingProcedureRevisionRecord, WeldExecutionEvent, WeldJointRecord,
+  WeldingProcedureSpecification,
 } from "@eiep/shared-types";
 import { parseControlledDecimal, requireAuthorization } from "@eiep/rules-engine";
 import { ConflictError, NotFoundError, ValidationError } from "./errors.js";
@@ -21,6 +22,7 @@ export interface SubmitWeldingProcedureInput {
   readonly diameterMinimum: string; readonly diameterMaximum: string; readonly jointDesignCodes: readonly string[];
   readonly consumableClassifications: readonly string[]; readonly preheatMinimum: string; readonly interpassMaximum: string;
   readonly effectiveFrom: Date; readonly effectiveTo: Date | null; readonly supersedesRevisionId: string | null;
+  readonly specification?: WeldingProcedureSpecification | null;
 }
 export interface SubmitWelderQualificationInput {
   readonly welderUserId: string; readonly employerOrganizationId: string; readonly qualificationNumber: string;
@@ -107,6 +109,91 @@ function strings(values: readonly string[], field: string, requireOne = false): 
   if (requireOne && result.length === 0) throw new ValidationError(`${field} is required.`, [`${field}_required`]);
   if (new Set(result).size !== result.length) throw new ValidationError(`${field} contains duplicates.`, [`${field}_duplicate`]);
   return result;
+}
+
+function procedureSpecification(input: WeldingProcedureSpecification): WeldingProcedureSpecification {
+  if (input.processSteps.length < 1 || input.processSteps.length > 12) {
+    throw new ValidationError("A procedure specification requires between one and twelve ordered process steps.", ["process_steps_invalid"]);
+  }
+  const text = (value: string, field: string, maximum = 2_000) => required(value, `specification.${field}`, maximum);
+  const narrative = (value: string, field: string, maximum = 4_000) => {
+    const normalized = value.trim();
+    if (!normalized || normalized.length > maximum || normalized.includes("\u0000")) {
+      throw new ValidationError(`specification.${field} is invalid.`, [`specification.${field}_invalid`]);
+    }
+    return normalized;
+  };
+  const list = (values: readonly string[], field: string, requireOne = false) => strings(values, `specification.${field}`, requireOne);
+  const sequences = input.processSteps.map((step) => step.sequence);
+  if (sequences.some((sequence) => !Number.isInteger(sequence) || sequence < 1 || sequence > 12)
+    || new Set(sequences).size !== sequences.length) {
+    throw new ValidationError("Procedure process-step sequences must be unique integers between one and twelve.", ["process_step_sequence_invalid"]);
+  }
+  if (!["procedure_qualification", "prequalified", "standard_wps", "project_specific"].includes(input.qualificationRoute)
+    || !["us_customary", "metric", "mixed"].includes(input.units)
+    || !["required", "not_required"].includes(input.thermalControl.pwhtDetermination)
+    || input.processSteps.some((step) => !["manual", "semiautomatic", "machine", "automatic"].includes(step.operationMode))) {
+    throw new ValidationError("The procedure specification contains an unsupported controlled option.", ["procedure_specification_option_invalid"]);
+  }
+  if ((input.thermalControl.pwhtDetermination === "required") !== input.thermalControl.pwhtRequired) {
+    throw new ValidationError("PWHT requirement conflicts with the controlled rule disposition.", ["pwht_determination_conflict"]);
+  }
+  return {
+    codeProfileId: text(input.codeProfileId, "codeProfileId", 128), governingCode: text(input.governingCode, "governingCode", 256),
+    codeEdition: text(input.codeEdition, "codeEdition", 64), constructionCode: text(input.constructionCode, "constructionCode", 256),
+    controlledCatalogVersion: text(input.controlledCatalogVersion, "controlledCatalogVersion", 128), qualificationRoute: input.qualificationRoute,
+    procedureTitle: text(input.procedureTitle, "procedureTitle", 256), serviceDescription: narrative(input.serviceDescription, "serviceDescription", 2_000), units: input.units,
+    joint: {
+      jointType: text(input.joint.jointType, "joint.jointType"), designReference: text(input.joint.designReference, "joint.designReference"),
+      grooveAngle: text(input.joint.grooveAngle, "joint.grooveAngle"), rootOpening: text(input.joint.rootOpening, "joint.rootOpening"),
+      rootFace: text(input.joint.rootFace, "joint.rootFace"), backingType: text(input.joint.backingType, "joint.backingType"),
+      backingMaterial: text(input.joint.backingMaterial, "joint.backingMaterial"), weldProgression: text(input.joint.weldProgression, "joint.weldProgression"),
+      misalignmentTolerance: text(input.joint.misalignmentTolerance, "joint.misalignmentTolerance"),
+    },
+    baseMetals: {
+      materialSpecifications: list(input.baseMetals.materialSpecifications, "baseMetals.materialSpecifications", true),
+      materialGrades: list(input.baseMetals.materialGrades, "baseMetals.materialGrades", true), groupSystem: text(input.baseMetals.groupSystem, "baseMetals.groupSystem"),
+      groupCodes: list(input.baseMetals.groupCodes, "baseMetals.groupCodes", true), productForms: list(input.baseMetals.productForms, "baseMetals.productForms", true),
+      thicknessRange: text(input.baseMetals.thicknessRange, "baseMetals.thicknessRange"), diameterRange: text(input.baseMetals.diameterRange, "baseMetals.diameterRange"),
+      qualificationRangeBasis: text(input.baseMetals.qualificationRangeBasis, "baseMetals.qualificationRangeBasis"),
+      dissimilarMetalBasis: text(input.baseMetals.dissimilarMetalBasis, "baseMetals.dissimilarMetalBasis"),
+    },
+    processSteps: [...input.processSteps].sort((left, right) => left.sequence - right.sequence).map((step) => ({
+      sequence: step.sequence, processCode: text(step.processCode, "processSteps.processCode", 64), operationMode: step.operationMode,
+      passScope: text(step.passScope, "processSteps.passScope"), transferMode: text(step.transferMode, "processSteps.transferMode"),
+      currentType: text(step.currentType, "processSteps.currentType"), polarity: text(step.polarity, "processSteps.polarity"),
+      amperageRange: text(step.amperageRange, "processSteps.amperageRange"), voltageRange: text(step.voltageRange, "processSteps.voltageRange"),
+      travelSpeedRange: text(step.travelSpeedRange, "processSteps.travelSpeedRange"), heatInputRange: text(step.heatInputRange, "processSteps.heatInputRange"),
+      fillerSpecification: text(step.fillerSpecification, "processSteps.fillerSpecification"), fillerClassification: text(step.fillerClassification, "processSteps.fillerClassification"),
+      fillerGroup: text(step.fillerGroup, "processSteps.fillerGroup"), fillerDiameterRange: text(step.fillerDiameterRange, "processSteps.fillerDiameterRange"),
+      electrodeConfiguration: text(step.electrodeConfiguration, "processSteps.electrodeConfiguration"), shieldingGasComposition: text(step.shieldingGasComposition, "processSteps.shieldingGasComposition"),
+      shieldingGasFlowRange: text(step.shieldingGasFlowRange, "processSteps.shieldingGasFlowRange"), backingGasComposition: text(step.backingGasComposition, "processSteps.backingGasComposition"),
+      backingGasFlowRange: text(step.backingGasFlowRange, "processSteps.backingGasFlowRange"), fluxOrBackingMaterial: text(step.fluxOrBackingMaterial, "processSteps.fluxOrBackingMaterial"),
+    })),
+    thermalControl: {
+      preheatMethod: text(input.thermalControl.preheatMethod, "thermalControl.preheatMethod"), preheatMaintenance: text(input.thermalControl.preheatMaintenance, "thermalControl.preheatMaintenance"),
+      temperatureMeasurementMethod: text(input.thermalControl.temperatureMeasurementMethod, "thermalControl.temperatureMeasurementMethod"),
+      temperatureControlBasis: text(input.thermalControl.temperatureControlBasis, "thermalControl.temperatureControlBasis"), pwhtDetermination: input.thermalControl.pwhtDetermination,
+      pwhtRuleCitation: text(input.thermalControl.pwhtRuleCitation, "thermalControl.pwhtRuleCitation", 512), pwhtRequired: input.thermalControl.pwhtRequired,
+      pwhtTemperatureRange: text(input.thermalControl.pwhtTemperatureRange, "thermalControl.pwhtTemperatureRange"), pwhtHoldingTime: text(input.thermalControl.pwhtHoldingTime, "thermalControl.pwhtHoldingTime"),
+      heatingRateLimit: text(input.thermalControl.heatingRateLimit, "thermalControl.heatingRateLimit"), coolingRateLimit: text(input.thermalControl.coolingRateLimit, "thermalControl.coolingRateLimit"),
+    },
+    technique: {
+      beadTechnique: text(input.technique.beadTechnique, "technique.beadTechnique"), cleaningMethod: text(input.technique.cleaningMethod, "technique.cleaningMethod"),
+      backGougingMethod: text(input.technique.backGougingMethod, "technique.backGougingMethod"), oscillation: text(input.technique.oscillation, "technique.oscillation"),
+      peening: text(input.technique.peening, "technique.peening"), contactTubeDistance: text(input.technique.contactTubeDistance, "technique.contactTubeDistance"),
+      interpassCleaning: text(input.technique.interpassCleaning, "technique.interpassCleaning"), singleOrMultiplePass: text(input.technique.singleOrMultiplePass, "technique.singleOrMultiplePass"),
+      singleOrMultipleElectrode: text(input.technique.singleOrMultipleElectrode, "technique.singleOrMultipleElectrode"),
+    },
+    examinationAndTests: {
+      visualAcceptanceReference: text(input.examinationAndTests.visualAcceptanceReference, "examinationAndTests.visualAcceptanceReference"),
+      ndeMethods: list(input.examinationAndTests.ndeMethods, "examinationAndTests.ndeMethods"), mechanicalTests: list(input.examinationAndTests.mechanicalTests, "examinationAndTests.mechanicalTests"),
+      impactTestTemperature: text(input.examinationAndTests.impactTestTemperature, "examinationAndTests.impactTestTemperature"), hardnessLimit: text(input.examinationAndTests.hardnessLimit, "examinationAndTests.hardnessLimit"),
+      macroOrFractureTests: list(input.examinationAndTests.macroOrFractureTests, "examinationAndTests.macroOrFractureTests"), specimenReferences: list(input.examinationAndTests.specimenReferences, "examinationAndTests.specimenReferences"),
+      essentialVariableNotes: narrative(input.examinationAndTests.essentialVariableNotes, "examinationAndTests.essentialVariableNotes", 4_000),
+    },
+    revisionReason: narrative(input.revisionReason, "revisionReason", 2_000),
+  };
 }
 function date(value: Date, field: string): Date {
   if (!(value instanceof Date) || Number.isNaN(value.getTime())) throw new ValidationError(`${field} is invalid.`, [`${field}_invalid`]);
@@ -262,6 +349,7 @@ export class ExecutionDisciplineService {
         diameterMinimum: format(diameterMinimum), diameterMaximum: format(diameterMaximum), jointDesignCodes,
         consumableClassifications: codes(input.consumableClassifications, "consumableClassification", input.procedureType === "wps"),
         preheatMinimum: format(decimal(input.preheatMinimum, "preheatMinimum")), interpassMaximum: format(decimal(input.interpassMaximum, "interpassMaximum")),
+        specification: input.specification ? procedureSpecification(input.specification) : null,
         effectiveFrom, effectiveTo, state: "under_review", supersedesRevisionId: input.supersedesRevisionId,
         submittedAt: now, submittedBy: context.userId, reviewedAt: null, reviewedBy: null, reviewReason: null, version: 1 };
       transaction.insertWeldingProcedure(record); transaction.appendAudit(audit(this.idFactory, now, context, { projectId,

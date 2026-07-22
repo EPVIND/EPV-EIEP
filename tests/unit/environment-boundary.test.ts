@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { validateEnvironmentConfig } from "@eiep/rules-engine";
 import type { EnvironmentConfig } from "@eiep/shared-types";
+import { loadRuntimeConfig } from "@eiep/api";
 
 test("NFR-MNT-003 / AC-01: all controlled environment files satisfy isolation guards", async () => {
   for (const name of ["development", "test", "training", "production"]) {
@@ -48,4 +50,39 @@ test("DEC-005 / AC-01: training requires its visible and persistent boundary", (
     new Set(issues),
     new Set(["training_requires_banner", "training_cannot_use_development_auth", "training_requires_isolated_persistent_store"]),
   );
+});
+
+test("NFR-SEC-002-003, NFR-MNT-003 / AC-01: local pilot configuration is hash-paired and development-PostgreSQL only", async () => {
+  const root = await mkdtemp(join(tmpdir(), "eiep-pilot-config-"));
+  const environmentDirectory = join(root, "config", "environments");
+  const originalEnvironment = { ...process.env };
+  try {
+    await mkdir(environmentDirectory, { recursive: true });
+    const environment: EnvironmentConfig = {
+      environment: "development", authentication: "development", dataStore: "postgres",
+      trainingBanner: false, allowSyntheticData: true, allowProductionData: false,
+    };
+    await writeFile(join(environmentDirectory, "development.json"), JSON.stringify(environment), "utf8");
+    Object.assign(process.env, {
+      EIEP_ENV: "development",
+      DATABASE_URL: "postgresql://local-pilot.invalid/eiep",
+      EIEP_LOCAL_PILOT_BOOTSTRAP_FILE: join(root, "manifest.json"),
+      EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256: "a".repeat(64),
+    });
+    const valid = await loadRuntimeConfig(root);
+    assert.equal(valid.localPilotBootstrapSha256, "a".repeat(64));
+
+    delete process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256;
+    await assert.rejects(loadRuntimeConfig(root), /must be supplied together/u);
+    process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 = "not-a-sha";
+    await assert.rejects(loadRuntimeConfig(root), /must be a lowercase SHA-256/u);
+
+    process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 = "b".repeat(64);
+    await writeFile(join(environmentDirectory, "development.json"), JSON.stringify({ ...environment, dataStore: "memory" }), "utf8");
+    await assert.rejects(loadRuntimeConfig(root), /requires development authentication, PostgreSQL/u);
+  } finally {
+    for (const name of Object.keys(process.env)) if (!(name in originalEnvironment)) delete process.env[name];
+    Object.assign(process.env, originalEnvironment);
+    await rm(root, { recursive: true, force: true });
+  }
 });

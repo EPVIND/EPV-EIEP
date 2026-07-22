@@ -1,4 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { WeldingProcedureBuilder } from "./WeldingProcedureBuilder.js";
+import type { WorkTarget } from "./work-target.js";
 
 type Request = <T>(path: string, init?: RequestInit) => Promise<T>;
 type Notify = (tone: "success" | "error", text: string) => void;
@@ -7,13 +9,13 @@ export type ExecutionView = "welding" | "nde" | "testing";
 interface Procedure { readonly id: string; readonly procedureType: string; readonly number: string; readonly revision: string; readonly processCodes: readonly string[]; readonly materialGroupCodes: readonly string[]; readonly state: string; readonly version: number; }
 interface Qualification { readonly id: string; readonly welderUserId: string; readonly qualificationNumber: string; readonly processCodes: readonly string[]; readonly validTo: string; readonly state: string; readonly version: number; }
 interface WeldEvent { readonly id: string; readonly eventType: string; readonly repairCycle: number; readonly performedBy: string; readonly result: string; }
-interface Weld { readonly id: string; readonly number: string; readonly systemCode: string; readonly workPackageCode: string; readonly weldMapLocation: string; readonly wpsRevisionId: string; readonly requiredExaminationMethods: readonly string[]; readonly pwhtRequired: boolean; readonly repairCycle: number; readonly events: readonly WeldEvent[]; readonly state: string; readonly version: number; }
+interface Weld { readonly id: string; readonly number: string; readonly systemCode: string; readonly workPackageCode: string; readonly weldMapLocation: string; readonly wpsRevisionId: string; readonly processCode?: string; readonly materialGroupCode?: string; readonly requiredExaminationMethods: readonly string[]; readonly pwhtRequired: boolean; readonly repairCycle: number; readonly events: readonly WeldEvent[]; readonly state: string; readonly version: number; }
 interface NdeRequest { readonly id: string; readonly number: string; readonly weldId: string; readonly repairCycle: number; readonly methodCode: string; readonly reportRevisionIds: readonly string[]; readonly state: string; readonly version: number; }
 interface NdeReport { readonly id: string; readonly requestId: string; readonly revision: string; readonly examinerUserId: string; readonly result: string; readonly state: string; readonly version: number; }
 interface PwhtCycle { readonly id: string; readonly number: string; readonly weldIds: readonly string[]; readonly result: string; readonly interruptions: readonly string[]; readonly state: string; readonly version: number; }
 interface TestPackage { readonly id: string; readonly number: string; readonly testType: string; readonly completionBoundaryId: string; readonly targetPressure: string | null; readonly result: string | null; readonly deficiencyNcrIds: readonly string[]; readonly state: string; readonly version: number; }
 interface Snapshot { readonly procedures: readonly Procedure[]; readonly welderQualifications: readonly Qualification[]; readonly welds: readonly Weld[]; readonly ndeRequests: readonly NdeRequest[]; readonly ndeReports: readonly NdeReport[]; readonly pwhtCycles: readonly PwhtCycle[]; readonly testPackages: readonly TestPackage[]; readonly weldReadiness: readonly { readonly weldId: string; readonly blockers: readonly string[] }[]; }
-interface Props { readonly projectId: string; readonly projectNumber: string; readonly initialView: ExecutionView; readonly request: Request; readonly working: boolean; readonly setWorking: (working: boolean) => void; readonly notify: Notify; }
+interface Props { readonly projectId: string; readonly projectNumber: string; readonly initialView: ExecutionView; readonly workTarget: WorkTarget | null; readonly request: Request; readonly working: boolean; readonly setWorking: (working: boolean) => void; readonly notify: Notify; }
 
 const emptySnapshot: Snapshot = { procedures: [], welderQualifications: [], welds: [], ndeRequests: [], ndeReports: [], pwhtCycles: [], testPackages: [], weldReadiness: [] };
 const views: readonly { readonly key: ExecutionView; readonly number: string; readonly label: string; readonly description: string }[] = [
@@ -26,10 +28,27 @@ const nullable = (value: FormDataEntryValue | null) => String(value ?? "").trim(
 const dateAfter = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 const errorText = (error: unknown) => error instanceof Error ? error.message : "The controlled action failed.";
 const display = (value: string) => value.replaceAll("_", " ");
+type FieldRole = "fitter" | "welder" | "qc_inspector" | "nde_examiner" | "quality_authority";
+const fieldRoles: readonly { readonly value: FieldRole; readonly label: string; readonly purpose: string; readonly eventTypes: readonly string[] }[] = [
+  { value: "fitter", label: "Fitter / joint preparer", purpose: "Fit-up identity, geometry, cleanliness, and acceptance evidence", eventTypes: ["fit_up"] },
+  { value: "welder", label: "Welder", purpose: "Consumable, preheat, pass, and repair execution against an active qualification", eventTypes: ["consumable_issue", "preheat_observation", "weld_pass", "repair_weld"] },
+  { value: "qc_inspector", label: "QC inspector", purpose: "Independent visual result and repair-excavation evidence", eventTypes: ["visual_examination", "repair_excavation"] },
+  { value: "nde_examiner", label: "NDE examiner", purpose: "Current repair-cycle request, technique, qualification, media, and report context", eventTypes: [] },
+  { value: "quality_authority", label: "Quality authority", purpose: "Explainable release readiness and independent release decision", eventTypes: [] },
+];
+const defaultFieldRole = fieldRoles[0]!;
+const fieldEventLabels: Readonly<Record<string, string>> = {
+  fit_up: "Fit-up verification", consumable_issue: "Consumable issue", preheat_observation: "Preheat observation",
+  weld_pass: "Weld pass", visual_examination: "Visual examination", repair_excavation: "Repair excavation", repair_weld: "Repair weld",
+};
+const nowForInput = () => new Date().toISOString().slice(0, 16);
 
-export function ExecutionDisciplinesWorkspace({ projectId, projectNumber, initialView, request, working, setWorking, notify }: Props) {
+export function ExecutionDisciplinesWorkspace({ projectId, projectNumber, initialView, workTarget, request, working, setWorking, notify }: Props) {
   const [view, setView] = useState<ExecutionView>(initialView);
   const [snapshot, setSnapshot] = useState<Snapshot>(emptySnapshot);
+  const [fieldRole, setFieldRole] = useState<FieldRole>("fitter");
+  const [objectQuery, setObjectQuery] = useState("");
+  const [selectedWeldId, setSelectedWeldId] = useState("");
   useEffect(() => setView(initialView), [initialView]);
   const refresh = useCallback(async (quiet = false) => {
     if (!quiet) setWorking(true);
@@ -40,6 +59,41 @@ export function ExecutionDisciplinesWorkspace({ projectId, projectNumber, initia
   useEffect(() => { void refresh(); }, [refresh]);
   const approvedProcedures = useMemo(() => snapshot.procedures.filter((item) => item.state === "approved"), [snapshot.procedures]);
   const activeQualifications = useMemo(() => snapshot.welderQualifications.filter((item) => item.state === "active"), [snapshot.welderQualifications]);
+  const filteredWelds = useMemo(() => {
+    const query = objectQuery.trim().toLocaleLowerCase();
+    return query ? snapshot.welds.filter((item) => [item.id, item.number, item.systemCode, item.workPackageCode, item.weldMapLocation]
+      .some((candidate) => candidate.toLocaleLowerCase().includes(query))) : snapshot.welds;
+  }, [objectQuery, snapshot.welds]);
+  const selectedWeld = snapshot.welds.find((item) => item.id === selectedWeldId) ?? filteredWelds[0] ?? null;
+  const selectedReadiness = selectedWeld ? snapshot.weldReadiness.find((item) => item.weldId === selectedWeld.id) ?? null : null;
+  const selectedProcedure = selectedWeld ? snapshot.procedures.find((item) => item.id === selectedWeld.wpsRevisionId) ?? null : null;
+  const selectedNdeRequests = selectedWeld ? snapshot.ndeRequests.filter((item) => item.weldId === selectedWeld.id && item.repairCycle === selectedWeld.repairCycle) : [];
+  const selectedPwhtCycles = selectedWeld ? snapshot.pwhtCycles.filter((item) => item.weldIds.includes(selectedWeld.id)) : [];
+  const activeFieldRole = fieldRoles.find((item) => item.value === fieldRole) ?? defaultFieldRole;
+  useEffect(() => {
+    if (selectedWeldId && snapshot.welds.some((item) => item.id === selectedWeldId)) return;
+    setSelectedWeldId(snapshot.welds[0]?.id ?? "");
+  }, [selectedWeldId, snapshot.welds]);
+  useEffect(() => {
+    if (!workTarget) return;
+    if (workTarget.recordType === "weld_joint") {
+      setView("welding"); setObjectQuery(workTarget.recordId); setSelectedWeldId(workTarget.recordId); return;
+    }
+    if (workTarget.recordType === "nde_request" || workTarget.recordType === "nde_report") {
+      setView("nde");
+      const report = snapshot.ndeReports.find((item) => item.id === workTarget.recordId);
+      const ndeRequest = snapshot.ndeRequests.find((item) => item.id === (report?.requestId ?? workTarget.recordId));
+      if (ndeRequest) setSelectedWeldId(ndeRequest.weldId);
+      return;
+    }
+    if (workTarget.recordType === "pwht_cycle") {
+      setView("nde");
+      const cycle = snapshot.pwhtCycles.find((item) => item.id === workTarget.recordId);
+      if (cycle?.weldIds[0]) setSelectedWeldId(cycle.weldIds[0]);
+      return;
+    }
+    if (workTarget.recordType === "test_package") setView("testing");
+  }, [snapshot.ndeReports, snapshot.ndeRequests, snapshot.pwhtCycles, workTarget]);
   async function act(path: string, body: unknown, success: string) {
     setWorking(true);
     try { await request(path, { method: "POST", body: JSON.stringify(body) }); notify("success", success); await refresh(true); }
@@ -89,6 +143,21 @@ export function ExecutionDisciplinesWorkspace({ projectId, projectNumber, initia
       welderQualificationIds: split(form.get("welderQualificationIds")), consumableClassification: nullable(form.get("consumableClassification")),
       observations, evidenceFileIds: split(form.get("evidenceFileIds")), result: String(form.get("result")),
     }, "Append-only weld event recorded with actor, time, evidence, qualification, and repair-cycle context.");
+  }
+  async function recordFieldEvent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedWeld) { notify("error", "Select an authorized weld object before recording field activity."); return; }
+    const form = new FormData(event.currentTarget);
+    const eventType = String(form.get("eventType"));
+    if (!activeFieldRole.eventTypes.includes(eventType)) { notify("error", "The selected field role does not expose that workflow action."); return; }
+    const observations = Object.fromEntries(split(form.get("observations")).map((row) => {
+      const [key, ...rest] = row.split("="); return [key?.trim() ?? "", rest.join("=").trim()];
+    }).filter(([key, entryValue]) => key && entryValue));
+    await act(`/v1/welds/${selectedWeld.id}/events`, {
+      expectedVersion: selectedWeld.version, eventType, performedAt: String(form.get("performedAt")),
+      welderQualificationIds: split(form.get("welderQualificationIds")), consumableClassification: nullable(form.get("consumableClassification")),
+      observations, evidenceFileIds: split(form.get("evidenceFileIds")), result: String(form.get("result")),
+    }, `${fieldEventLabels[eventType] ?? "Field event"} appended to ${selectedWeld.number} with current repair-cycle context.`);
   }
   async function createNdeRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = new FormData(event.currentTarget);
@@ -142,6 +211,53 @@ export function ExecutionDisciplinesWorkspace({ projectId, projectNumber, initia
       <article><span>PWHT cycles</span><strong>{snapshot.pwhtCycles.length}</strong><small>{snapshot.pwhtCycles.filter((item) => item.state === "accepted").length} accepted</small></article>
       <article><span>Test packages</span><strong>{snapshot.testPackages.length}</strong><small>{snapshot.testPackages.filter((item) => item.state === "accepted").length} accepted</small></article>
     </div>
+
+    {view === "welding" ? <section className="field-object-console" aria-labelledby="field-object-heading">
+      <div className="field-object-heading"><div><p className="section-label">Object-first field execution</p><h3 id="field-object-heading">Find the object, then perform the authorized work</h3>
+        <p>Scan or enter a weld number, map location, system, work package, or stable object ID. EIEP resolves the exact procedure, repair cycle, examinations, PWHT, blockers, and immutable history before exposing role-appropriate actions.</p></div><span className="policy-chip">Online authority enforced</span></div>
+      <div className="field-object-layout">
+        <aside className="field-object-finder" aria-label="Field object lookup">
+          <label>Scan / enter object identity<input type="search" value={objectQuery} onChange={(event) => setObjectQuery(event.target.value)} placeholder="Weld, QR token, system, work package…" /></label>
+          <div className="field-object-results" aria-live="polite">{filteredWelds.map((item) => <button key={item.id} type="button" className={selectedWeld?.id === item.id ? "is-selected" : ""} onClick={() => setSelectedWeldId(item.id)}>
+            <span><strong>{item.number}</strong><small>{item.weldMapLocation}</small></span><span className={`state-badge state-${item.state}`}>{display(item.state)}</span></button>)}</div>
+          {filteredWelds.length === 0 ? <p className="muted">No authorized weld object matches that identity.</p> : null}
+        </aside>
+
+        <article className="field-object-record" aria-label="Selected field object">
+          {selectedWeld ? <><div className="field-object-title"><div><span className="record-type">Weld object</span><h4>{selectedWeld.number} · repair cycle {selectedWeld.repairCycle}</h4><p>{selectedWeld.systemCode} · {selectedWeld.workPackageCode} · {selectedWeld.weldMapLocation}</p></div><span className={`state-badge state-${selectedWeld.state}`}>{display(selectedWeld.state)}</span></div>
+            <dl className="field-object-facts"><div><dt>Exact WPS</dt><dd>{selectedProcedure ? `${selectedProcedure.number} r${selectedProcedure.revision} · ${display(selectedProcedure.state)}` : selectedWeld.wpsRevisionId}</dd></div>
+              <div><dt>Process / material</dt><dd>{selectedWeld.processCode ?? "From exact WPS"} · {selectedWeld.materialGroupCode ?? "From exact material link"}</dd></div>
+              <div><dt>Required NDE</dt><dd>{selectedWeld.requiredExaminationMethods.join(", ") || "None configured"}</dd></div><div><dt>PWHT</dt><dd>{selectedWeld.pwhtRequired ? "Required" : "Not required by weld record"}</dd></div>
+              <div><dt>Current-cycle NDE</dt><dd>{selectedNdeRequests.length ? selectedNdeRequests.map((item) => `${item.number} (${display(item.state)})`).join(" · ") : "No request"}</dd></div>
+              <div><dt>PWHT cycles</dt><dd>{selectedPwhtCycles.length ? selectedPwhtCycles.map((item) => `${item.number} (${display(item.state)})`).join(" · ") : "No cycle"}</dd></div></dl>
+            <div className={selectedReadiness?.blockers.length ? "field-readiness has-blockers" : "field-readiness is-ready"}><strong>{selectedReadiness?.blockers.length ? `${selectedReadiness.blockers.length} release blocker(s)` : "Release prerequisites complete"}</strong>
+              {selectedReadiness?.blockers.length ? <ul>{selectedReadiness.blockers.map((item) => <li key={item}>{display(item)}</li>)}</ul> : <p>Current repair-cycle material, visual, NDE, PWHT, NCR, and evidence gates report complete.</p>}</div>
+            <details open><summary>Immutable event timeline</summary>{selectedWeld.events.length ? <ol className="field-event-timeline">{selectedWeld.events.map((item) => <li key={item.id}><span>{item.repairCycle}</span><div><strong>{display(item.eventType)} — {item.result}</strong><small>{item.performedBy} · immutable event {item.id}</small></div></li>)}</ol> : <p className="muted">No field events have been recorded.</p>}</details>
+          </> : <div className="empty-state"><strong>No weld selected</strong><p>Choose an authorized object from the lookup results.</p></div>}
+        </article>
+
+        <aside className="field-role-actions" aria-label="Role-based field actions">
+          <label>Field role context<select aria-label="Field role context" value={fieldRole} onChange={(event) => setFieldRole(event.target.value as FieldRole)}>{fieldRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          <p>{activeFieldRole.purpose}</p><div className="review-boundary-note"><strong>Permission boundary</strong><p>This selector organizes the interface only. The authenticated assignment, qualification, assurance level, separation of duty, current version, and server-side permission still decide whether an action is accepted.</p></div>
+          {selectedWeld && activeFieldRole.eventTypes.length ? <form className="compact-form field-action-form" onSubmit={(event) => void recordFieldEvent(event)}>
+            <label>Authorized action<select name="eventType" required>{activeFieldRole.eventTypes.map((item) => <option key={item} value={item}>{fieldEventLabels[item]}</option>)}</select></label>
+            <label>Performed at<input name="performedAt" type="datetime-local" defaultValue={nowForInput()} required /></label><label>Result<select name="result"><option value="observed">Observed</option><option value="pass">Pass</option><option value="fail">Fail</option></select></label>
+            <label>Active qualification IDs<input name="welderQualificationIds" list="field-qualification-ids" placeholder="Required when applicable" /></label><datalist id="field-qualification-ids">{activeQualifications.map((item) => <option key={item.id} value={item.id}>{item.qualificationNumber}</option>)}</datalist>
+            <label>Consumable classification<input name="consumableClassification" placeholder="Required for consumable/pass events" /></label><label>Observations<small className="dependency-note">KEY=value, one per line</small><textarea name="observations" rows={4} defaultValue="IDENTITY_CONFIRMED=true" required /></label>
+            <label>Released evidence file IDs<input name="evidenceFileIds" placeholder="One or more immutable file IDs" required /></label><button className="primary-button" disabled={working}>Append controlled event</button>
+          </form> : null}
+          {selectedWeld && fieldRole === "nde_examiner" ? <button className="primary-button" type="button" onClick={() => setView("nde")}>Open current-cycle NDE workspace</button> : null}
+          {selectedWeld && fieldRole === "quality_authority" ? <button className="primary-button" type="button" disabled={working || selectedWeld.state === "released" || Boolean(selectedReadiness?.blockers.length)} onClick={() => void act(`/v1/welds/${selectedWeld.id}/release`, { expectedVersion: selectedWeld.version, reason: "Object-first field review verified all current repair-cycle material, visual, NDE, PWHT, NCR, and evidence gates." }, `${selectedWeld.number} independently released.`)}>Independently release current weld</button> : null}
+        </aside>
+      </div>
+    </section> : null}
+
+    {view === "welding" ? <WeldingProcedureBuilder
+      projectNumber={projectNumber}
+      approvedPqrs={approvedProcedures.filter((item) => item.procedureType === "pqr").map((item) => ({ id: item.id, number: item.number, revision: item.revision }))}
+      working={working}
+      submit={(body) => act(`/v1/projects/${projectId}/welding-procedures`, body, "Complete welding procedure revision submitted for independent welding-authority review.")}
+    /> : null}
 
     {view === "welding" ? <div className="workflow-grid">
       <article className="workflow-card"><h3>Procedure revisions</h3><div className="basis-list">{snapshot.procedures.map((item) => <article key={item.id}><div><strong>{item.procedureType.toUpperCase()} {item.number} · revision {item.revision}</strong><small>{item.processCodes.join(", ")} · {item.materialGroupCodes.join(", ")}</small></div><span className={`state-badge state-${item.state}`}>{display(item.state)}</span>{item.state === "under_review" ? <button className="primary-button" type="button" onClick={() => void act(`/v1/welding-procedures/${item.id}/review`, { expectedVersion: item.version, decision: "approve", reason: "Exact source, qualification ranges, and support records verified." }, "Procedure independently approved.")}>Approve procedure</button> : null}</article>)}</div>

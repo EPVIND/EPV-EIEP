@@ -377,7 +377,35 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
       ]
     }
   },
+  "GET /v1/projects/:projectId/materials": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
   "GET /v1/projects/:projectId/notifications": {
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "projectId"
+      ]
+    }
+  },
+  "GET /v1/projects/:projectId/quality-execution": {
     "params": {
       "type": "object",
       "additionalProperties": false,
@@ -2183,12 +2211,12 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
                 "type": "string",
                 "enum": [
                   "inspection",
+                  "machine",
                   "fit_up",
                   "layout",
                   "cut",
                   "bevel",
                   "weld",
-                  "machine",
                   "surface_prep",
                   "assembly",
                   "package"
@@ -6469,6 +6497,425 @@ export const generatedRouteSchemas: Readonly<Record<string, Readonly<Record<stri
         },
         "supersedesRevisionId": {
           "type": "string",
+          "nullable": true
+        },
+        "specification": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "codeProfileId": {
+              "type": "string"
+            },
+            "governingCode": {
+              "type": "string"
+            },
+            "codeEdition": {
+              "type": "string"
+            },
+            "constructionCode": {
+              "type": "string"
+            },
+            "controlledCatalogVersion": {
+              "type": "string"
+            },
+            "qualificationRoute": {
+              "type": "string",
+              "enum": [
+                "procedure_qualification",
+                "prequalified",
+                "standard_wps",
+                "project_specific"
+              ]
+            },
+            "procedureTitle": {
+              "type": "string"
+            },
+            "serviceDescription": {
+              "type": "string"
+            },
+            "units": {
+              "type": "string",
+              "enum": [
+                "us_customary",
+                "metric",
+                "mixed"
+              ]
+            },
+            "joint": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "jointType": {
+                  "type": "string"
+                },
+                "designReference": {
+                  "type": "string"
+                },
+                "grooveAngle": {
+                  "type": "string"
+                },
+                "rootOpening": {
+                  "type": "string"
+                },
+                "rootFace": {
+                  "type": "string"
+                },
+                "backingType": {
+                  "type": "string"
+                },
+                "backingMaterial": {
+                  "type": "string"
+                },
+                "weldProgression": {
+                  "type": "string"
+                },
+                "misalignmentTolerance": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "backingMaterial",
+                "backingType",
+                "designReference",
+                "grooveAngle",
+                "jointType",
+                "misalignmentTolerance",
+                "rootFace",
+                "rootOpening",
+                "weldProgression"
+              ]
+            },
+            "baseMetals": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "materialSpecifications": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "materialGrades": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "groupSystem": {
+                  "type": "string"
+                },
+                "groupCodes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "productForms": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "thicknessRange": {
+                  "type": "string"
+                },
+                "diameterRange": {
+                  "type": "string"
+                },
+                "qualificationRangeBasis": {
+                  "type": "string"
+                },
+                "dissimilarMetalBasis": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "diameterRange",
+                "dissimilarMetalBasis",
+                "groupCodes",
+                "groupSystem",
+                "materialGrades",
+                "materialSpecifications",
+                "productForms",
+                "qualificationRangeBasis",
+                "thicknessRange"
+              ]
+            },
+            "processSteps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "sequence": {
+                    "type": "number"
+                  },
+                  "processCode": {
+                    "type": "string"
+                  },
+                  "operationMode": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "semiautomatic",
+                      "machine",
+                      "automatic"
+                    ]
+                  },
+                  "passScope": {
+                    "type": "string"
+                  },
+                  "transferMode": {
+                    "type": "string"
+                  },
+                  "currentType": {
+                    "type": "string"
+                  },
+                  "polarity": {
+                    "type": "string"
+                  },
+                  "amperageRange": {
+                    "type": "string"
+                  },
+                  "voltageRange": {
+                    "type": "string"
+                  },
+                  "travelSpeedRange": {
+                    "type": "string"
+                  },
+                  "heatInputRange": {
+                    "type": "string"
+                  },
+                  "fillerSpecification": {
+                    "type": "string"
+                  },
+                  "fillerClassification": {
+                    "type": "string"
+                  },
+                  "fillerGroup": {
+                    "type": "string"
+                  },
+                  "fillerDiameterRange": {
+                    "type": "string"
+                  },
+                  "electrodeConfiguration": {
+                    "type": "string"
+                  },
+                  "shieldingGasComposition": {
+                    "type": "string"
+                  },
+                  "shieldingGasFlowRange": {
+                    "type": "string"
+                  },
+                  "backingGasComposition": {
+                    "type": "string"
+                  },
+                  "backingGasFlowRange": {
+                    "type": "string"
+                  },
+                  "fluxOrBackingMaterial": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "amperageRange",
+                  "backingGasComposition",
+                  "backingGasFlowRange",
+                  "currentType",
+                  "electrodeConfiguration",
+                  "fillerClassification",
+                  "fillerDiameterRange",
+                  "fillerGroup",
+                  "fillerSpecification",
+                  "fluxOrBackingMaterial",
+                  "heatInputRange",
+                  "operationMode",
+                  "passScope",
+                  "polarity",
+                  "processCode",
+                  "sequence",
+                  "shieldingGasComposition",
+                  "shieldingGasFlowRange",
+                  "transferMode",
+                  "travelSpeedRange",
+                  "voltageRange"
+                ]
+              }
+            },
+            "thermalControl": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "preheatMethod": {
+                  "type": "string"
+                },
+                "preheatMaintenance": {
+                  "type": "string"
+                },
+                "temperatureMeasurementMethod": {
+                  "type": "string"
+                },
+                "temperatureControlBasis": {
+                  "type": "string"
+                },
+                "pwhtDetermination": {
+                  "type": "string",
+                  "enum": [
+                    "required",
+                    "not_required"
+                  ]
+                },
+                "pwhtRuleCitation": {
+                  "type": "string"
+                },
+                "pwhtRequired": {
+                  "type": "boolean"
+                },
+                "pwhtTemperatureRange": {
+                  "type": "string"
+                },
+                "pwhtHoldingTime": {
+                  "type": "string"
+                },
+                "heatingRateLimit": {
+                  "type": "string"
+                },
+                "coolingRateLimit": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "coolingRateLimit",
+                "heatingRateLimit",
+                "preheatMaintenance",
+                "preheatMethod",
+                "pwhtDetermination",
+                "pwhtHoldingTime",
+                "pwhtRequired",
+                "pwhtRuleCitation",
+                "pwhtTemperatureRange",
+                "temperatureControlBasis",
+                "temperatureMeasurementMethod"
+              ]
+            },
+            "technique": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "beadTechnique": {
+                  "type": "string"
+                },
+                "cleaningMethod": {
+                  "type": "string"
+                },
+                "backGougingMethod": {
+                  "type": "string"
+                },
+                "oscillation": {
+                  "type": "string"
+                },
+                "peening": {
+                  "type": "string"
+                },
+                "contactTubeDistance": {
+                  "type": "string"
+                },
+                "interpassCleaning": {
+                  "type": "string"
+                },
+                "singleOrMultiplePass": {
+                  "type": "string"
+                },
+                "singleOrMultipleElectrode": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "backGougingMethod",
+                "beadTechnique",
+                "cleaningMethod",
+                "contactTubeDistance",
+                "interpassCleaning",
+                "oscillation",
+                "peening",
+                "singleOrMultipleElectrode",
+                "singleOrMultiplePass"
+              ]
+            },
+            "examinationAndTests": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "visualAcceptanceReference": {
+                  "type": "string"
+                },
+                "ndeMethods": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "mechanicalTests": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "impactTestTemperature": {
+                  "type": "string"
+                },
+                "hardnessLimit": {
+                  "type": "string"
+                },
+                "macroOrFractureTests": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "specimenReferences": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "essentialVariableNotes": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "essentialVariableNotes",
+                "hardnessLimit",
+                "impactTestTemperature",
+                "macroOrFractureTests",
+                "mechanicalTests",
+                "ndeMethods",
+                "specimenReferences",
+                "visualAcceptanceReference"
+              ]
+            },
+            "revisionReason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "baseMetals",
+            "codeEdition",
+            "codeProfileId",
+            "constructionCode",
+            "controlledCatalogVersion",
+            "examinationAndTests",
+            "governingCode",
+            "joint",
+            "procedureTitle",
+            "processSteps",
+            "qualificationRoute",
+            "revisionReason",
+            "serviceDescription",
+            "technique",
+            "thermalControl",
+            "units"
+          ],
           "nullable": true
         }
       },

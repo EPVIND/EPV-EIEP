@@ -123,6 +123,10 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 - A work card is navigation and prioritization metadata only. The authoritative
   module command rechecks record version, state, scope, assurance, qualification,
   separation of duty, and any configured threshold before mutation.
+- Browser work targets retain only the card's source type, stable source ID, expected
+  version, and requested action. They create no delegation and carry no authorization;
+  a direct/shareable URL is safe only because the destination query and every command
+  independently apply the current identity, project, object scope, and policy state.
 
 ## Work objects
 

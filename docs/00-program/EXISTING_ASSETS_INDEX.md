@@ -16,11 +16,21 @@ Use this controlled index for every artifact transferred into `source-intake/`. 
 
 | Asset ID | Intake path | Original source/owner | Date received | Confidentiality | Production or demo | Description | Status | Conflicts/risks | Approved destination | Reviewer/date |
 |---|---|---|---|---|---|---|---|---|---|---|
+| ASSET-0001 | `source-intake/unreviewed/qc-chat-history/` | User-owned ChatGPT project `QC` | 2026-07-22 | Private/internal; classification pending | Mixed design history, prototype claims, and demo references | Browser-rendered text of the four conversations listed by the QC project, with local SHA-256 manifest; project Sources tab contained no downloadable source files | Under review | Referenced PDFs/ZIPs/databases/executables were not transferred; claims about generated packages, tests, code editions, implementations, schedules, and compliance are unverified; may contain stale architecture, fictitious/demo data references, third-party material descriptions, and contradictory system-of-record decisions | None. `QC_HISTORY_STRATEGY_RECONCILIATION.md` records candidate strategy only and is not reuse approval. | Codex intake 2026-07-22; product-owner/security/content review pending |
 
-_No source-intake payloads were present at the 2026-07-20 repository audit. The
-controlled `source-intake/README.md` and directory placeholders are repository
-infrastructure, not intake assets. The first received artifact will use
-`ASSET-0001`._
+## Current intake state
+
+- One source-intake asset package is present: `ASSET-0001`.
+- It contains four rendered conversation exports plus a local manifest.
+- The raw package is intentionally Git-ignored pending confidentiality, rights,
+  secret, personal-data, and content review.
+- No referenced PDF, Word, spreadsheet, ZIP, database, executable, or generated
+  application package was available in the QC project Sources tab; none is implied
+  to have been transferred.
+
+At the 2026-07-20 repository audit, no source-intake payloads were present. The
+controlled `source-intake/README.md` and directory placeholders were repository
+infrastructure, not intake assets. `ASSET-0001` was received afterward.
 
 ## Repository audit snapshot
 

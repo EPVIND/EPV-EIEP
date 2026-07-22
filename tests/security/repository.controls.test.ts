@@ -31,9 +31,14 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   const traceabilityCheck = await readFile(join(process.cwd(), "scripts", "check-traceability.mjs"), "utf8");
   const routeSchemaGenerator = await readFile(join(process.cwd(), "scripts", "generate-route-schemas.ts"), "utf8");
   const postgresVerification = await readFile(join(process.cwd(), "scripts", "verify-postgres-foundation.mjs"), "utf8");
+  const localPilotManifest = await readFile(join(process.cwd(), "scripts", "create-local-pilot-manifest.mjs"), "utf8");
+  const localPilotRuntime = await readFile(join(process.cwd(), "scripts", "local-pilot-runtime.mjs"), "utf8");
   assert.equal(packageJson.packageManager, "pnpm@11.9.0");
   assert.equal(packageJson.engines.node, ">=24 <25");
   for (const script of ["verify", "build", "runtime:verify", "database:verify", "infrastructure:verify", "sbom:generate"]) {
+    assert.equal(typeof packageJson.scripts[script], "string", script);
+  }
+  for (const script of ["pilot:manifest", "pilot:run", "pilot:status", "pilot:stop"]) {
     assert.equal(typeof packageJson.scripts[script], "string", script);
   }
   assert.match(workflow, /permissions:\s+contents: read/u);
@@ -109,6 +114,14 @@ test("NFR-SEC-003, NFR-MNT-001, NFR-MNT-003 / AC-01-10: delivery controls pin to
   assert.match(traceabilityCheck, /evidence does not exist/u);
   assert.match(routeSchemaGenerator, /getPropertiesOfType\(type\)\.sort\(propertyOrder\)/u);
   assert.match(postgresVerification, /\[tsxCli, "--conditions=development", repositoryVerifier\]/u);
+  assert.match(localPilotManifest, /randomUUID\(\)/u);
+  assert.match(localPilotManifest, /mode: "controlled_local_pilot"/u);
+  assert.match(localPilotManifest, /mode: 0o600, flag: "wx"/u);
+  assert.doesNotMatch(localPilotManifest, /customer|facility|projectNumber|employee/iu);
+  assert.match(localPilotRuntime, /persistent: true/u);
+  assert.match(localPilotRuntime, /EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256/u);
+  assert.match(localPilotRuntime, /VITE_LOCAL_PILOT_IDENTITIES/u);
+  assert.match(localPilotRuntime, /windowsHide: true/u);
   assert.match(storage, /ba92f5b4-2d11-453d-a403-e96b0029c9fe/u);
   assert.match(storage, /principalId: workerPrincipalId/u);
   assert.match(storage, /principalId: apiPrincipalId/u);

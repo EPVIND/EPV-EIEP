@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useState } from "react";
+import type { WorkTarget } from "./work-target.js";
 
 type ChainStep = "documents" | "materials" | "quality" | "turnover" | "reports";
 
@@ -19,7 +20,12 @@ interface RevisionRecord extends VersionedRecord {
 
 interface MaterialRecord extends VersionedRecord {
   readonly identifier: string;
-  readonly requirements?: { readonly mtrRequired: boolean; readonly mtrAccepted: boolean; readonly mtrReviewId: string | null };
+  readonly receiptNumber?: string; readonly purchaseReference?: string; readonly specification?: string; readonly grade?: string;
+  readonly form?: string; readonly dimensions?: string; readonly quantity?: string; readonly unitCode?: string; readonly heatLot?: string;
+  readonly storageLocation?: string; readonly mtrDocumentRevisionId?: string | null;
+  readonly requirements?: { readonly mtrRequired: boolean; readonly mtrAccepted: boolean; readonly mtrReviewId: string | null;
+    readonly receivingInspectionRequired?: boolean; readonly receivingInspectionAccepted?: boolean; readonly pmiRequired?: boolean;
+    readonly pmiAccepted?: boolean; readonly governingPmiRule?: string | null; readonly openDispositionCount?: number };
 }
 
 interface GovernedFile extends VersionedRecord {
@@ -81,10 +87,59 @@ interface ReadinessItem {
   readonly reason: string;
 }
 
+interface InspectionQueueRecord extends VersionedRecord {
+  readonly planRevisionId: string;
+  readonly targetType: string;
+  readonly targetId: string;
+  readonly inspectorUserId: string;
+  readonly performedAt: string;
+  readonly result: "pass" | "fail";
+  readonly acceptedBy: string | null;
+  readonly rejectionReason: string | null;
+}
+
+interface NcrQueueRecord extends VersionedRecord {
+  readonly number: string;
+  readonly affectedObjectType: string;
+  readonly affectedObjectId: string;
+  readonly requirementReference: string;
+  readonly description: string;
+  readonly responsibleUserId: string;
+  readonly turnoverRequired: boolean;
+}
+
+interface PunchQueueRecord extends VersionedRecord {
+  readonly number: string;
+  readonly type: string;
+  readonly priority: string;
+  readonly description: string;
+  readonly ownerUserId: string;
+  readonly systemId: string | null;
+  readonly areaId: string | null;
+  readonly workPackageId: string | null;
+  readonly assetId: string | null;
+  readonly turnoverRequired: boolean;
+}
+
+interface TurnoverQueueRecord extends VersionedRecord {
+  readonly code: string;
+  readonly completionBoundaryId: string;
+  readonly recipientScope: string;
+  readonly materialItemIds: readonly string[];
+}
+
+interface QualityExecutionWorkspace {
+  readonly inspections: readonly InspectionQueueRecord[];
+  readonly ncrs: readonly NcrQueueRecord[];
+  readonly punches: readonly PunchQueueRecord[];
+  readonly turnoverPackages: readonly TurnoverQueueRecord[];
+}
+
 interface OperationalChainProps {
   readonly projectId: string;
   readonly projectNumber: string;
   readonly initialStep: ChainStep;
+  readonly workTarget: WorkTarget | null;
   readonly request: <T>(path: string, init?: RequestInit) => Promise<T>;
   readonly download: (path: string, filename: string) => Promise<void>;
   readonly working: boolean;
@@ -99,6 +154,29 @@ const steps: readonly { key: ChainStep; number: string; label: string; descripti
   { key: "turnover", number: "04", label: "Turnover", description: "Readiness and package" },
   { key: "reports", number: "05", label: "Reports", description: "Controlled snapshots" },
 ];
+type MaterialFieldRole = "receiver" | "mtr_reviewer" | "pmi_technician" | "material_controller" | "exception_owner" | "release_authority" | "turnover_coordinator";
+type QualityFieldRole = "inspector" | "inspection_reviewer" | "ncr_owner" | "ncr_authority" | "punch_owner" | "punch_verifier" | "completion_authority";
+type QualityObjectKind = "inspection" | "ncr" | "punch";
+const materialFieldRoles: readonly { readonly value: MaterialFieldRole; readonly label: string; readonly nextAction: string }[] = [
+  { value: "receiver", label: "Receiving inspector", nextAction: "Verify receipt identity, condition, heat/lot, location, and required evidence." },
+  { value: "mtr_reviewer", label: "MTR reviewer", nextAction: "Compare the exact released MTR revision to heat/lot, grade, and specification." },
+  { value: "pmi_technician", label: "PMI technician", nextAction: "Use verified equipment and record the governed material observation." },
+  { value: "material_controller", label: "Material controller", nextAction: "Issue, return, relocate, or preserve custody against the exact item." },
+  { value: "exception_owner", label: "NCR / punch owner", nextAction: "Resolve the material-linked exception with owned evidence and independent verification." },
+  { value: "release_authority", label: "Material release authority", nextAction: "Review all applicable receipt, MTR, PMI, NCR, and disposition gates." },
+  { value: "turnover_coordinator", label: "Turnover coordinator", nextAction: "Carry the exact material, quality, exception, and audit identities into completion readiness." },
+];
+const qualityFieldRoles: readonly { readonly value: QualityFieldRole; readonly label: string; readonly nextAction: string }[] = [
+  { value: "inspector", label: "Inspector / examiner", nextAction: "Capture required fields and evidence against the exact approved plan and target." },
+  { value: "inspection_reviewer", label: "Inspection acceptance authority", nextAction: "Accept or reject a submitted result independently with explicit meaning." },
+  { value: "ncr_owner", label: "NCR responsible owner", nextAction: "Propose disposition, corrective action, and reinspection evidence without closing your own work." },
+  { value: "ncr_authority", label: "NCR disposition / close authority", nextAction: "Approve disposition and close only after independent reinspection evidence exists." },
+  { value: "punch_owner", label: "Punch owner", nextAction: "Attach completion evidence and route the owned item for independent verification." },
+  { value: "punch_verifier", label: "Punch verifier", nextAction: "Verify completion evidence independently from the owner and creator." },
+  { value: "completion_authority", label: "Completion authority", nextAction: "Close verified punch items and carry resolved records into turnover readiness." },
+];
+
+const emptyQualityExecution: QualityExecutionWorkspace = { inspections: [], ncrs: [], punches: [], turnoverPackages: [] };
 
 function ids(value: FormDataEntryValue | null): string[] {
   return String(value ?? "").split(/[\s,]+/u).map((item) => item.trim()).filter(Boolean);
@@ -116,8 +194,19 @@ function stateLabel(state: string | undefined): string {
   return (state ?? "created").replaceAll("_", " ");
 }
 
+function materialReleaseGates(record: MaterialRecord): readonly { readonly label: string; readonly status: "accepted" | "pending" | "not_applicable" | "blocked" }[] {
+  const requirements = record.requirements;
+  if (!requirements) return [{ label: "Controlled requirements unavailable", status: "blocked" }];
+  return [
+    { label: "Receiving inspection", status: !requirements.receivingInspectionRequired ? "not_applicable" : requirements.receivingInspectionAccepted ? "accepted" : "pending" },
+    { label: "Released MTR comparison", status: !requirements.mtrRequired ? "not_applicable" : requirements.mtrAccepted ? "accepted" : "pending" },
+    { label: "PMI requirement", status: !requirements.pmiRequired ? "not_applicable" : requirements.pmiAccepted ? "accepted" : "pending" },
+    { label: "Open dispositions", status: (requirements.openDispositionCount ?? 0) === 0 ? "accepted" : "blocked" },
+  ];
+}
+
 export function OperationalChain({
-  projectId, projectNumber, initialStep, request, download, working, setWorking, notify,
+  projectId, projectNumber, initialStep, workTarget, request, download, working, setWorking, notify,
 }: OperationalChainProps) {
   const [step, setStep] = useState<ChainStep>(initialStep);
   const [document, setDocument] = useState<DocumentRecord | null>(null);
@@ -125,12 +214,15 @@ export function OperationalChain({
   const [governedFile, setGovernedFile] = useState<GovernedFile | null>(null);
   const [uploadIdempotencyKey, setUploadIdempotencyKey] = useState(() => crypto.randomUUID());
   const [material, setMaterial] = useState<MaterialRecord | null>(null);
+  const [materials, setMaterials] = useState<readonly MaterialRecord[]>([]);
+  const [materialQuery, setMaterialQuery] = useState("");
+  const [materialFieldRole, setMaterialFieldRole] = useState<MaterialFieldRole>("receiver");
   const [materialMovements, setMaterialMovements] = useState<readonly MaterialMovement[]>([]);
   const [equipment, setEquipment] = useState<EquipmentRecord | null>(null);
   const [pmi, setPmi] = useState<PmiRecordView | null>(null);
   const [pmiResult, setPmiResult] = useState<"pass" | "fail">("pass");
-  const [ncr, setNcr] = useState<VersionedRecord | null>(null);
-  const [punch, setPunch] = useState<VersionedRecord | null>(null);
+  const [ncr, setNcr] = useState<NcrQueueRecord | null>(null);
+  const [punch, setPunch] = useState<PunchQueueRecord | null>(null);
   const [ncrDisposition, setNcrDisposition] = useState("");
   const [ncrCorrectiveAction, setNcrCorrectiveAction] = useState("");
   const [ncrEvidenceFileId, setNcrEvidenceFileId] = useState("");
@@ -138,19 +230,117 @@ export function OperationalChain({
   const [punchVerificationEvidenceId, setPunchVerificationEvidenceId] = useState("");
   const [boundary, setBoundary] = useState<VersionedRecord | null>(null);
   const [requirements, setRequirements] = useState<readonly VersionedRecord[]>([]);
-  const [turnoverPackage, setTurnoverPackage] = useState<VersionedRecord | null>(null);
+  const [turnoverPackage, setTurnoverPackage] = useState<TurnoverQueueRecord | null>(null);
   const [readiness, setReadiness] = useState<readonly ReadinessItem[]>([]);
   const [generated, setGenerated] = useState<TurnoverVersion | null>(null);
+  const [qualityExecution, setQualityExecution] = useState<QualityExecutionWorkspace>(emptyQualityExecution);
+  const [qualityQuery, setQualityQuery] = useState("");
+  const [selectedQualityObject, setSelectedQualityObject] = useState<{ readonly kind: QualityObjectKind; readonly id: string } | null>(null);
+  const [qualityFieldRole, setQualityFieldRole] = useState<QualityFieldRole>("inspector");
+  const [qualityDecisionNote, setQualityDecisionNote] = useState("");
+  const [turnoverQuery, setTurnoverQuery] = useState("");
   const [reports, setReports] = useState<readonly ControlledReport[]>([]);
   const [dashboard, setDashboard] = useState<ReportDashboard | null>(null);
 
   useEffect(() => setStep(initialStep), [initialStep]);
   useEffect(() => {
-    setDocument(null); setRevision(null); setGovernedFile(null); setMaterial(null); setMaterialMovements([]); setEquipment(null); setPmi(null);
+    setDocument(null); setRevision(null); setGovernedFile(null); setMaterial(null); setMaterials([]); setMaterialQuery(""); setMaterialMovements([]); setEquipment(null); setPmi(null);
     setPmiResult("pass");
     setNcr(null); setPunch(null); setBoundary(null); setRequirements([]); setTurnoverPackage(null);
-    setReadiness([]); setGenerated(null); setReports([]); setDashboard(null);
+    setReadiness([]); setGenerated(null); setQualityExecution(emptyQualityExecution); setQualityQuery(""); setSelectedQualityObject(null); setTurnoverQuery("");
+    setReports([]); setDashboard(null);
   }, [projectId]);
+
+  useEffect(() => {
+    if (!["materials", "quality", "turnover"].includes(step)) return;
+    let active = true;
+    request<readonly MaterialRecord[]>(`/v1/projects/${projectId}/materials`)
+      .then((records) => {
+        if (!active) return;
+        setMaterials(records);
+        setMaterial((current) => records.find((item) => item.id === current?.id) ?? records[0] ?? current);
+      })
+      .catch((error: unknown) => { if (active) notify("error", error instanceof Error ? error.message : "Material object lookup failed."); });
+    return () => { active = false; };
+  }, [notify, projectId, request, step]);
+
+  useEffect(() => {
+    if (step !== "quality" && step !== "turnover") return;
+    let active = true;
+    request<QualityExecutionWorkspace>(`/v1/projects/${projectId}/quality-execution`)
+      .then((workspace) => {
+        if (!active) return;
+        setQualityExecution(workspace);
+        setSelectedQualityObject((current) => {
+          if (current && (current.kind === "inspection" ? workspace.inspections : current.kind === "ncr" ? workspace.ncrs : workspace.punches).some((record) => record.id === current.id)) return current;
+          const first = workspace.inspections[0] ?? workspace.ncrs[0] ?? workspace.punches[0];
+          return first ? { kind: workspace.inspections.includes(first as InspectionQueueRecord) ? "inspection" : workspace.ncrs.includes(first as NcrQueueRecord) ? "ncr" : "punch", id: first.id } : null;
+        });
+        setTurnoverPackage((current) => workspace.turnoverPackages.find((record) => record.id === current?.id) ?? workspace.turnoverPackages[0] ?? current);
+      })
+      .catch((error: unknown) => { if (active) notify("error", error instanceof Error ? error.message : "Quality execution lookup failed."); });
+    return () => { active = false; };
+  }, [notify, projectId, request, step]);
+
+  useEffect(() => {
+    if (!workTarget) return;
+    const qualityKind: QualityObjectKind | null = workTarget.recordType === "inspection_record" ? "inspection"
+      : workTarget.recordType === "ncr" ? "ncr" : workTarget.recordType === "punch_item" ? "punch" : null;
+    if (qualityKind) {
+      setStep("quality"); setQualityQuery(workTarget.recordId); setSelectedQualityObject({ kind: qualityKind, id: workTarget.recordId });
+      return;
+    }
+    if (workTarget.recordType === "turnover_package") {
+      setStep("turnover"); setTurnoverQuery(workTarget.recordId);
+      const target = qualityExecution.turnoverPackages.find((record) => record.id === workTarget.recordId);
+      if (target) setTurnoverPackage(target);
+    }
+  }, [qualityExecution.turnoverPackages, workTarget]);
+
+  const filteredMaterials = materials.filter((item) => {
+    const query = materialQuery.trim().toLocaleLowerCase();
+    return !query || [item.id, item.identifier, item.receiptNumber, item.purchaseReference, item.heatLot, item.storageLocation]
+      .some((candidate) => candidate?.toLocaleLowerCase().includes(query));
+  });
+  const activeMaterialFieldRole = materialFieldRoles.find((item) => item.value === materialFieldRole) ?? materialFieldRoles[0]!;
+  const qualityObjects = [
+    ...qualityExecution.inspections.map((record) => ({ kind: "inspection" as const, id: record.id, label: `Inspection ${record.id.slice(0, 8)}`, context: `${record.targetType} · ${record.targetId}`, state: record.state, record })),
+    ...qualityExecution.ncrs.map((record) => ({ kind: "ncr" as const, id: record.id, label: record.number, context: `${record.affectedObjectType} · ${record.affectedObjectId}`, state: record.state, record })),
+    ...qualityExecution.punches.map((record) => ({ kind: "punch" as const, id: record.id, label: record.number, context: `${record.type} · ${record.assetId ?? record.workPackageId ?? record.systemId ?? record.areaId ?? "scope pending"}`, state: record.state, record })),
+  ];
+  const filteredQualityObjects = qualityObjects.filter((item) => {
+    const query = qualityQuery.trim().toLocaleLowerCase();
+    return !query || [item.id, item.kind, item.label, item.context, item.state].some((candidate) => candidate?.toLocaleLowerCase().includes(query));
+  });
+  const activeQualityObject = qualityObjects.find((item) => item.kind === selectedQualityObject?.kind && item.id === selectedQualityObject.id) ?? null;
+  const activeQualityFieldRole = qualityFieldRoles.find((item) => item.value === qualityFieldRole) ?? qualityFieldRoles[0]!;
+  const filteredTurnoverPackages = qualityExecution.turnoverPackages.filter((record) => {
+    const query = turnoverQuery.trim().toLocaleLowerCase();
+    return !query || [record.id, record.code, record.recipientScope, record.completionBoundaryId, record.state]
+      .some((candidate) => candidate?.toLocaleLowerCase().includes(query));
+  });
+
+  function applyMaterial(next: MaterialRecord) {
+    setMaterial(next);
+    setMaterials((current) => [next, ...current.filter((item) => item.id !== next.id)]);
+  }
+
+  function applyNcr(next: NcrQueueRecord) {
+    setNcr(next);
+    setQualityExecution((current) => ({ ...current, ncrs: [next, ...current.ncrs.filter((item) => item.id !== next.id)] }));
+    setSelectedQualityObject({ kind: "ncr", id: next.id });
+  }
+
+  function applyPunch(next: PunchQueueRecord) {
+    setPunch(next);
+    setQualityExecution((current) => ({ ...current, punches: [next, ...current.punches.filter((item) => item.id !== next.id)] }));
+    setSelectedQualityObject({ kind: "punch", id: next.id });
+  }
+
+  function applyTurnoverPackage(next: TurnoverQueueRecord) {
+    setTurnoverPackage(next);
+    setQualityExecution((current) => ({ ...current, turnoverPackages: [next, ...current.turnoverPackages.filter((item) => item.id !== next.id)] }));
+  }
 
   async function execute<T>(description: string, action: () => Promise<T>, apply: (result: T) => void) {
     setWorking(true);
@@ -256,7 +446,7 @@ export function OperationalChain({
           mtrRequired: checked(form, "mtrRequired"), receivingInspectionRequired: checked(form, "receivingInspectionRequired"),
           pmiRequired: checked(form, "pmiRequired"), governingPmiRule: value(form, "governingPmiRule") || null,
         }),
-      }), setMaterial);
+      }), applyMaterial);
   }
 
   function acceptReceivingInspection() {
@@ -265,7 +455,7 @@ export function OperationalChain({
       `/v1/materials/${material.id}/receiving-inspection/accept`, {
         method: "POST", body: JSON.stringify({ expectedVersion: material.version }),
       },
-    ), setMaterial);
+    ), applyMaterial);
   }
 
   function reviewMtr(event: FormEvent<HTMLFormElement>) {
@@ -280,14 +470,14 @@ export function OperationalChain({
         gradeVerified: checked(form, "gradeVerified"), specificationVerified: checked(form, "specificationVerified"),
         reviewNotes: value(form, "reviewNotes"), evidenceFileIds: ids(form.get("evidenceFileIds")),
       }),
-    }), (result) => setMaterial(result.material));
+    }), (result) => applyMaterial(result.material));
   }
 
   function issueMaterial() {
     if (!material) return;
     void execute("Material issued with an immutable custody event.", () => request<MaterialRecord>(
       `/v1/materials/${material.id}/issue`, { method: "POST", body: JSON.stringify({ expectedVersion: material.version }) },
-    ), setMaterial);
+    ), applyMaterial);
   }
 
   function returnMaterial(event: FormEvent<HTMLFormElement>) {
@@ -298,7 +488,7 @@ export function OperationalChain({
       `/v1/materials/${material.id}/return`, { method: "POST", body: JSON.stringify({
         expectedVersion: material.version, toLocation: value(form, "toLocation"), reason: value(form, "reason"),
       }) },
-    ), setMaterial);
+    ), applyMaterial);
   }
 
   function moveMaterial(event: FormEvent<HTMLFormElement>) {
@@ -309,7 +499,7 @@ export function OperationalChain({
       `/v1/materials/${material.id}/move`, { method: "POST", body: JSON.stringify({
         expectedVersion: material.version, toLocation: value(form, "toLocation"), reason: value(form, "reason"),
       }) },
-    ), setMaterial);
+    ), applyMaterial);
   }
 
   function refreshMaterialMovements() {
@@ -359,8 +549,13 @@ export function OperationalChain({
     ), (recorded) => {
       setPmi(recorded);
       if (recorded.result === "fail" && recorded.ncrId) {
-        setNcr({ id: recorded.ncrId, state: "open", version: 1 });
-        setMaterial({ ...material, state: "quarantined", version: material.version + 1 });
+        applyNcr({
+          id: recorded.ncrId, number: value(form, "failedNcrNumber"), state: "open", version: 1,
+          affectedObjectType: "material", affectedObjectId: material.id,
+          requirementReference: value(form, "governingRule"), description: value(form, "failureDescription"),
+          responsibleUserId: value(form, "failureResponsibleUserId"), turnoverRequired: checked(form, "failureTurnoverRequired"),
+        });
+        applyMaterial({ ...material, state: "quarantined", version: material.version + 1 });
       }
     });
   }
@@ -369,59 +564,59 @@ export function OperationalChain({
     if (!pmi || !material) return;
     void execute("PMI accepted by an independently authorized identity.", () => request<PmiRecordView>(
       `/v1/pmi/${pmi.id}/accept`, { method: "POST", body: JSON.stringify({ expectedVersion: pmi.version }) },
-    ), (accepted) => { setPmi(accepted); setMaterial({ ...material, version: material.version + 1 }); });
+    ), (accepted) => { setPmi(accepted); applyMaterial({ ...material, version: material.version + 1 }); });
   }
 
   function releaseMaterial() {
     if (!material) return;
     void execute("Material released after all applicability and quality checks passed.", () => request<MaterialRecord>(
       `/v1/materials/${material.id}/release`, { method: "POST", body: JSON.stringify({ expectedVersion: material.version }) },
-    ), setMaterial);
+    ), applyMaterial);
   }
 
   function createNcr(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!material) return;
     const form = new FormData(event.currentTarget);
-    void execute("NCR opened and affected material quarantined.", () => request<VersionedRecord>(
+    void execute("NCR opened and affected material quarantined.", () => request<NcrQueueRecord>(
       `/v1/projects/${projectId}/ncrs`, { method: "POST", body: JSON.stringify({
         number: value(form, "number"), affectedObjectType: "material", affectedObjectId: material.id,
         requirementReference: value(form, "requirementReference"), description: value(form, "description"),
         containment: value(form, "containment"), evidenceFileIds: ids(form.get("evidenceFileIds")),
         responsibleUserId: value(form, "responsibleUserId"), turnoverRequired: checked(form, "turnoverRequired"),
       }) },
-    ), (created) => { setNcr(created); setMaterial({ ...material, state: "quarantined", version: material.version + 1 }); });
+    ), (created) => { applyNcr(created); applyMaterial({ ...material, state: "quarantined", version: material.version + 1 }); });
   }
 
   function advanceNcr(action: "disposition" | "approve" | "reinspection" | "close", extra: Record<string, unknown>) {
     if (!ncr) return;
     const path = action === "disposition" ? "disposition" : action === "approve" ? "disposition/approve" : action;
-    void execute(`NCR ${action} recorded after fresh authorization.`, () => request<VersionedRecord>(
+    void execute(`NCR ${action} recorded after fresh authorization.`, () => request<NcrQueueRecord>(
       `/v1/ncrs/${ncr.id}/${path}`, { method: "POST", body: JSON.stringify({ expectedVersion: ncr.version, ...extra }) },
-    ), (updated) => { setNcr(updated); if (action === "close" && material) setMaterial({ ...material, version: material.version + 1 }); });
+    ), (updated) => { applyNcr(updated); if (action === "close" && material) applyMaterial({ ...material, version: material.version + 1 }); });
   }
 
   function createPunch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!material) return;
     const form = new FormData(event.currentTarget);
-    void execute("Punch item opened in the selected material scope.", () => request<VersionedRecord>(
+    void execute("Punch item opened in the selected material scope.", () => request<PunchQueueRecord>(
       `/v1/projects/${projectId}/punch-items`, { method: "POST", body: JSON.stringify({
         number: value(form, "number"), type: value(form, "type"), priority: value(form, "priority"),
         systemId: null, areaId: null, workPackageId: null, assetId: material.id,
         description: value(form, "description"), ownerUserId: value(form, "ownerUserId"), targetAt: null,
         turnoverRequired: checked(form, "turnoverRequired"),
       }) },
-    ), setPunch);
+    ), applyPunch);
   }
 
   function advancePunch(action: "owner-update" | "verify" | "close", extra: Record<string, unknown>) {
     if (!punch) return;
-    void execute(`Punch ${action} recorded after fresh authorization.`, () => request<VersionedRecord>(
+    void execute(`Punch ${action} recorded after fresh authorization.`, () => request<PunchQueueRecord>(
       `/v1/punch-items/${punch.id}/${action}`, {
         method: "POST", body: JSON.stringify({ expectedVersion: punch.version, ...extra }),
       },
-    ), setPunch);
+    ), applyPunch);
   }
 
   function createBoundary(event: FormEvent<HTMLFormElement>) {
@@ -450,12 +645,33 @@ export function OperationalChain({
     event.preventDefault();
     if (!boundary) return;
     const form = new FormData(event.currentTarget);
-    void execute("Turnover package baseline created with exact material IDs.", () => request<VersionedRecord>(
+    void execute("Turnover package baseline created with exact material IDs.", () => request<TurnoverQueueRecord>(
       `/v1/completion-boundaries/${boundary.id}/turnover-packages`, { method: "POST", body: JSON.stringify({
         code: value(form, "code"), recipientScope: value(form, "recipientScope"),
         materialItemIds: ids(form.get("materialItemIds")),
       }) },
-    ), setTurnoverPackage);
+    ), applyTurnoverPackage);
+  }
+
+  function selectQualityObject(item: typeof qualityObjects[number]) {
+    setSelectedQualityObject({ kind: item.kind, id: item.id });
+    if (item.kind === "ncr") setNcr(item.record);
+    if (item.kind === "punch") setPunch(item.record);
+  }
+
+  function reviewSelectedInspection(decision: "accept" | "reject") {
+    if (!activeQualityObject || activeQualityObject.kind !== "inspection") return;
+    const inspection = activeQualityObject.record;
+    void execute(`Inspection ${decision} decision recorded independently.`, () => request<InspectionQueueRecord>(
+      `/v1/inspections/${inspection.id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ expectedVersion: inspection.version, decision, meaningOrReason: qualityDecisionNote.trim() }),
+      },
+    ), (updated) => {
+      setQualityExecution((current) => ({ ...current, inspections: [updated, ...current.inspections.filter((item) => item.id !== updated.id)] }));
+      setSelectedQualityObject({ kind: "inspection", id: updated.id });
+      setQualityDecisionNote("");
+    });
   }
 
   function checkReadiness() {
@@ -512,6 +728,69 @@ export function OperationalChain({
         </button>
       </li>)}
     </ol>
+
+    {step === "materials" ? <section className="field-object-console material-object-console" aria-labelledby="material-object-heading">
+      <div className="field-object-heading"><div><p className="section-label">Object-first traceability</p><h3 id="material-object-heading">Find the material, inherit every release requirement</h3>
+        <p>Scan or enter an item, heat/lot, receipt, purchase reference, location, or stable ID. The exact MTR, receipt, PMI, disposition, custody, exception, and turnover context stays attached to the authoritative material object.</p></div><span className="policy-chip">No duplicate field record</span></div>
+      <div className="field-object-layout">
+        <aside className="field-object-finder" aria-label="Material object lookup"><label>Scan / enter material identity<input type="search" value={materialQuery} onChange={(event) => setMaterialQuery(event.target.value)} placeholder="Item, heat, receipt, PO, location…" /></label>
+          <div className="field-object-results" aria-live="polite">{filteredMaterials.map((item) => <button key={item.id} type="button" className={material?.id === item.id ? "is-selected" : ""} onClick={() => applyMaterial(item)}><span><strong>{item.identifier}</strong><small>{item.heatLot ?? item.receiptNumber ?? item.id} · {item.storageLocation ?? "Location pending"}</small></span><span className={`state-badge state-${item.state}`}>{stateLabel(item.state)}</span></button>)}</div>
+          {filteredMaterials.length === 0 ? <p className="muted">No authorized material matches that identity. Receive a controlled item below or verify assignment scope.</p> : null}</aside>
+        <article className="field-object-record" aria-label="Selected material object">{material ? <><div className="field-object-title"><div><span className="record-type">Material object</span><h4>{material.identifier}</h4><p>{material.specification ?? "Specification pending"} · {material.grade ?? "Grade pending"} · heat/lot {material.heatLot ?? "pending"}</p></div><span className={`state-badge state-${material.state}`}>{stateLabel(material.state)}</span></div>
+          <dl className="field-object-facts"><div><dt>Receipt / purchase</dt><dd>{material.receiptNumber ?? "Pending"} · {material.purchaseReference ?? "Pending"}</dd></div><div><dt>Form / dimensions</dt><dd>{material.form ?? "Pending"} · {material.dimensions ?? "Pending"}</dd></div>
+            <div><dt>Quantity</dt><dd>{material.quantity ?? "Pending"} {material.unitCode ?? ""}</dd></div><div><dt>Custody location</dt><dd>{material.storageLocation ?? "Pending"}</dd></div>
+            <div><dt>Exact released MTR</dt><dd>{material.mtrDocumentRevisionId ?? "Not linked / not applicable"}</dd></div><div><dt>PMI rule</dt><dd>{material.requirements?.governingPmiRule ?? "Not applicable"}</dd></div>
+            <div><dt>Material NCR</dt><dd>{ncr ? `${ncr.id} · ${stateLabel(ncr.state)}` : "No active session exception"}</dd></div><div><dt>Material punch</dt><dd>{punch ? `${punch.id} · ${stateLabel(punch.state)}` : "No active session punch"}</dd></div>
+            <div><dt>Turnover package</dt><dd>{turnoverPackage ? `${turnoverPackage.id} · ${stateLabel(turnoverPackage.state)}` : "Not yet baselined"}</dd></div><div><dt>Generated record</dt><dd>{generated ? `Version ${generated.versionNumber} · ${generated.manifestSha256.slice(0, 12)}…` : "Not generated"}</dd></div></dl>
+          <div className="material-gate-grid" aria-label="Material release gates">{materialReleaseGates(material).map((gate) => <div key={gate.label} className={`gate-${gate.status}`}><strong>{gate.label}</strong><span>{stateLabel(gate.status)}</span></div>)}</div>
+          <details open><summary>Custody and status history</summary>{materialMovements.length ? <ol className="field-event-timeline">{materialMovements.map((movement) => <li key={movement.id}><span aria-hidden="true">M</span><div><strong>{stateLabel(movement.movementType)}</strong><small>{movement.fromLocation ?? "External receipt"} → {movement.toLocation} · {movement.occurredAt}</small></div></li>)}</ol> : <p className="muted">Refresh history to retrieve the authoritative movement chain.</p>}</details>
+        </> : <div className="empty-state"><strong>No material selected</strong><p>Choose an authorized object or receive a new item through the controlled workflow.</p></div>}</article>
+        <aside className="field-role-actions" aria-label="Material role-based actions"><label>Field role context<select aria-label="Material field role context" value={materialFieldRole} onChange={(event) => setMaterialFieldRole(event.target.value as MaterialFieldRole)}>{materialFieldRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          <p>{activeMaterialFieldRole.nextAction}</p><div className="review-boundary-note"><strong>Server authority remains decisive</strong><p>The field role controls presentation only. Current assignment, qualification, assurance, independence, project scope, and object version are revalidated for every action.</p></div>
+          {materialFieldRole === "receiver" ? <button className="primary-button" type="button" onClick={acceptReceivingInspection} disabled={working || !material || material.state !== "received_pending" || material.requirements?.receivingInspectionAccepted}>Accept receiving inspection</button> : null}
+          {materialFieldRole === "mtr_reviewer" ? <button className="primary-button" type="button" onClick={() => setStep("materials")} disabled={!material}>Open exact MTR comparison</button> : null}
+          {materialFieldRole === "pmi_technician" ? <button className="primary-button" type="button" onClick={() => setStep("quality")} disabled={!material}>Open governed PMI capture</button> : null}
+          {materialFieldRole === "material_controller" ? <><button className="secondary-button" type="button" onClick={refreshMaterialMovements} disabled={working || !material}>Refresh custody history</button><button className="primary-button" type="button" onClick={issueMaterial} disabled={working || !material || !["released", "returned"].includes(material.state ?? "")}>Issue exact material</button></> : null}
+          {materialFieldRole === "exception_owner" ? <button className="primary-button" type="button" onClick={() => setStep("quality")} disabled={!material}>Open linked NCR / punch controls</button> : null}
+          {materialFieldRole === "release_authority" ? <button className="primary-button" type="button" onClick={releaseMaterial} disabled={working || !material || material.state !== "received_pending" || materialReleaseGates(material).some((gate) => gate.status === "pending" || gate.status === "blocked")}>Independently release material</button> : null}
+          {materialFieldRole === "turnover_coordinator" ? <button className="primary-button" type="button" onClick={() => setStep("turnover")} disabled={!material}>Open material turnover readiness</button> : null}
+        </aside>
+      </div>
+    </section> : null}
+
+    {step === "quality" ? <section className="field-object-console quality-object-console" aria-labelledby="quality-object-heading">
+      <div className="field-object-heading"><div><p className="section-label">Object-first quality execution</p><h3 id="quality-object-heading">Find the inspection or exception, then perform the authorized work</h3>
+        <p>Search inspection, NCR, and punch identities without recreating the record. The selected object carries its target, result, state, owner, evidence stage, version, and turnover consequence into the role action.</p></div><span className="policy-chip">Current version revalidated</span></div>
+      <div className="field-object-layout">
+        <aside className="field-object-finder" aria-label="Quality object lookup"><label>Scan / enter quality identity<input type="search" value={qualityQuery} onChange={(event) => setQualityQuery(event.target.value)} placeholder="Inspection, NCR, punch, target…" /></label>
+          <div className="field-object-results" aria-live="polite">{filteredQualityObjects.map((item) => <button key={`${item.kind}:${item.id}`} type="button" className={activeQualityObject?.kind === item.kind && activeQualityObject.id === item.id ? "is-selected" : ""} onClick={() => selectQualityObject(item)}><span><strong>{item.label}</strong><small>{item.kind.toUpperCase()} · {item.context}</small></span><span className={`state-badge state-${item.state}`}>{stateLabel(item.state)}</span></button>)}</div>
+          {filteredQualityObjects.length === 0 ? <p className="muted">No authorized quality object matches that identity. Use the controlled capture forms below or verify assignment scope.</p> : null}</aside>
+        <article className="field-object-record" aria-label="Selected quality object">{activeQualityObject ? <><div className="field-object-title"><div><span className="record-type">{activeQualityObject.kind}</span><h4>{activeQualityObject.label}</h4><p>{activeQualityObject.context}</p></div><span className={`state-badge state-${activeQualityObject.state}`}>{stateLabel(activeQualityObject.state)}</span></div>
+          {activeQualityObject.kind === "inspection" ? <dl className="field-object-facts"><div><dt>Target</dt><dd>{activeQualityObject.record.targetType} · {activeQualityObject.record.targetId}</dd></div><div><dt>Result</dt><dd>{activeQualityObject.record.result}</dd></div><div><dt>Plan revision</dt><dd>{activeQualityObject.record.planRevisionId}</dd></div><div><dt>Inspector</dt><dd>{activeQualityObject.record.inspectorUserId}</dd></div><div><dt>Performed</dt><dd>{activeQualityObject.record.performedAt}</dd></div><div><dt>Accepted by</dt><dd>{activeQualityObject.record.acceptedBy ?? "Awaiting independent review"}</dd></div></dl> : null}
+          {activeQualityObject.kind === "ncr" ? <dl className="field-object-facts"><div><dt>Affected object</dt><dd>{activeQualityObject.record.affectedObjectType} · {activeQualityObject.record.affectedObjectId}</dd></div><div><dt>Requirement</dt><dd>{activeQualityObject.record.requirementReference}</dd></div><div><dt>Responsible owner</dt><dd>{activeQualityObject.record.responsibleUserId}</dd></div><div><dt>Turnover</dt><dd>{activeQualityObject.record.turnoverRequired ? "Required" : "Not required"}</dd></div><div className="fact-wide"><dt>Description</dt><dd>{activeQualityObject.record.description}</dd></div></dl> : null}
+          {activeQualityObject.kind === "punch" ? <dl className="field-object-facts"><div><dt>Type / priority</dt><dd>{activeQualityObject.record.type} · {activeQualityObject.record.priority}</dd></div><div><dt>Owner</dt><dd>{activeQualityObject.record.ownerUserId}</dd></div><div><dt>Controlled scope</dt><dd>{activeQualityObject.record.assetId ?? activeQualityObject.record.workPackageId ?? activeQualityObject.record.systemId ?? activeQualityObject.record.areaId ?? "Pending"}</dd></div><div><dt>Turnover</dt><dd>{activeQualityObject.record.turnoverRequired ? "Required" : "Not required"}</dd></div><div className="fact-wide"><dt>Description</dt><dd>{activeQualityObject.record.description}</dd></div></dl> : null}
+          <div className="material-gate-grid" aria-label="Quality lifecycle gates"><div className={activeQualityObject.state === "closed" || activeQualityObject.state === "accepted" ? "gate-accepted" : "gate-pending"}><strong>Lifecycle state</strong><span>{stateLabel(activeQualityObject.state)}</span></div><div className="gate-accepted"><strong>Object version</strong><span>v{activeQualityObject.record.version}</span></div><div className={activeQualityObject.kind === "ncr" || activeQualityObject.kind === "punch" ? "gate-pending" : "gate-not_applicable"}><strong>Exception consequence</strong><span>{activeQualityObject.kind === "inspection" ? "not applicable" : "tracked to turnover"}</span></div></div>
+        </> : <div className="empty-state"><strong>No quality object selected</strong><p>Choose an authorized inspection, NCR, or punch item, or create one through the governed controls below.</p></div>}</article>
+        <aside className="field-role-actions" aria-label="Quality role-based actions"><label>Field role context<select aria-label="Quality field role context" value={qualityFieldRole} onChange={(event) => setQualityFieldRole(event.target.value as QualityFieldRole)}>{qualityFieldRoles.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          <p>{activeQualityFieldRole.nextAction}</p><div className="review-boundary-note"><strong>Presentation is not permission</strong><p>The server rechecks assignment, qualification, assurance, separation of duty, object scope, and expected version for every action.</p></div>
+          {qualityFieldRole === "inspector" ? <button className="primary-button" type="button" onClick={() => globalThis.document.getElementById("quality-capture-controls")?.scrollIntoView({ behavior: "smooth" })}>Open controlled capture</button> : null}
+          {qualityFieldRole === "inspection_reviewer" && activeQualityObject?.kind === "inspection" ? <><label>Acceptance meaning / rejection reason<textarea value={qualityDecisionNote} onChange={(event) => setQualityDecisionNote(event.target.value)} /></label><div className="action-row"><button type="button" onClick={() => reviewSelectedInspection("accept")} disabled={working || activeQualityObject.state !== "submitted" || activeQualityObject.record.result !== "pass" || !qualityDecisionNote.trim()}>Accept independently</button><button type="button" onClick={() => reviewSelectedInspection("reject")} disabled={working || activeQualityObject.state !== "submitted" || !qualityDecisionNote.trim()}>Reject with reason</button></div></> : null}
+          {qualityFieldRole === "ncr_owner" && activeQualityObject?.kind === "ncr" ? <><label>Disposition<textarea value={ncrDisposition} onChange={(event) => setNcrDisposition(event.target.value)} /></label><label>Corrective action<textarea value={ncrCorrectiveAction} onChange={(event) => setNcrCorrectiveAction(event.target.value)} /></label><button type="button" onClick={() => advanceNcr("disposition", { disposition: ncrDisposition, correctiveAction: ncrCorrectiveAction })} disabled={working || ncr?.state !== "open" || !ncrDisposition.trim() || !ncrCorrectiveAction.trim()}>Propose disposition</button><label>Reinspection evidence file ID<input value={ncrEvidenceFileId} onChange={(event) => setNcrEvidenceFileId(event.target.value)} /></label><button type="button" onClick={() => advanceNcr("reinspection", { evidenceFileId: ncrEvidenceFileId })} disabled={working || ncr?.state !== "disposition_approved" || !ncrEvidenceFileId.trim()}>Record reinspection</button></> : null}
+          {qualityFieldRole === "ncr_authority" && activeQualityObject?.kind === "ncr" ? <div className="action-row"><button type="button" onClick={() => advanceNcr("approve", {})} disabled={working || ncr?.state !== "disposition_proposed"}>Approve disposition</button><button type="button" onClick={() => advanceNcr("close", {})} disabled={working || ncr?.state !== "reinspection_complete"}>Close NCR</button></div> : null}
+          {qualityFieldRole === "punch_owner" && activeQualityObject?.kind === "punch" ? <><label>Owner evidence file IDs<input value={punchOwnerEvidenceIds} onChange={(event) => setPunchOwnerEvidenceIds(event.target.value)} /></label><button type="button" onClick={() => advancePunch("owner-update", { evidenceFileIds: ids(punchOwnerEvidenceIds), readyForVerification: true })} disabled={working || punch?.state !== "open" || ids(punchOwnerEvidenceIds).length === 0}>Route for verification</button></> : null}
+          {qualityFieldRole === "punch_verifier" && activeQualityObject?.kind === "punch" ? <><label>Verification evidence file ID<input value={punchVerificationEvidenceId} onChange={(event) => setPunchVerificationEvidenceId(event.target.value)} /></label><button type="button" onClick={() => advancePunch("verify", { verificationEvidenceFileId: punchVerificationEvidenceId })} disabled={working || punch?.state !== "ready_for_verification" || !punchVerificationEvidenceId.trim()}>Verify independently</button></> : null}
+          {qualityFieldRole === "completion_authority" && activeQualityObject?.kind === "punch" ? <button type="button" onClick={() => advancePunch("close", { closureMeaning: "Verified complete" })} disabled={working || punch?.state !== "verified"}>Close verified punch</button> : null}
+        </aside>
+      </div>
+    </section> : null}
+
+    {step === "turnover" ? <section className="field-object-console turnover-object-console" aria-labelledby="turnover-object-heading">
+      <div className="field-object-heading"><div><p className="section-label">Package-first completion</p><h3 id="turnover-object-heading">Find the boundary package, recalculate readiness, then generate</h3><p>Every package remains tied to its controlled boundary, exact material population, requirement statuses, resolved exceptions, recipient scope, and immutable generated versions.</p></div><span className="policy-chip">No manual ready claim</span></div>
+      <div className="field-object-layout"><aside className="field-object-finder" aria-label="Turnover package lookup"><label>Find package or boundary<input type="search" value={turnoverQuery} onChange={(event) => setTurnoverQuery(event.target.value)} placeholder="Package, boundary, recipient…" /></label><div className="field-object-results">{filteredTurnoverPackages.map((record) => <button key={record.id} type="button" className={turnoverPackage?.id === record.id ? "is-selected" : ""} onClick={() => { setTurnoverPackage(record); setReadiness([]); setGenerated(null); }}><span><strong>{record.code}</strong><small>{record.completionBoundaryId} · {record.recipientScope}</small></span><span className={`state-badge state-${record.state}`}>{stateLabel(record.state)}</span></button>)}</div>{filteredTurnoverPackages.length === 0 ? <p className="muted">No authorized turnover package matches. Configure a boundary and package below or verify scope.</p> : null}</aside>
+          <article className="field-object-record" aria-label="Selected turnover package">{turnoverPackage ? <><div className="field-object-title"><div><span className="record-type">Turnover package</span><h4>{turnoverPackage.code}</h4><p>{turnoverPackage.recipientScope}</p></div><span className={`state-badge state-${turnoverPackage.state}`}>{stateLabel(turnoverPackage.state)}</span></div><dl className="field-object-facts"><div><dt>Completion boundary</dt><dd>{turnoverPackage.completionBoundaryId}</dd></div><div><dt>Package version</dt><dd>v{turnoverPackage.version}</dd></div><div><dt>Exact materials</dt><dd>{turnoverPackage.materialItemIds?.length ?? 0}</dd></div><div><dt>Generated version</dt><dd>{generated ? `${generated.versionNumber} · ${generated.manifestSha256.slice(0, 12)}…` : "Not generated in this session"}</dd></div></dl><div className="material-gate-grid" aria-label="Turnover readiness gates">{readiness.length ? readiness.map((item) => <div key={item.requirementCode} className={["accepted", "not_applicable"].includes(item.status) ? "gate-accepted" : "gate-blocked"}><strong>{item.requirementCode}</strong><span>{stateLabel(item.status)} · {item.reason}</span></div>) : <div className="gate-pending"><strong>Readiness not calculated</strong><span>Recalculate from authoritative records</span></div>}</div></> : <div className="empty-state"><strong>No package selected</strong><p>Select an authorized package or establish the completion boundary below.</p></div>}</article>
+        <aside className="field-role-actions" aria-label="Turnover role actions"><strong>Turnover coordinator</strong><p>Recalculate current readiness before every generation attempt. A prior screen result never becomes an authority claim.</p><div className="review-boundary-note"><strong>Generation fails closed</strong><p>Required records, current releases, material state, NCRs, punch items, and recipient scope are revalidated server-side.</p></div><button className="secondary-button" type="button" onClick={checkReadiness} disabled={working || !turnoverPackage}>Recalculate package readiness</button><button className="primary-button" type="button" onClick={generateTurnover} disabled={working || !turnoverPackage || readiness.length === 0 || readiness.some((item) => !["accepted", "not_applicable"].includes(item.status))}>Generate package version</button></aside>
+      </div>
+    </section> : null}
 
     {step === "documents" ? <div className="workflow-grid">
       <article className="workflow-card"><p className="section-label">Register</p><h3>Controlled document</h3>
@@ -587,7 +866,7 @@ export function OperationalChain({
       </article>
     </div> : null}
 
-    {step === "quality" ? <div className="workflow-grid">
+    {step === "quality" ? <div className="workflow-grid" id="quality-capture-controls">
       <article className="workflow-card"><p className="section-label">PMI equipment</p><h3>Verified method capability</h3>
         <form className="compact-form" onSubmit={registerEquipment}>
           <label>Equipment identifier<input name="identifier" required /></label><label>Serial number<input name="serialNumber" required /></label>

@@ -1368,6 +1368,72 @@ export interface ScheduleImportRecord {
 }
 
 export type WeldingProcedureType = "pqr" | "wps";
+export interface WeldingProcessStepSpecification {
+  readonly sequence: number;
+  readonly processCode: string;
+  readonly operationMode: "manual" | "semiautomatic" | "machine" | "automatic";
+  readonly passScope: string;
+  readonly transferMode: string;
+  readonly currentType: string;
+  readonly polarity: string;
+  readonly amperageRange: string;
+  readonly voltageRange: string;
+  readonly travelSpeedRange: string;
+  readonly heatInputRange: string;
+  readonly fillerSpecification: string;
+  readonly fillerClassification: string;
+  readonly fillerGroup: string;
+  readonly fillerDiameterRange: string;
+  readonly electrodeConfiguration: string;
+  readonly shieldingGasComposition: string;
+  readonly shieldingGasFlowRange: string;
+  readonly backingGasComposition: string;
+  readonly backingGasFlowRange: string;
+  readonly fluxOrBackingMaterial: string;
+}
+
+export interface WeldingProcedureSpecification {
+  readonly codeProfileId: string;
+  readonly governingCode: string;
+  readonly codeEdition: string;
+  readonly constructionCode: string;
+  readonly controlledCatalogVersion: string;
+  readonly qualificationRoute: "procedure_qualification" | "prequalified" | "standard_wps" | "project_specific";
+  readonly procedureTitle: string;
+  readonly serviceDescription: string;
+  readonly units: "us_customary" | "metric" | "mixed";
+  readonly joint: {
+    readonly jointType: string; readonly designReference: string; readonly grooveAngle: string;
+    readonly rootOpening: string; readonly rootFace: string; readonly backingType: string;
+    readonly backingMaterial: string; readonly weldProgression: string; readonly misalignmentTolerance: string;
+  };
+  readonly baseMetals: {
+    readonly materialSpecifications: readonly string[]; readonly materialGrades: readonly string[];
+    readonly groupSystem: string; readonly groupCodes: readonly string[]; readonly productForms: readonly string[];
+    readonly thicknessRange: string; readonly diameterRange: string; readonly qualificationRangeBasis: string; readonly dissimilarMetalBasis: string;
+  };
+  readonly processSteps: readonly WeldingProcessStepSpecification[];
+  readonly thermalControl: {
+    readonly preheatMethod: string; readonly preheatMaintenance: string; readonly temperatureMeasurementMethod: string;
+    readonly temperatureControlBasis: string;
+    readonly pwhtDetermination: "required" | "not_required";
+    readonly pwhtRuleCitation: string;
+    readonly pwhtRequired: boolean; readonly pwhtTemperatureRange: string; readonly pwhtHoldingTime: string;
+    readonly heatingRateLimit: string; readonly coolingRateLimit: string;
+  };
+  readonly technique: {
+    readonly beadTechnique: string; readonly cleaningMethod: string; readonly backGougingMethod: string;
+    readonly oscillation: string; readonly peening: string; readonly contactTubeDistance: string;
+    readonly interpassCleaning: string; readonly singleOrMultiplePass: string; readonly singleOrMultipleElectrode: string;
+  };
+  readonly examinationAndTests: {
+    readonly visualAcceptanceReference: string; readonly ndeMethods: readonly string[];
+    readonly mechanicalTests: readonly string[]; readonly impactTestTemperature: string;
+    readonly hardnessLimit: string; readonly macroOrFractureTests: readonly string[];
+    readonly specimenReferences: readonly string[]; readonly essentialVariableNotes: string;
+  };
+  readonly revisionReason: string;
+}
 export interface WeldingProcedureRevisionRecord {
   readonly id: string;
   readonly businessScopeOrganizationId: string;
@@ -1388,6 +1454,7 @@ export interface WeldingProcedureRevisionRecord {
   readonly consumableClassifications: readonly string[];
   readonly preheatMinimum: string;
   readonly interpassMaximum: string;
+  readonly specification?: WeldingProcedureSpecification | null;
   readonly effectiveFrom: Date;
   readonly effectiveTo: Date | null;
   readonly state: "under_review" | "approved" | "rejected" | "superseded";

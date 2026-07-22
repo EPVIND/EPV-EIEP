@@ -18,6 +18,8 @@ export interface RuntimeConfig {
   readonly storageAccountName: string | null;
   readonly managedIdentityClientId: string | null;
   readonly fileStorageRoot: string | null;
+  readonly localPilotBootstrapFile: string | null;
+  readonly localPilotBootstrapSha256: string | null;
 }
 
 const allowedEnvironments: readonly EnvironmentName[] = ["development", "test", "training", "production"];
@@ -85,6 +87,8 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim() || null;
   const managedIdentityClientId = process.env.AZURE_CLIENT_ID?.trim() || null;
   const fileStorageRoot = process.env.FILE_STORAGE_ROOT?.trim() || null;
+  const localPilotBootstrapFile = process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_FILE?.trim() || null;
+  const localPilotBootstrapSha256 = process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256?.trim().toLowerCase() || null;
   if (storageAccountName && !/^[a-z0-9]{3,24}$/u.test(storageAccountName)) {
     throw new Error("AZURE_STORAGE_ACCOUNT_NAME is invalid.");
   }
@@ -93,6 +97,17 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   }
   if (databaseAuthentication === "azure-managed-identity" && !managedIdentityClientId) {
     throw new Error("Azure PostgreSQL authentication requires AZURE_CLIENT_ID.");
+  }
+  if ((localPilotBootstrapFile === null) !== (localPilotBootstrapSha256 === null)) {
+    throw new Error("EIEP_LOCAL_PILOT_BOOTSTRAP_FILE and EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 must be supplied together.");
+  }
+  if (localPilotBootstrapSha256 && !/^[0-9a-f]{64}$/u.test(localPilotBootstrapSha256)) {
+    throw new Error("EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 must be a lowercase SHA-256 value.");
+  }
+  if (localPilotBootstrapFile && (environment.environment !== "development"
+    || environment.authentication !== "development" || environment.dataStore !== "postgres"
+    || environment.trainingBanner || environment.allowProductionData)) {
+    throw new Error("Local pilot bootstrap requires development authentication, PostgreSQL, no training banner, and no production data.");
   }
   return {
     environment,
@@ -109,5 +124,7 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
     storageAccountName,
     managedIdentityClientId,
     fileStorageRoot,
+    localPilotBootstrapFile: localPilotBootstrapFile ? resolve(localPilotBootstrapFile) : null,
+    localPilotBootstrapSha256,
   };
 }

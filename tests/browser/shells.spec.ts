@@ -258,6 +258,11 @@ test("FR-CMD-001-004, NFR-USE-001-003 / AC-02-03, AC-15: command center exposes 
   await expect(page.getByText("Complete punch P-001")).toBeVisible();
   await expect(page.getByText("Review collaboration evidence: Valve access")).toBeHidden();
   await expect(page.getByRole("button", { name: /Bluebeam review/u })).toBeVisible();
+  await page.getByLabel("Find work").fill("punch-1");
+  await page.getByRole("button", { name: "Open Complete punch P-001 · Punch Update Owned" }).click();
+  await expect(page.getByRole("region", { name: "Selected My Work target" })).toContainText("punch-1");
+  await expect(page).toHaveURL(/workRecordId=punch-1/u);
+  await expect(page).toHaveURL(/#quality$/u);
   await expectNoSeriousAccessibilityViolations(page);
 });
 
@@ -314,14 +319,14 @@ test("FR-EST-001-010, NFR-USE-001-003 / AC-02-03, AC-09-11: estimating workspace
   await expect(page.getByText("Governed pipe installation assembly")).toBeVisible();
   await expect(page.getByText("CONGESTED · ×1.25")).toBeVisible();
   await expect(page.getByText("Estimate 100000.00 · quote 50000.00 · proposal 100000.00")).toBeVisible();
-  await page.getByRole("button", { name: /Build-up/u }).click();
+  await page.getByRole("button", { name: "Build-up Labor and direct cost" }).click();
   await expect(page.getByText("USD 3336.80", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("region", { name: "Estimate line calculations" })).toContainText("2625.00");
   await page.getByRole("button").filter({ hasText: "Quotes" }).click();
   await page.getByRole("button", { name: "Compare", exact: true }).click();
   await expect(page.getByText("Q-101")).toBeVisible();
   await expect(page.getByText("Complete mapped scope")).toBeVisible();
-  await page.getByRole("button").filter({ hasText: "Proposal" }).click();
+  await page.getByRole("button", { name: "Proposal Approve and hand off" }).click();
   await expect(page.getByText("PROP-2026-001")).toBeVisible();
   await expect(page.getByText("a".repeat(64))).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
@@ -469,9 +474,56 @@ test("FR-WLD-001-003, FR-NDE-001-002, FR-PWH-001, FR-TST-001-002 / AC-02-03, EX-
   await page.goto("/");
   await page.getByRole("link", { name: /Welding/u }).click();
   await expect(page.getByRole("heading", { name: "Welding, NDE, PWHT & testing — EXE-001" })).toBeVisible();
+  const fieldConsole = page.getByRole("region", { name: "Find the object, then perform the authorized work" });
+  await expect(fieldConsole).toBeVisible();
+  await fieldConsole.getByLabel("Scan / enter object identity").fill("W-100");
+  await expect(fieldConsole.getByRole("button", { name: /W-100/u })).toBeVisible();
+  await expect(fieldConsole.getByText("NDE-RT-100-1 (accepted)")).toBeVisible();
+  await expect(fieldConsole.getByText("PWHT-100 (accepted)")).toBeVisible();
+  await fieldConsole.getByLabel("Field role context").selectOption("welder");
+  await expect(fieldConsole.getByLabel("Authorized action").locator("option", { hasText: "Preheat observation" })).toHaveCount(1);
+  await fieldConsole.getByLabel("Field role context").selectOption("qc_inspector");
+  await expect(fieldConsole.getByLabel("Authorized action").locator("option", { hasText: "Visual examination" })).toHaveCount(1);
+  await expect(page.getByRole("heading", { name: "Welding Procedure Builder" })).toBeVisible();
+  const procedureBuilder = page.getByRole("region", { name: "Welding Procedure Builder" });
+  await procedureBuilder.getByLabel("Controlled code profile").selectOption("API_1104_ED22");
+  await expect(page.getByText("API Standard 1104", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Qualification route").locator("option")).toHaveCount(2);
+  const firstProcess = page.getByLabel("Process step 1 process");
+  await firstProcess.selectOption("GMAW");
+  await expect(page.getByLabel("Process step 1 operation mode")).toHaveValue("semiautomatic");
+  await expect(page.getByLabel("Process step 1 transfer mode")).toHaveValue("Short-circuiting");
+  await expect(page.getByLabel("Process step 1 transfer mode").locator("option", { hasText: "Pulsed spray" })).toHaveCount(1);
+  await expect(page.getByLabel("Process step 1 shielding gas composition")).toHaveValue("Argon / carbon dioxide blend");
+  await procedureBuilder.getByLabel("Controlled code profile").selectOption("ASME_BPVC_IX_2025");
+  await procedureBuilder.getByLabel("Construction / application code").selectOption({ label: "ASME BPVC Section I" });
+  await procedureBuilder.getByLabel("ASME P-Number / Group Number").selectOption(["P-1"]);
+  await procedureBuilder.getByLabel("Thickness maximum").fill("0.5");
+  await firstProcess.selectOption("GMAW");
+  await page.getByLabel("Process step 1 filler specification").selectOption("ASME SFA-5.18");
+  await expect(page.getByLabel("Process step 1 filler classification").locator("option", { hasText: "ER70S-6" })).toHaveCount(1);
+  await page.getByLabel("Process step 1 filler classification").selectOption("ER70S-6");
+  await expect(page.getByLabel("Process step 1 filler group").locator("option", { hasText: "F-No. 6" })).toHaveCount(1);
+  await page.getByLabel("Process step 1 filler group").selectOption("F-No. 6");
+  await expect(page.getByLabel("Process step 1 deposited weld metal group").locator("option").filter({ hasText: /^A-No\. 1$/u })).toHaveCount(1);
+  await page.getByLabel("Process step 1 deposited weld metal group").selectOption("A-No. 1");
+  await expect(page.getByLabel("PWHT code-rule disposition")).toBeEnabled();
+  await page.getByLabel("PWHT code-rule disposition").selectOption("required");
+  await expect(page.getByLabel("PWHT required — controlled result")).toBeChecked();
+  await expect(page.getByLabel("PWHT temperature range")).toBeEditable();
+  await procedureBuilder.getByLabel("Thickness maximum").fill("0.75");
+  await expect(page.getByLabel("PWHT code-rule disposition")).toHaveValue("");
+  await expect(page.getByLabel("PWHT required — controlled result")).not.toBeChecked();
+  await expect(page.getByLabel("PWHT temperature range")).toHaveValue("Not applicable");
+  await firstProcess.selectOption("SMAW");
+  await expect(page.getByLabel("Process step 1 operation mode")).toHaveValue("manual");
+  await expect(page.getByLabel("Process step 1 transfer mode")).toHaveValue("Not applicable");
+  await expect(page.getByLabel("Process step 1 shielding gas composition")).toHaveValue("Not applicable");
+  await page.getByRole("button", { name: "Add process step" }).click();
+  await expect(page.getByText("Process step 2", { exact: true })).toBeVisible();
   await expect(page.getByText("WPS WPS-001 · revision 0")).toBeVisible();
   await expect(page.getByText("W-100 · SYS-01 · repair cycle 1")).toBeVisible();
-  await expect(page.getByText("Release prerequisites complete")).toBeVisible();
+  await expect(page.getByText("Release prerequisites complete", { exact: true }).last()).toBeVisible();
   await expect(page.getByText("repair weld — pass · cycle 1 · welder-1")).toBeVisible();
 
   await page.getByRole("link", { name: /NDE \/ PWHT/u }).click();
@@ -617,7 +669,7 @@ test("FR-ENG-001-006 / AC-02-03, AC-18: engineering workspace exposes stable rev
   await page.setViewportSize({ width: 900, height: 1100 }); await page.goto("/#engineering");
   await expect(page.getByRole("heading", { name: "Engineering registers · ENG-001" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "P-101 · Rev 0" })).toBeVisible(); await expect(page.getByText(/equipment · Rev 0 · MECH/u)).toBeVisible();
-  await expect(page.getByText(/eeeeeeeeeeeeeeee/u)).toBeVisible(); await expect(page.getByRole("button", { name: "Approve" })).toBeVisible();
+  await expect(page.getByText(/eeeeeeeeeeeeeeee/u)).toBeVisible(); await expect(page.getByRole("button", { name: "Approve" }).first()).toBeVisible();
   await expect(page.getByText(/No illustrative engineering records/u)).not.toBeVisible(); await expectNoSeriousAccessibilityViolations(page);
 });
 
@@ -703,7 +755,13 @@ test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001
     if (url.pathname === "/v1/documents/document-1/revisions") return respond({ id: "revision-1", revision: "A", version: 1, state: "under_review" }, 201);
     if (url.pathname === "/v1/revisions/revision-1/approve") return respond({ id: "revision-1", revision: "A", version: 2, state: "approved" });
     if (url.pathname === "/v1/revisions/revision-1/release") return respond({ id: "revision-1", revision: "A", version: 3, state: "released" });
-    if (url.pathname === "/v1/projects/project-chain/materials") return respond({ id: "material-1", identifier: "HEAT-001", version: 1, state: "received_pending", requirements: { mtrRequired: true, mtrAccepted: false, mtrReviewId: null } }, 201);
+    if (url.pathname === "/v1/projects/project-chain/materials" && request.method() === "GET") return respond([]);
+    if (url.pathname === "/v1/projects/project-chain/quality-execution" && request.method() === "GET") return respond({ inspections: [], ncrs: [], punches: [], turnoverPackages: [] });
+    if (url.pathname === "/v1/projects/project-chain/materials") return respond({ id: "material-1", identifier: "HEAT-001", receiptNumber: "REC-001", purchaseReference: "PO-001",
+      specification: "SPEC-001", grade: "GRADE-1", form: "pipe", dimensions: "2 in", quantity: "10", unitCode: "EA", heatLot: "LOT-001",
+      storageLocation: "controlled-rack-1", mtrDocumentRevisionId: "revision-1", version: 1, state: "received_pending",
+      requirements: { mtrRequired: true, mtrAccepted: false, mtrReviewId: null, receivingInspectionRequired: true, receivingInspectionAccepted: false,
+        pmiRequired: true, pmiAccepted: false, governingPmiRule: "PMI-RULE-1", openDispositionCount: 0 } }, 201);
     if (url.pathname === "/v1/materials/material-1/mtr-reviews") return respond({ material: { id: "material-1", identifier: "HEAT-001", version: 2, state: "received_pending", requirements: { mtrRequired: true, mtrAccepted: true, mtrReviewId: "mtr-review-1" } }, review: { id: "mtr-review-1" } }, 201);
     if (url.pathname === "/v1/materials/material-1/receiving-inspection/accept") return respond({ id: "material-1", identifier: "HEAT-001", version: 3, state: "received_pending", requirements: { mtrRequired: true, mtrAccepted: true, mtrReviewId: "mtr-review-1" } });
     if (url.pathname === "/v1/projects/project-chain/inspection-equipment") return respond({ id: "equipment-1", identifier: "XRF-001", version: 1, state: "active" }, 201);
@@ -721,7 +779,7 @@ test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001
     if (url.pathname === "/v1/punch-items/punch-1/close") return respond({ id: "punch-1", version: 4, state: "closed" });
     if (url.pathname === "/v1/projects/project-chain/completion-boundaries") return respond({ id: "boundary-1", version: 1, state: "active" }, 201);
     if (url.pathname === "/v1/completion-boundaries/boundary-1/turnover-requirements") return respond({ id: "requirement-1", version: 1, state: "active" }, 201);
-    if (url.pathname === "/v1/completion-boundaries/boundary-1/turnover-packages") return respond({ id: "package-1", version: 1, state: "ready" }, 201);
+    if (url.pathname === "/v1/completion-boundaries/boundary-1/turnover-packages") return respond({ id: "package-1", code: "TOV-SYS-001", completionBoundaryId: "boundary-1", recipientScope: "owner-operator", materialItemIds: ["material-1"], version: 1, state: "ready" }, 201);
     if (url.pathname === "/v1/turnover-packages/package-1/readiness") return respond([{ requirementCode: "MAT-ACCEPTED", status: "accepted", reason: "released material present" }]);
     if (url.pathname === "/v1/turnover/generate") return respond({ id: "package-version-1", versionNumber: 1, manifestSha256: "a".repeat(64), manifest: [{ sourceType: "material" }] }, 201);
     if (url.pathname === "/v1/projects/project-chain/report-dashboard") return respond({
@@ -744,10 +802,10 @@ test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001
   await page.goto("/");
   await page.getByRole("link", { name: /Documents/u }).click();
   await expect(page.getByRole("heading", { name: "Guided controlled execution - CHAIN-001" })).toBeVisible();
-  await page.getByLabel("Document number").fill("MTR-001");
+  await page.getByLabel("Document number", { exact: true }).fill("MTR-001");
   await page.getByLabel("Title", { exact: true }).fill("Material certification");
   await page.getByLabel("Document type").fill("MTR");
-  await page.getByLabel("Discipline").fill("Materials");
+  await page.getByLabel("Discipline", { exact: true }).fill("Materials");
   await page.getByRole("button", { name: "Register document" }).click();
   await page.getByLabel("File to upload").setInputFiles({ name: "mtr.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.7\n%%EOF") });
   await page.getByRole("button", { name: "Upload to private staging" }).click();
@@ -755,7 +813,7 @@ test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001
   await page.getByRole("button", { name: "Release as distinct file authority" }).click();
   await page.getByLabel("Revision").fill("A");
   await page.getByLabel("Purpose").fill("Material release");
-  await page.getByLabel("Source").fill("Vendor submission");
+  await page.getByLabel("Source", { exact: true }).fill("Vendor submission");
   await page.getByRole("button", { name: "Submit released-file revision" }).click();
   await page.getByRole("button", { name: "Approve as distinct actor" }).click();
   await page.getByRole("button", { name: "Release current-for-work" }).click();
@@ -770,15 +828,24 @@ test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001
   };
   for (const [label, fieldValue] of Object.entries(materialValues)) await page.getByLabel(label, { exact: true }).fill(fieldValue);
   await page.getByRole("button", { name: "Receive material" }).click();
+  const materialConsole = page.getByRole("region", { name: "Find the material, inherit every release requirement" });
+  await expect(materialConsole).toBeVisible();
+  await materialConsole.getByLabel("Scan / enter material identity").fill("LOT-001");
+  await expect(materialConsole.getByRole("button", { name: /HEAT-001/u })).toBeVisible();
+  await expect(materialConsole.getByText("SPEC-001 · GRADE-1 · heat/lot LOT-001")).toBeVisible();
+  await materialConsole.getByLabel("Material field role context").selectOption("pmi_technician");
+  await expect(materialConsole.getByRole("button", { name: "Open governed PMI capture" })).toBeEnabled();
+  await materialConsole.getByLabel("Material field role context").selectOption("receiver");
   await page.getByLabel("Heat / lot matches").check();
   await page.getByLabel("Grade matches").check();
   await page.getByLabel("Specification matches").check();
   await page.getByLabel("MTR review notes").fill("Exact released revision matches the received material.");
   await page.getByLabel("MTR review evidence file IDs").fill("file-mtr-review-1");
   await page.getByRole("button", { name: "Accept as distinct qualified reviewer" }).click();
-  await page.getByRole("button", { name: "Accept receiving inspection" }).click();
+  await page.getByRole("button", { name: "Accept receiving inspection" }).last().click();
 
   await page.getByRole("link", { name: /Quality/u }).click();
+  await expect(page.getByRole("heading", { name: "Find the inspection or exception, then perform the authorized work" })).toBeVisible();
   await page.getByLabel("Equipment identifier").fill("XRF-001");
   await page.getByLabel("Serial number").fill("SER-001");
   await page.getByLabel("Method capabilities").fill("XRF");
@@ -832,17 +899,18 @@ test("FR-DOC-001-004, FR-MAT-001-004, FR-PMI-001-003, FR-NCR-001-003, FR-PCH-001
   await page.getByRole("button", { name: "Close punch" }).click();
 
   await page.getByRole("link", { name: /Turnover/u }).click();
+  await expect(page.getByRole("heading", { name: "Find the boundary package, recalculate readiness, then generate" })).toBeVisible();
   await page.getByLabel("Boundary code").fill("SYS-001");
   await page.getByLabel("Boundary name").fill("Process system");
   await page.getByRole("button", { name: "Create boundary" }).click();
-  await page.getByLabel("Requirement code").fill("MAT-ACCEPTED");
+  await page.getByLabel("Requirement code", { exact: true }).fill("MAT-ACCEPTED");
   await page.getByLabel("Acceptance authority").fill("quality-authority");
   await page.getByRole("button", { name: "Add requirement" }).click();
   await page.getByLabel("Package code").fill("TOV-SYS-001");
   await page.getByLabel("Recipient scope").fill("owner-operator");
   await page.getByRole("button", { name: "Create package" }).click();
   await page.getByRole("button", { name: "Recalculate readiness" }).click();
-  await expect(page.getByText("released material present")).toBeVisible();
+  await expect(page.getByText("released material present", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Generate immutable version" }).click();
   await expect(page.getByText("Version 1 generated")).toBeVisible();
   await page.getByRole("link", { name: /Reports/u }).click();
