@@ -7,8 +7,8 @@ ENV PNPM_HOME=/pnpm
 ENV PATH=/pnpm:$PATH
 RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 WORKDIR /workspace
-COPY --link . .
-RUN --mount=type=cache,id=eiep-pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm install --frozen-lockfile
 RUN pnpm run build
 RUN pnpm --filter @eiep/api --prod deploy /out/api \
   && pnpm --filter @eiep/job-worker --prod deploy /out/job-worker
