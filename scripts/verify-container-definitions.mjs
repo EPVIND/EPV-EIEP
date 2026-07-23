@@ -41,6 +41,7 @@ if (!workspace.includes("injectWorkspacePackages: true") || !workspace.includes(
   throw new Error("Portable pnpm workspace deployment settings are missing.");
 }
 if (!staticServer.includes("API_BASE_URL") || !staticServer.includes("API_UPSTREAM_URL")
+  || !staticServer.includes("PILOT_IDENTITIES_JSON")
   || !staticServer.includes("/runtime-config.js")
   || !staticServer.includes("content-security-policy") || !staticServer.includes("/healthz")
   || !staticServer.includes('decoded.endsWith(".map")')) {

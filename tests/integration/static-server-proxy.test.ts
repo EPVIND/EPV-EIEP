@@ -68,6 +68,11 @@ test("browser server proxies only governed API paths to an internal origin", asy
       PUBLIC_ROOT: publicRoot,
       API_BASE_URL: `http://127.0.0.1:${publicPort}`,
       API_UPSTREAM_URL: `http://127.0.0.1:${upstreamPort}`,
+      PILOT_IDENTITIES_JSON: JSON.stringify([{
+        displayName: "Pilot Coordinator",
+        userId: "6a9f7142-688f-464d-acc2-858f2c1a1c10",
+        organizationId: "fe1981f0-f212-473a-97e9-7a1a3c4b8b08",
+      }]),
     },
     stdio: ["ignore", "ignore", "pipe"],
     windowsHide: true,
@@ -85,6 +90,10 @@ test("browser server proxies only governed API paths to an internal origin", asy
 
   const origin = `http://127.0.0.1:${publicPort}`;
   await waitForHealth(origin, child, () => stderr);
+
+  const runtimeConfiguration = await fetch(`${origin}/runtime-config.js`);
+  assert.equal(runtimeConfiguration.status, 200);
+  assert.match(await runtimeConfiguration.text(), /"displayName":"Pilot Coordinator"/u);
 
   const health = await fetch(`${origin}/health?detail=pilot`);
   assert.equal(health.status, 200);

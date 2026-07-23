@@ -23,7 +23,10 @@ interface HealthStatus {
 
 declare global {
   interface Window {
-    readonly __EIEP_RUNTIME_CONFIG__?: { readonly apiBaseUrl?: string };
+    readonly __EIEP_RUNTIME_CONFIG__?: {
+      readonly apiBaseUrl?: string;
+      readonly pilotIdentities?: readonly PilotIdentityProfile[];
+    };
   }
 }
 
@@ -229,10 +232,10 @@ function storedIdentity(): IdentitySettings {
 }
 
 function localPilotIdentityProfiles(): readonly PilotIdentityProfile[] {
+  let parsed: unknown = window.__EIEP_RUNTIME_CONFIG__?.pilotIdentities;
   const source = import.meta.env.VITE_LOCAL_PILOT_IDENTITIES;
-  if (!source) return [];
   try {
-    const parsed = JSON.parse(source) as unknown;
+    if (!parsed && source) parsed = JSON.parse(source) as unknown;
     if (!Array.isArray(parsed)) return [];
     const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
     return parsed.filter((value): value is PilotIdentityProfile => Boolean(value)

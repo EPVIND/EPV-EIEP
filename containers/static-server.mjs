@@ -35,7 +35,42 @@ const host = process.env.HOST?.trim() || "0.0.0.0";
 const port = Number(process.env.PORT ?? "8080");
 if (!Number.isInteger(port) || port < 1 || port > 65_535) throw new Error("PORT is invalid.");
 const publicRoot = resolve(process.env.PUBLIC_ROOT?.trim() || "/app/public");
-const runtimeConfiguration = `globalThis.__EIEP_RUNTIME_CONFIG__ = Object.freeze(${JSON.stringify({ apiBaseUrl: apiBaseUrl.origin })});\n`;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const rawPilotIdentities = process.env.PILOT_IDENTITIES_JSON?.trim();
+let pilotIdentities = [];
+if (rawPilotIdentities) {
+  if (environment !== "development") throw new Error("PILOT_IDENTITIES_JSON is development-only.");
+  let parsed;
+  try {
+    parsed = JSON.parse(rawPilotIdentities);
+  } catch {
+    throw new Error("PILOT_IDENTITIES_JSON must be valid JSON.");
+  }
+  if (!Array.isArray(parsed) || parsed.length < 1 || parsed.length > 8) {
+    throw new Error("PILOT_IDENTITIES_JSON must contain between one and eight profiles.");
+  }
+  pilotIdentities = parsed.map((profile) => {
+    if (!profile || typeof profile !== "object"
+      || typeof profile.displayName !== "string" || profile.displayName.trim().length < 1
+      || profile.displayName.trim().length > 80
+      || typeof profile.userId !== "string" || !uuidPattern.test(profile.userId)
+      || typeof profile.organizationId !== "string" || !uuidPattern.test(profile.organizationId)) {
+      throw new Error("PILOT_IDENTITIES_JSON contains an invalid profile.");
+    }
+    return {
+      displayName: profile.displayName.trim(),
+      userId: profile.userId.toLowerCase(),
+      organizationId: profile.organizationId.toLowerCase(),
+    };
+  });
+  if (new Set(pilotIdentities.map((profile) => profile.userId)).size !== pilotIdentities.length) {
+    throw new Error("PILOT_IDENTITIES_JSON contains duplicate user IDs.");
+  }
+}
+const runtimeConfiguration = `globalThis.__EIEP_RUNTIME_CONFIG__ = Object.freeze(${JSON.stringify({
+  apiBaseUrl: apiBaseUrl.origin,
+  ...(pilotIdentities.length ? { pilotIdentities } : {}),
+})});\n`;
 const contentTypes = new Map([
   [".css", "text/css; charset=utf-8"],
   [".html", "text/html; charset=utf-8"],
