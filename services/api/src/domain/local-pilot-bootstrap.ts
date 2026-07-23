@@ -151,6 +151,16 @@ export function parseLocalPilotBootstrapJson(text: string): LocalPilotBootstrapI
   };
 }
 
+export function loadEphemeralLocalPilotBootstrapJson(text: string) {
+  if (Buffer.byteLength(text, "utf8") < 2 || Buffer.byteLength(text, "utf8") > 128 * 1024) {
+    throw new LocalPilotBootstrapError("The ephemeral pilot manifest must be between 2 bytes and 128 KiB.");
+  }
+  return {
+    input: parseLocalPilotBootstrapJson(text),
+    manifestSha256: createHash("sha256").update(text).digest("hex"),
+  };
+}
+
 export async function loadLocalPilotBootstrapFile(path: string, expectedSha256: string) {
   if (!sha256Pattern.test(expectedSha256)) throw new LocalPilotBootstrapError("The local pilot manifest SHA-256 is invalid.");
   const metadata = await stat(path);

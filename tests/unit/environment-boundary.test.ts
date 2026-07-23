@@ -86,3 +86,39 @@ test("NFR-SEC-002-003, NFR-MNT-003 / AC-01: local pilot configuration is hash-pa
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("NFR-SEC-002-003 / AC-01: ephemeral pilot bootstrap is memory-development only and excludes persistent input", async () => {
+  const root = await mkdtemp(join(tmpdir(), "eiep-ephemeral-pilot-config-"));
+  const environmentDirectory = join(root, "config", "environments");
+  const originalEnvironment = { ...process.env };
+  try {
+    await mkdir(environmentDirectory, { recursive: true });
+    const environment: EnvironmentConfig = {
+      environment: "development", authentication: "development", dataStore: "memory",
+      trainingBanner: false, allowSyntheticData: true, allowProductionData: false,
+    };
+    await writeFile(join(environmentDirectory, "development.json"), JSON.stringify(environment), "utf8");
+    Object.assign(process.env, {
+      EIEP_ENV: "development",
+      EIEP_EPHEMERAL_PILOT_BOOTSTRAP_JSON: "{\"manifestVersion\":1}",
+    });
+    delete process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_FILE;
+    delete process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256;
+    const valid = await loadRuntimeConfig(root);
+    assert.equal(valid.ephemeralPilotBootstrapJson, "{\"manifestVersion\":1}");
+
+    process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_FILE = join(root, "manifest.json");
+    process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 = "a".repeat(64);
+    await assert.rejects(loadRuntimeConfig(root), /cannot be combined/u);
+
+    delete process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_FILE;
+    delete process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256;
+    await writeFile(join(environmentDirectory, "development.json"), JSON.stringify({ ...environment, dataStore: "postgres" }), "utf8");
+    process.env.DATABASE_URL = "postgresql://pilot.invalid/eiep";
+    await assert.rejects(loadRuntimeConfig(root), /requires development authentication, memory data/u);
+  } finally {
+    for (const name of Object.keys(process.env)) if (!(name in originalEnvironment)) delete process.env[name];
+    Object.assign(process.env, originalEnvironment);
+    await rm(root, { recursive: true, force: true });
+  }
+});

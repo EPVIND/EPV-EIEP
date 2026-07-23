@@ -20,7 +20,11 @@ import { PostgresFoundationStore } from "./domain/postgres-foundation-store.js";
 import { ReportingService } from "./domain/reporting-service.js";
 import { buildServer } from "./server.js";
 import { createAzurePostgresAuthentication } from "./domain/azure-postgres-authentication.js";
-import { bootstrapLocalPilotAccess, loadLocalPilotBootstrapFile } from "./domain/local-pilot-bootstrap.js";
+import {
+  bootstrapLocalPilotAccess,
+  loadEphemeralLocalPilotBootstrapJson,
+  loadLocalPilotBootstrapFile,
+} from "./domain/local-pilot-bootstrap.js";
 
 const inferredRepositoryRoot = resolve(import.meta.dirname, "../../..");
 const configurationRoot = process.env.EIEP_CONFIG_ROOT?.trim()
@@ -40,6 +44,10 @@ if (config.localPilotBootstrapFile && config.localPilotBootstrapSha256) {
   const pilot = await loadLocalPilotBootstrapFile(config.localPilotBootstrapFile, config.localPilotBootstrapSha256);
   const result = await bootstrapLocalPilotAccess(store, pilot.input, pilot.manifestSha256);
   process.stdout.write(`${JSON.stringify({ level: "info", event: "local_pilot_bootstrap", ...result })}\n`);
+} else if (config.ephemeralPilotBootstrapJson) {
+  const pilot = loadEphemeralLocalPilotBootstrapJson(config.ephemeralPilotBootstrapJson);
+  const result = await bootstrapLocalPilotAccess(store, pilot.input, pilot.manifestSha256);
+  process.stdout.write(`${JSON.stringify({ level: "info", event: "ephemeral_pilot_bootstrap", ...result })}\n`);
 }
 const service = new FoundationService(store);
 const estimating = new EstimatingService(store);
@@ -64,7 +72,9 @@ const stagedUpload = config.storageAccountName
 const authenticator =
   config.environment.authentication === "oidc"
     ? await OidcAuthenticator.create(config.oidcIssuer!, config.oidcAudience!, new StoreIdentityResolver(store))
-    : config.localPilotBootstrapFile ? new StoreBackedDevelopmentAuthenticator(store) : new DevelopmentAuthenticator();
+    : config.localPilotBootstrapFile || config.ephemeralPilotBootstrapJson
+      ? new StoreBackedDevelopmentAuthenticator(store)
+      : new DevelopmentAuthenticator();
 const server = await buildServer({
   service,
   estimating,

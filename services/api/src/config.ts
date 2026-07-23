@@ -20,6 +20,7 @@ export interface RuntimeConfig {
   readonly fileStorageRoot: string | null;
   readonly localPilotBootstrapFile: string | null;
   readonly localPilotBootstrapSha256: string | null;
+  readonly ephemeralPilotBootstrapJson: string | null;
 }
 
 const allowedEnvironments: readonly EnvironmentName[] = ["development", "test", "training", "production"];
@@ -89,6 +90,7 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   const fileStorageRoot = process.env.FILE_STORAGE_ROOT?.trim() || null;
   const localPilotBootstrapFile = process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_FILE?.trim() || null;
   const localPilotBootstrapSha256 = process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256?.trim().toLowerCase() || null;
+  const ephemeralPilotBootstrapJson = process.env.EIEP_EPHEMERAL_PILOT_BOOTSTRAP_JSON?.trim() || null;
   if (storageAccountName && !/^[a-z0-9]{3,24}$/u.test(storageAccountName)) {
     throw new Error("AZURE_STORAGE_ACCOUNT_NAME is invalid.");
   }
@@ -104,10 +106,21 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   if (localPilotBootstrapSha256 && !/^[0-9a-f]{64}$/u.test(localPilotBootstrapSha256)) {
     throw new Error("EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 must be a lowercase SHA-256 value.");
   }
+  if (ephemeralPilotBootstrapJson && localPilotBootstrapFile) {
+    throw new Error("Persistent and ephemeral pilot bootstrap inputs cannot be combined.");
+  }
   if (localPilotBootstrapFile && (environment.environment !== "development"
     || environment.authentication !== "development" || environment.dataStore !== "postgres"
     || environment.trainingBanner || environment.allowProductionData)) {
     throw new Error("Local pilot bootstrap requires development authentication, PostgreSQL, no training banner, and no production data.");
+  }
+  if (ephemeralPilotBootstrapJson && Buffer.byteLength(ephemeralPilotBootstrapJson, "utf8") > 128 * 1024) {
+    throw new Error("EIEP_EPHEMERAL_PILOT_BOOTSTRAP_JSON cannot exceed 128 KiB.");
+  }
+  if (ephemeralPilotBootstrapJson && (environment.environment !== "development"
+    || environment.authentication !== "development" || environment.dataStore !== "memory"
+    || environment.trainingBanner || environment.allowProductionData)) {
+    throw new Error("Ephemeral pilot bootstrap requires development authentication, memory data, no training banner, and no production data.");
   }
   return {
     environment,
@@ -126,5 +139,6 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
     fileStorageRoot,
     localPilotBootstrapFile: localPilotBootstrapFile ? resolve(localPilotBootstrapFile) : null,
     localPilotBootstrapSha256,
+    ephemeralPilotBootstrapJson,
   };
 }

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   bootstrapLocalPilotAccess,
   InMemoryFoundationStore,
+  loadEphemeralLocalPilotBootstrapJson,
   LocalPilotBootstrapError,
   parseLocalPilotBootstrapJson,
   StoreBackedDevelopmentAuthenticator,
@@ -58,6 +59,14 @@ test("NFR-SEC-002-003 / AC-01-03: exact local pilot bootstrap is bounded, persis
   assert.equal(snapshot.identityAccounts.size, 3);
   assert.equal(snapshot.managedAccessAssignments.size, 3);
   assert.equal(snapshot.audits.filter((event) => event.action === "identity.local_pilot_bootstrap_completed").length, 1);
+});
+
+test("NFR-SEC-002 / AC-01: ephemeral pilot bootstrap derives its manifest hash from exact bytes", () => {
+  const text = JSON.stringify(manifest);
+  const loaded = loadEphemeralLocalPilotBootstrapJson(text);
+  assert.equal(loaded.input.users.length, 3);
+  assert.match(loaded.manifestSha256, /^[0-9a-f]{64}$/u);
+  assert.throws(() => loadEphemeralLocalPilotBootstrapJson(""), LocalPilotBootstrapError);
 });
 test("NFR-SEC-002 / AC-01: local pilot manifest rejects identity aliasing, short user sets, and unbounded dates", async () => {
   assert.throws(() => parseLocalPilotBootstrapJson(JSON.stringify({ ...manifest, users: manifest.users.slice(0, 2) })),
