@@ -117,6 +117,31 @@ test("FR-BBM-001-003 / EX-AC-08: Bluebeam export preview and atomic commit prese
   assert.equal(exportJob.state, "queued");
 });
 
+test("FR-BBM-001: released Markups List CSV is accepted as an integrity-matched collaboration source", async () => {
+  const { store, service, input } = await configuredCollaboration();
+  const csvSha256 = "d".repeat(64);
+  await store.transaction((transaction) => transaction.insertGovernedFile({
+    id: "bluebeam-source-csv", businessScopeOrganizationId: organizationId, projectId,
+    storageKey: `${projectId}/bluebeam-source-csv`, originalFilename: "markups.csv",
+    declaredMediaType: "text/csv", detectedMediaType: "text/csv", sha256: csvSha256,
+    detectedSha256: csvSha256, sizeBytes: 1024, validationState: "released", malwareState: "clean",
+    validatorVersion: "fixture-validator-1", retentionClass: "project-record", activeContentDetected: false,
+    encryptedArchiveDetected: false, version: 3, uploadedAt: now, uploadedBy: "source-uploader",
+    validatedAt: now, validatedBy: "source-validator", releasedAt: now, releasedBy: "file-release-authority",
+  }));
+  const previewer = access("csv-previewer", ["collaboration.import.preview"]);
+  const preview = await service.preview(previewer.context, previewer.assignments, projectId, {
+    ...input,
+    providerSessionId: "BB-SESSION-CSV",
+    sourceFileId: "bluebeam-source-csv",
+    sourceSha256: csvSha256,
+    sourceVersion: "2026-07-21T18:00:00.000Z",
+    idempotencyKey: "preview-csv-1",
+  });
+  assert.equal(preview.state, "previewed");
+  assert.equal(preview.previewIssues.length, 0);
+});
+
 test("FR-BBM-004: invalid mappings, unsupported content, parent errors, changed retries, and changed-source collisions remain explicit reconciliation work", async () => {
   const { store, service, input } = await configuredCollaboration();
   const previewer = access("invalid-previewer", ["collaboration.import.preview"]);

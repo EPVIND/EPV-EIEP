@@ -703,6 +703,8 @@ export function App() {
             key={`${identity.userId}:${identity.organizationId}:${selectedProject.id}:collaboration`}
             projectId={selectedProject.id}
             projectNumber={selectedProject.number}
+            userId={identity.userId}
+            organizationId={identity.organizationId}
             request={request}
             working={working}
             setWorking={setWorking}

@@ -1,10 +1,11 @@
 import { AxeBuilder } from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { createHash } from "node:crypto";
 
 const corsHeaders = {
   "access-control-allow-origin": "http://127.0.0.1:3200",
   "access-control-allow-methods": "GET,POST,PUT,OPTIONS",
-  "access-control-allow-headers": "content-type,x-eiep-user-id,x-eiep-organization-id,x-eiep-assurance",
+  "access-control-allow-headers": "content-type,x-eiep-user-id,x-eiep-organization-id,x-eiep-assurance,x-eiep-retention-class,x-idempotency-key",
   "content-type": "application/json",
 };
 
@@ -698,6 +699,12 @@ test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed i
       "outbound_identity_not_configured", "rate_retry_reconciliation_not_accepted", "tenant_project_ownership_not_verified",
       "vendor_terms_and_retention_not_accepted"] },
   };
+  const bluebeamCsv = [
+    "Markup ID,File Name,Page Number,Author,Status,Subject,Comments,Created,Modified",
+    "BB-NEW-1,P-100.pdf,3,designer-account,Open,Valve orientation,Rotate valve,2026-07-21T16:30:00Z,2026-07-21T16:35:00Z",
+    "BB-NEW-2,P-100.pdf,4,designer-account,Accepted,Support location,Move support,2026-07-21T16:40:00Z,2026-07-21T16:45:00Z",
+  ].join("\n");
+  const bluebeamHash = createHash("sha256").update(bluebeamCsv).digest("hex");
   await page.route("http://127.0.0.1:3100/**", async (route) => {
     const request = route.request();
     if (request.method() === "OPTIONS") { await route.fulfill({ status: 204, headers: corsHeaders }); return; }
@@ -707,6 +714,14 @@ test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed i
     if (path === "/v1/session") return respond({ userId: "collaboration-reader", actingOrganizationId: "org-epv", assurance: "step-up", assignmentCount: 6, environment: "test", training: false });
     if (path === "/v1/projects") return respond([{ id: "project-1", number: "BBM-001", name: "Bluebeam controlled pilot",
       customerOrganizationId: "org-customer", facilityId: "facility-1", timeZone: "America/Denver", state: "active", version: 4 }]);
+    if (path === "/v1/projects/project-1/current-document-revisions") return respond([{
+      documentId: "document-100", documentNumber: "P-100", documentTitle: "Piping arrangement",
+      revisionId: "revision-100-b", revision: "B", sourceFilename: "P-100.pdf",
+    }]);
+    if (path === "/v1/projects/project-1/file-uploads" && request.method() === "POST") return respond({
+      id: "bluebeam-source-1", originalFilename: "markups.csv", sha256: bluebeamHash,
+      detectedSha256: null, validationState: "staged", malwareState: "pending", version: 1,
+    }, 201);
     if (path === "/v1/projects/project-1/collaboration") return respond(snapshot);
     return respond({ error: "not_found" }, 404);
   });
@@ -720,6 +735,17 @@ test("FR-BBM-001-005 / AC-02-03, EX-AC-08: Bluebeam workspace exposes governed i
   await expect(page.getByText("unsupported content", { exact: true })).toBeVisible();
   await expect(page.getByText("live provider contract unapproved", { exact: true })).toBeVisible();
   await expect(page.getByText(/No live Bluebeam write action is exposed/u)).toBeVisible();
+  await page.getByLabel("Bluebeam Markups List export").setInputFiles({
+    name: "markups.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(bluebeamCsv),
+  });
+  await expect(page.getByText("2", { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.getByText(/1 of 1 matched automatically against 1 authorized released revision/u)).toBeVisible();
+  await expect(page.getByLabel("Released revision for P-100.pdf")).toHaveValue("revision-100-b");
+  await expect(page.getByLabel("Evidence status for Open")).toHaveValue("open");
+  await expect(page.getByLabel("EIEP user for designer-account")).toHaveValue("");
+  await expect(page.getByText("Awaiting validation and release")).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
 });
 

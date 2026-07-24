@@ -64,6 +64,15 @@ export interface SubmitDocumentRevisionInput {
   readonly requiredApprovalCount: number;
 }
 
+export interface CurrentDocumentRevisionCandidate {
+  readonly documentId: string;
+  readonly documentNumber: string;
+  readonly documentTitle: string;
+  readonly revisionId: string;
+  readonly revision: string;
+  readonly sourceFilename: string;
+}
+
 export interface GrantAccessAssignmentInput {
   readonly userId: string;
   readonly actingOrganizationId: string;
@@ -1266,6 +1275,50 @@ export class FoundationService {
         throw new ConflictError("The current-for-work invariant is inconsistent.");
       }
       return revision;
+    });
+  }
+
+  public currentDocumentRevisionCandidates(
+    context: AccessContext,
+    assignments: readonly RoleAssignment[],
+    projectId: string,
+  ): Promise<readonly CurrentDocumentRevisionCandidate[]> {
+    const now = this.clock();
+    return this.store.transaction((transaction) => {
+      const project = transaction.projectById(projectId);
+      if (!project) throw new NotFoundError();
+      return transaction.documentsForProject(project.id)
+        .filter((document) => authorize(
+          context,
+          assignments,
+          {
+            action: "document.read_current",
+            resource: baseScope(project.businessScopeOrganizationId, project.id, document.id),
+            requiredQualifications: [],
+            forbiddenActorIds: [],
+            minimumAssurance: "standard",
+          },
+          now,
+        ).allowed)
+        .flatMap((document): readonly CurrentDocumentRevisionCandidate[] => {
+          if (!document.currentRevisionId) return [];
+          const revision = transaction.revisionById(document.currentRevisionId);
+          if (!revision || revision.documentId !== document.id || revision.state !== "released") {
+            throw new ConflictError("The current-for-work invariant is inconsistent.");
+          }
+          const file = transaction.governedFileById(revision.fileId);
+          if (!file || file.validationState !== "released") return [];
+          return [{
+            documentId: document.id,
+            documentNumber: document.number,
+            documentTitle: document.title,
+            revisionId: revision.id,
+            revision: revision.revision,
+            sourceFilename: file.originalFilename,
+          }];
+        })
+        .sort((left, right) => left.documentNumber.localeCompare(right.documentNumber)
+          || left.revision.localeCompare(right.revision));
     });
   }
 

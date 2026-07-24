@@ -73,6 +73,9 @@ Date: 2026-07-21
 
 ## EX-AC-08 Bluebeam collaboration
 
+- A guided Markups List CSV/XML intake hashes and privately stages the source,
+  proposes only unique authorized current-revision matches, suggests evidence-only
+  status mappings, and leaves ambiguous drawing or author attribution as blockers.
 - An approved fixture representing a Bluebeam session/export previews mappings and
   atomically imports exact revision-linked markups, comments/replies, authors,
   locations, statuses, timestamps, and provider/source identifiers.

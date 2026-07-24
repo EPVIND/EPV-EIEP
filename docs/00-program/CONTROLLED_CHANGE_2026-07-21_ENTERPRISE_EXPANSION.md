@@ -80,9 +80,12 @@ and require separately approved boundaries.
 - Sequence 3 now has a locally verified controlled-pilot implementation for exact
   WPS/PQR/WPQ applicability, weld and repair history, repair-cycle NDE, PWHT, and
   completion-boundary pressure/leak/functional testing.
-- Sequence 4 now has a locally verified provider-neutral Bluebeam export preview,
-  idempotent import, source/item reconciliation, exact markup/comment/reply fidelity,
-  independent evidence review, and an explicit disabled outbound-write boundary.
+- Sequence 4 now has a locally verified guided Bluebeam Markups List CSV/XML intake,
+  browser/server source-hash agreement, private governed-file staging, authorized
+  current-revision matching with ambiguity left visible, evidence-only status
+  suggestions, provider-neutral preview, idempotent import, source/item
+  reconciliation, exact markup/comment/reply fidelity, independent evidence review,
+  and an explicit disabled outbound-write boundary.
 - Sequence 5 implements a unified project command center over the delivered modules,
   including exact-current-revision schedule progress, permission-filtered module
   health, owned/authorized work, separately authorized activity, quick actions, and

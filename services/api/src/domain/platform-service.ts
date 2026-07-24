@@ -22,7 +22,9 @@ type IdFactory = () => string;
 type Clock = () => Date;
 
 const sha256Pattern = /^[0-9a-f]{64}$/u;
-const supportedMediaTypes = new Set(["application/pdf", "image/jpeg", "image/png", "text/csv", "application/json"]);
+const supportedMediaTypes = new Set([
+  "application/pdf", "image/jpeg", "image/png", "text/csv", "application/json", "application/xml",
+]);
 const maximumFileSizeBytes = 250 * 1024 * 1024;
 
 export interface StageFileInput {

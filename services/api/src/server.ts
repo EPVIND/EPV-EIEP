@@ -19,6 +19,7 @@ import type {
   DistributeDocumentRevisionInput,
   FoundationService,
   GrantAccessAssignmentInput,
+  CurrentDocumentRevisionCandidate,
   ProposeDelegationInput,
   ProposeRetentionPolicyInput,
   LinkGoverningDocumentInput,
@@ -2281,6 +2282,18 @@ export async function buildServer(dependencies: ServerDependencies) {
       request.params.documentId,
     );
   });
+
+  server.get<{ Params: { projectId: string } }>(
+    "/v1/projects/:projectId/current-document-revisions",
+    async (request): Promise<readonly CurrentDocumentRevisionCandidate[]> => {
+      const access = await accessFor(request, dependencies);
+      return dependencies.service.currentDocumentRevisionCandidates(
+        access.context,
+        access.assignments,
+        request.params.projectId,
+      );
+    },
+  );
 
   server.get<{ Params: { projectId: string } }>("/v1/projects/:projectId/audit", async (request) => {
     const access = await accessFor(request, dependencies);

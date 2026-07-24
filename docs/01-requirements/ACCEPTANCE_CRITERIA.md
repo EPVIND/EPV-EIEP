@@ -86,6 +86,8 @@
 
 ## AC-14 Bluebeam and provider-neutral document collaboration
 
+- The operator can receive a Bluebeam Markups List CSV or XML through one guided intake, with a browser/server SHA-256 match, private governed-file staging, deterministic row parsing, and visible diagnostics before any import command is enabled.
+- Drawing filenames and numbers are proposed only against authorized current released EIEP revisions; unique matches populate automatically, while ambiguous/unmatched drawings and unverified author identities stay blank and block preview until explicitly resolved.
 - A protected representative Bluebeam export previews and atomically commits exact project/session/source/document-revision/user/organization/status mappings plus markup, comment, reply, page, region, appearance, and timestamps.
 - Exact retries do not duplicate evidence; changed source, unmapped identity/document/status, invalid parent/region/time, unsupported content, unsafe file, and cross-project/direct-identifier access fail closed with safe reconciliation evidence.
 - Provider completion/approval remains evidence-only, while independent step-up EIEP review is version checked, audited, separated from importer/provider author, and cannot rewrite the controlled document revision.

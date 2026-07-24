@@ -218,7 +218,8 @@ function assertSourceFile(transaction: FoundationTransaction, organizationId: st
     || file.sha256 !== sourceSha256 || file.detectedSha256 !== file.sha256
     || file.detectedMediaType !== file.declaredMediaType || file.sizeBytes < 1 || file.sizeBytes > 250 * 1024 * 1024
     || file.activeContentDetected !== false || file.encryptedArchiveDetected !== false
-    || !["application/json", "application/zip", "application/pdf"].includes(file.detectedMediaType ?? "")) {
+    || !["application/json", "application/zip", "application/pdf", "text/csv", "application/csv",
+      "application/xml", "text/xml"].includes(file.detectedMediaType ?? "")) {
     throw new ValidationError("The source must be an integrity-matched released project file with an allowed media type.", ["collaboration_source_file_invalid"]);
   }
 }

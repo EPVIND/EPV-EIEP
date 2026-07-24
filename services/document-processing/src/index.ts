@@ -91,14 +91,19 @@ function detectMediaType(content: Uint8Array): string | null {
   } catch {
     // Text may still be a controlled CSV representation.
   }
+  const trimmed = text.trimStart();
+  if ((trimmed.startsWith("<?xml") || /^<!DOCTYPE\b/iu.test(trimmed)
+    || /^<[A-Za-z_][A-Za-z0-9_.:-]*(?:\s|>)/u.test(trimmed))
+    && /<\/[A-Za-z_][A-Za-z0-9_.:-]*\s*>/u.test(trimmed)) return "application/xml";
   if (text.includes(",") && /(?:\r?\n|^)[^\r\n,]+,[^\r\n]+/u.test(text)) return "text/csv";
   return null;
 }
 
 function contentRisks(content: Uint8Array, detectedMediaType: string | null) {
   const text = Buffer.from(content).toString("latin1");
-  const activeContentDetected = detectedMediaType === "application/pdf"
-    && /\/(?:JavaScript|JS|Launch|EmbeddedFile|RichMedia)\b/iu.test(text);
+  const activeContentDetected = (detectedMediaType === "application/pdf"
+    && /\/(?:JavaScript|JS|Launch|EmbeddedFile|RichMedia)\b/iu.test(text))
+    || (detectedMediaType === "application/xml" && /<!DOCTYPE|<!ENTITY/iu.test(text));
   const encryptedArchiveDetected = detectedMediaType === "application/zip"
     || (detectedMediaType === "application/pdf" && /\/Encrypt\b/iu.test(text));
   return { activeContentDetected, encryptedArchiveDetected };
