@@ -257,6 +257,9 @@ export function App() {
   const apiBase = window.__EIEP_RUNTIME_CONFIG__?.apiBaseUrl
     ?? import.meta.env.VITE_API_BASE_URL
     ?? "http://127.0.0.1:3100";
+  const apiCredentials: RequestCredentials = new URL(apiBase).origin === window.location.origin
+    ? "same-origin"
+    : "omit";
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [apiUnavailable, setApiUnavailable] = useState(false);
   const [identity, setIdentity] = useState<IdentitySettings>(storedIdentity);
@@ -280,7 +283,7 @@ export function App() {
   const request = useCallback(async <T,>(path: string, init: RequestInit = {}): Promise<T> => {
     const response = await fetch(`${apiBase}${path}`, {
       ...init,
-      credentials: "omit",
+      credentials: apiCredentials,
       headers: {
         ...(init.body instanceof FormData ? {} : { "content-type": "application/json" }),
         "x-eiep-user-id": identity.userId,
@@ -295,11 +298,11 @@ export function App() {
       throw new Error(`${displayCode(body.error ?? `HTTP ${response.status}`)}${details ? `: ${details}` : ""}`);
     }
     return body as T;
-  }, [apiBase, identity]);
+  }, [apiBase, apiCredentials, identity]);
 
   const download = useCallback(async (path: string, filename: string) => {
     const response = await fetch(`${apiBase}${path}`, {
-      credentials: "omit",
+      credentials: apiCredentials,
       headers: {
         "x-eiep-user-id": identity.userId, "x-eiep-organization-id": identity.organizationId,
         "x-eiep-assurance": identity.assurance,
@@ -310,7 +313,7 @@ export function App() {
     const anchor = document.createElement("a");
     anchor.href = url; anchor.download = filename; anchor.click();
     URL.revokeObjectURL(url);
-  }, [apiBase, identity]);
+  }, [apiBase, apiCredentials, identity]);
 
   const notify = useCallback((tone: "success" | "error", text: string) => {
     setMessage({ tone, text });
@@ -362,7 +365,7 @@ export function App() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`${apiBase}/health`, { signal: controller.signal, credentials: "omit" })
+    fetch(`${apiBase}/health`, { signal: controller.signal, credentials: apiCredentials })
       .then(async (response) => {
         if (!response.ok) throw new Error("Health check failed.");
         setHealth((await response.json()) as HealthStatus);
@@ -372,7 +375,7 @@ export function App() {
         if (!(reason instanceof DOMException && reason.name === "AbortError")) setApiUnavailable(true);
       });
     return () => controller.abort();
-  }, [apiBase]);
+  }, [apiBase, apiCredentials]);
 
   useEffect(() => { void refreshWorkspace(); }, [refreshWorkspace]);
   useEffect(() => { setReadinessStatus(null); setActivationConfirmation(""); }, [selectedProjectId]);
