@@ -1,5 +1,9 @@
 # Enterprise Module Map
 
+The task-owner dashboard capability expectation is controlled in
+`PRODUCT_VISION_CAPABILITY_BASELINE.md`. This map describes the corresponding domain
+scope; it does not treat illustrative dashboard values as implemented records.
+
 ## Shared foundation
 
 - Organizations, facilities, projects, systems, areas, WBS, work packages, and responsibilities.
@@ -59,3 +63,22 @@
 
 Only the shared foundation and the first operational vertical slice are implementation commitments for the MVP. Other modules influence identifiers, extensibility, and interfaces but are deferred until the vertical slice meets its acceptance criteria.
 
+## Active post-MVP expansion priority
+
+Task-owner direction on 2026-07-21 activates advanced estimating/proposals first,
+then project controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed
+Bluebeam collaboration, followed by a unified project command center, governed
+fabrication/spool control, CNC/profiling, and multidisciplinary engineering registers.
+All eight increments now have locally verified controlled-pilot
+slices; live Bluebeam outbound/write remains explicitly disabled pending its external
+contract, sandbox, identity, tenancy, retention, and authorization gates. These are separate controlled releases under
+`../01-requirements/EXPANSION_REQUIREMENTS.md`; activation does not enlarge the MVP
+acceptance claim or authorize production use.
+
+The command-center slice now derives permission-filtered module health, owned/currently
+authorized tasks, accepted schedule progress, quick actions, and recent audit activity
+without duplicating authoritative state. The preserved vision also includes the adjacent
+customer portal, cross-project portfolio analytics, separately governed finance/payroll,
+offline, and deployed system-status surfaces. Their sequencing follows the
+dependency order in the product-vision baseline; none is silently represented as
+available before executable acceptance evidence exists.

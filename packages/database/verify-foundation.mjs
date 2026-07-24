@@ -1,4 +1,5 @@
 import pg from "pg";
+import { databaseConnectionConfig } from "./connection.mjs";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -6,7 +7,7 @@ if (!connectionString) {
   throw new Error("DATABASE_URL is required. Supply it through protected environment configuration.");
 }
 
-const client = new pg.Client({ connectionString });
+const client = new pg.Client(databaseConnectionConfig(connectionString));
 
 try {
   await client.connect();

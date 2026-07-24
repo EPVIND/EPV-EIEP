@@ -7,7 +7,7 @@ import { assignment, completeReadiness, context, scope, sequentialIds } from "..
 
 const now = new Date("2026-07-21T09:00:00.000Z");
 
-test("NFR-PER-003, NFR-REL-004 / AC-10: durable worker processes queued export and leaves an explicit terminal state", async () => {
+test("NFR-PER-003, NFR-REL-003-004 / AC-10: transactional export/outbox work reaches an explicit terminal state", async () => {
   const store = new InMemoryFoundationStore();
   const ids = sequentialIds("job-worker");
   const foundation = new FoundationService(store, () => now, ids);
@@ -26,7 +26,8 @@ test("NFR-PER-003, NFR-REL-004 / AC-10: durable worker processes queued export a
     externalId: "WORKER-EXT-001", createdAt: now, createdBy: "job-project-creator",
   }));
   await store.transaction((transaction) => transaction.insertIntegrationMessage({
-    id: "unsupported-earlier-message", direction: "outbox", projectId: project.id, interfaceCode: "unconfigured.transport",
+    id: "unsupported-earlier-message", direction: "outbox", businessScopeOrganizationId: "org-epv",
+    projectId: project.id, interfaceCode: "unconfigured.transport",
     idempotencyKey: "unsupported-key", externalId: "UNSUPPORTED-1", schemaVersion: 1, payload: { ignored: true },
     payloadSha256: "b".repeat(64), correlationId: "unsupported-correlation", state: "pending", attemptCount: 0,
     lastError: null, createdAt: new Date(now.getTime() - 1_000), processedAt: null, version: 1,
@@ -38,6 +39,12 @@ test("NFR-PER-003, NFR-REL-004 / AC-10: durable worker processes queued export a
     project.id,
     { recordClass: "imported", recordIds: ["job-source-record"], format: "jsonl", recipientOrganizationId: "org-epv" },
   );
+  const queuedPair = await store.transaction((transaction) => ({
+    exportJob: transaction.exportJobById(queued.id),
+    outbox: transaction.integrationMessageByKey("export.worker", queued.id),
+  }));
+  assert.equal(queuedPair.exportJob?.state, "queued");
+  assert.equal(queuedPair.outbox?.state, "pending");
   const workerContext = context("job-worker-user", "mfa", ["export_worker", "integration_worker"]);
   const worker = new JobWorker(store, platform, { batchSize: 10 });
   const result = await worker.runOnce(workerContext, [assignment(
@@ -69,7 +76,8 @@ test("NFR-PER-003, NFR-REL-004 / AC-10: outbound adapter receives retained paylo
     },
   );
   await store.transaction((transaction) => transaction.insertIntegrationMessage({
-    id: "outbound-message", direction: "outbox", projectId: project.id, interfaceCode: "erp.material.v1",
+    id: "outbound-message", direction: "outbox", businessScopeOrganizationId: "org-epv",
+    projectId: project.id, interfaceCode: "erp.material.v1",
     idempotencyKey: "outbound-key", externalId: "ERP-001", schemaVersion: 1,
     payload: { identifier: "MAT-001", quantity: "2.500" }, payloadSha256: "a".repeat(64),
     correlationId: "outbound-correlation", state: "pending", attemptCount: 0, lastError: null,
@@ -110,7 +118,8 @@ test("NFR-PER-003, NFR-REL-004 / AC-10: competing workers lease one message and 
     },
   );
   await store.transaction((transaction) => transaction.insertIntegrationMessage({
-    id: "leased-outbound-message", direction: "outbox", projectId: project.id, interfaceCode: "erp.material.v1",
+    id: "leased-outbound-message", direction: "outbox", businessScopeOrganizationId: "org-epv",
+    projectId: project.id, interfaceCode: "erp.material.v1",
     idempotencyKey: "leased-outbound-key", externalId: "LEASED-ERP-001", schemaVersion: 1,
     payload: { identifier: "LEASED-MAT-001" }, payloadSha256: "c".repeat(64),
     correlationId: "leased-outbound-correlation", state: "pending", attemptCount: 0, lastError: null,
@@ -155,7 +164,8 @@ test("NFR-REL-004 / AC-10: an active worker renews its lease during a slow idemp
     },
   );
   await store.transaction((transaction) => transaction.insertIntegrationMessage({
-    id: "heartbeat-message", direction: "outbox", projectId: project.id, interfaceCode: "erp.material.v1",
+    id: "heartbeat-message", direction: "outbox", businessScopeOrganizationId: "org-epv",
+    projectId: project.id, interfaceCode: "erp.material.v1",
     idempotencyKey: "heartbeat-key", externalId: "HEARTBEAT-ERP-001", schemaVersion: 1,
     payload: { identifier: "HEARTBEAT-MAT-001" }, payloadSha256: "d".repeat(64),
     correlationId: "heartbeat-correlation", state: "pending", attemptCount: 0, lastError: null,

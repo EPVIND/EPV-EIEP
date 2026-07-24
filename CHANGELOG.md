@@ -2,8 +2,228 @@
 
 All notable controlled changes to the EIEP program definition and implementation should be recorded here.
 
+## 0.17.0 - Controlled local pilot runtime and interactive review workbenches
+
+- Routed the local pilot browser through the managed web origin for API calls, preserving authorization while avoiding browser-side secondary-port blocking in the visible demo.
+- Added 76 browser-session review documents across 19 enterprise modules with editable
+  fields, validation, simulated lifecycle history, audit visibility, and separate-tab
+  printable previews while explicitly excluding authoritative record claims.
+- Added a SHA-256-pinned, expiring external pilot manifest, persisted accounts,
+  qualifications, independently reviewed assignments, canonical audit events, exact
+  idempotency, conflict denial, and store-backed development authentication.
+- Added an isolated persistent PostgreSQL supervisor for the local API, governed-file
+  boundary, worker, and web UI, with status/stop controls and manifest-derived role
+  choices. The runtime rejects training, memory-store, OIDC, or production-data modes.
+- Expanded every desktop module into workflow and document/register pull-downs. Added
+  a code-profile-driven Welding Procedure Builder with 70+ structured variables,
+  ordered multi-process steps, code/application edition selection, base/filler groups,
+  joint, electrical, gas, thermal/PWHT, technique, examination/test, revision,
+  validation, printable preview, exact persistence, and independent review handoff.
+  Parent selections now filter and reset dependent application, qualification,
+  geometry, material, position, process, mode, current, polarity, transfer, filler,
+  gas, PWHT, and test-evidence choices with explicit unresolved findings. Filler
+  classification, F-number/A-number or profile-equivalent grouping, filler diameter,
+  base-metal thickness/diameter, preheat, interpass temperature, and interpass cleaning
+  now expose governed selections or bounded presets. PWHT is a construction-code result:
+  material, thickness, joint, or application changes invalidate it; a required
+  disposition forces heat-treatment controls and requires the released rule citation.
+- Imported the four ChatGPT `QC` project conversations into a private, Git-ignored,
+  hash-manifested source-intake package. Added an asset register entry and controlled
+  reconciliation that promotes object-first role UX as strategy while rejecting
+  unverified package/compliance claims and preserving current EIEP authority boundaries.
+- Added the first object-first field execution slice over authoritative weld records:
+  scan/search identity, exact WPS and current repair-cycle context, related NDE/PWHT,
+  explainable release blockers, immutable event history, role-organized inputs, and
+  server-authorized append/release actions. The role selector changes presentation only;
+  permissions, qualifications, assurance, separation of duty, and versions remain enforced.
+- Extended object-first execution to permission-filtered material lookup by item, heat,
+  receipt, purchase reference, location, or stable ID. The field view inherits exact MTR,
+  PMI rule, receipt, custody, exception and release-gate context and exposes independently
+  authorized receipt, review, PMI, custody, and release paths without duplicating records.
+- Added a permission-filtered quality-execution API and tablet field queues for existing
+  inspections, NCRs, punch items, and turnover packages. Users can reopen the exact
+  authoritative object, see its current target/state/version/turnover consequence, and
+  invoke independently authorized acceptance, disposition, verification, closure,
+  readiness, and immutable-generation paths without recreating browser-session records.
+- Expanded local pilot role catalogs with explicit inspection/NCR/punch read permissions
+  and the existing NCR disposition/reinspection permissions and qualifications required
+  by the governed lifecycle.
+- Completed the command-center My Work handoff: users can search and filter authorized
+  work by module, priority, state, title, source identity, or action; opening a card now
+  preserves exact source type, ID, expected version, and requested action in a shareable
+  URL. Quality, turnover, welding, NDE, PWHT, and testing workspaces use that target to
+  focus the authoritative object while still revalidating every server-side action.
+- Local verification passes 112 source tests and strict workspace typechecks. This is
+  a controlled design-validation runtime, not Azure deployment, production identity,
+  live-data authorization, pilot acceptance, or production approval.
+
+## 0.16.0 - Multidisciplinary engineering registers
+
+- Added revisioned requirement, deliverable, system, equipment, line, instrument,
+  component, and tag records using existing project, structure, organization, file,
+  document, and related-register identities rather than parallel master data.
+- Added deterministic project/source validation with explicit errors and warnings,
+  canonical SHA-256 identity, exact revision lineage, current-version submission,
+  qualified independent step-up approval/rejection, separation of duty, immutable
+  supersession, and attributable audit history.
+- Added four authenticated API operations, record-normalized PostgreSQL hydration,
+  command-center module health/review tasks, and a responsive author/reviewer workspace
+  with truthful scoped and no-data states.
+- Local verification passes 107 source tests, thirteen tablet/axe workflows, strict
+  typecheck, 217 active `/v1` operations with 173 request bodies, and 121 controlled
+  requirements with 278 evidence paths. Owner dictionaries, representative volume,
+  customer mappings, named authorities, deployment, and pilot acceptance remain gated.
+
+## 0.15.0 - Governed CNC, waterjet, and profiling handoff
+
+- Added effective revisioned machine profiles and deterministic machine-neutral
+  program packages bound to exact released source, fabrication, traveler, material,
+  piece/BOM, and capability-envelope records.
+- Added explicit validation findings, separate technical approval and job release,
+  integrity-checked authorized artifact download, qualified execution, produced-piece/
+  remnant genealogy, controlled exceptions, and independent reconciliation.
+- Direct machine control is explicitly prohibited. Representative vendor files,
+  physical work-center/device trials, production volume, and named technical/release/
+  reconciliation authorities remain external gates.
+- Local and hosted verification cover 105 source tests, twelve tablet/axe workflows,
+  213 secured `/v1` operations, PostgreSQL restart/concurrency, and retained CI evidence.
+
+## 0.14.0 - Governed fabrication and spool control
+
+- Added immutable spool/assembly revision lineage, exact BOM, cut, material, weld,
+  inspection, released-drawing, model-source, system/area/work-package, and completion-
+  boundary scope with deterministic readiness findings.
+- Added independent engineering and shop release, sequenced revision-controlled
+  travelers, qualified append-only execution, explicit holds and independent release,
+  rework/scrap history, and quality acceptance distinct from fabrication completion.
+- Added authenticated API, PostgreSQL persistence, command-center work/health
+  projection, and responsive fabrication planning/execution surfaces. Dedicated
+  physical tables, representative shop volume/device evidence, owner dictionaries,
+  deployment, and named approvals remain external gates.
+
+## 0.13.0 - Unified enterprise command center
+
+- Added a project-scoped enterprise command center derived on demand from authorized
+  document, material, quality, estimating-handoff, controls, procurement, schedule,
+  welding, NDE/PWHT, testing, collaboration, turnover, and audit source records.
+- Added exact-current-revision schedule progress and lineage, explicit no-data states,
+  module numerators/denominators, late-work and exception attention, source-versioned
+  work cards, deterministic priority, quick actions, and authoritative drill-through.
+- The work queue is fail-closed: an item appears only when explicitly owned by the
+  current user or when its exact action, scope, assurance, qualification, and
+  separation-of-duty checks can be proven without an unevaluated policy threshold.
+  Recent activity independently requires audit-read authority and excludes protected
+  changed-field content.
+- Added one secured API operation, a tablet-accessible overview workspace, two domain
+  projection/security tests, one authenticated API test, and a tenth Chromium/axe
+  workflow. The controlled baseline is now 78 functional and 25 nonfunctional
+  requirements with 227 evidence paths; complete gate results are recorded in the
+  local verification report.
+- Stabilized shared workspace notification and navigation callbacks so module effects
+  do not retrigger background refreshes on unrelated parent renders; the scheduling
+  workflow explicitly proves an enabled action and its matching look-ahead response.
+
+## 0.12.0 - Governed Bluebeam document collaboration pilot
+
+- Added a provider-neutral Bluebeam export contract that validates an integrity-matched released source file and exact project, released document revision, active account/organization, provider status, page/region, parent, timestamp, and supported-content mappings before commit.
+- Added deterministic preview hashing and exact-retry idempotency, changed-source collision handling, safe reconciliation records, atomic import, provider-item supersession history, and complete markup/comment/reply/status source fidelity.
+- Added independent, step-up collaboration evidence review with separation of duty and audit. Provider “accepted/closed” remains evidence-only and cannot mutate the linked controlled document revision or imply any EIEP quality/work approval.
+- Added six secured API operations, collaboration search/export support, PostgreSQL typed persistence, and a tablet-accessible Bluebeam import/register/reconciliation/review workspace. Outbound writes remain deliberately absent and expose explicit contract/sandbox/identity/tenancy/rate/retry/retention/terms blockers.
+- Promoted five requirements into the controlled baseline and added AC-14. Full local verification passes 96 source tests, nine tablet/axe workflows, PostgreSQL 18 collaboration hydration/restart/concurrency, 194 active `/v1` routes with 155 request bodies, 99-requirement/217-path traceability, compiled runtime gates, and a clean production dependency audit; hosted verification is recorded separately after push.
+
+## 0.11.0 - Connected welding, NDE, PWHT, and testing pilot
+
+- Added exact-revision PQR/WPS governance, effective applicability ranges,
+  independently approved welder qualifications and continuity, structure/material/
+  drawing/weld-map identities, and append-only fit-up, consumable, preheat/interpass,
+  weld, visual, excavation, and repair-cycle events.
+- Added qualified repair-cycle NDE requests and report revisions with valid
+  method-capable equipment, media/conditions/indications, independent report review,
+  and explicit reject-to-repair-to-re-examination behavior. Added PWHT procedure,
+  parameter, thermocouple, chart, equipment, interruption, and independent acceptance
+  records.
+- Added completion-boundary pressure/leak/functional test packages with exact
+  documents/drawings, safety/prerequisite/isolation references, valid gauges,
+  participant/witness context, derived readiness, evidence, deficiencies/NCRs,
+  restoration, result, and independent acceptance.
+- Added 18 secured API operations, PostgreSQL record collections, audit history, and
+  a tablet-accessible Welding/NDE-PWHT/Testing workspace. Promoted eight requirements
+  into the controlled baseline and added AC-13.
+- Local focused evidence passes 92 source tests in the declared suite inventory,
+  eight Chromium tablet/axe workflows in the browser inventory, 188 active `/v1`
+  routes with 151 request bodies, and 94-requirement/203-path traceability. Full local
+  and hosted verification evidence is recorded separately after the complete gate run;
+  live authority policies, normalized production migrations, managed deployment,
+  representative field data, and pilot approval remain external gates.
+
+## 0.10.0 - Integrated project controls, procurement, and scheduling pilot
+
+- Added immutable estimate-handoff-derived cost/quantity baselines, thresholded
+  change approval and successor baselines, exact period cost/forecast/EAC/variance,
+  and quantity/evidence progress that remains separate from quality and invoice
+  acceptance.
+- Added requisitions tied to exact released document revisions, comparative
+  source-file/hash-backed offers and visible gaps, independent recommendation,
+  currency-policy thresholded award, commitments, expediting milestones, and a
+  fail-closed requirement for receipt events to link same-project controlled
+  material records.
+- Added schedule programs, stable activity identities, logic/cycle validation,
+  independently approved baseline and update history, baseline variance, authorized
+  look-aheads with document/material/inspection blockers, and provider-neutral P6/
+  Microsoft Project released-source preview/idempotent commit into unapproved drafts.
+- Added 30 secured API operations and a tablet-accessible workspace spanning cost/
+  change, procurement, scheduling, revision approval, receiving linkage, and import
+  reconciliation. Promoted 11 requirements into the controlled baseline and added
+  AC-12.
+- Local verification passes 88 source tests, seven Chromium tablet/axe workflows,
+  170 active `/v1` routes with 135 request bodies, PostgreSQL 18 record hydration/
+  restart/concurrency, production build/runtime gates, and 86-requirement/185-path
+  traceability. External owner policies, normalized production migrations, live
+  provider/accounting/vendor sandboxes, deployment, and pilot approval remain gates.
+
 ## 0.9.0 - Guided activation setup and complete PMI/NCR execution detail
 
+- Recorded the task-supplied enterprise dashboard as a hash-identified controlled
+  product-vision capability baseline. Its full module surface now guides sequencing,
+  while illustrative counts/people/projects/statuses remain explicitly non-evidence.
+- Added the advanced-estimating pilot vertical slice: organization-scoped
+  opportunities, immutable revisions/deltas, independently governed assemblies and
+  productivity factors, exact versioned cost/price calculations, quote leveling and
+  selection, independently approved currency-specific monetary authority policies,
+  deterministic source/artifact/manifest-hashed printable proposals, integrity-
+  checked download, approvals, audit, and exactly reconciled same-organization award
+  handoff.
+- Added private organization-scoped quote-file staging with idempotency, hash/media/
+  malware/container validation, independent release, cross-organization denial, and
+  mandatory released-file/hash enforcement before quote normalization.
+- Added 28 estimating/file API routes to the generated contract, PostgreSQL restart
+  coverage for estimating records, authenticated API scope/denial evidence, and a
+  tablet-accessible visible estimating workspace covering opportunity, cost basis,
+  build-up, quotes, revisions, proposal, and handoff.
+- Local controlled verification now passes 84 source tests, six Chromium tablet/axe
+  workflows, 140 active `/v1` routes with 109 request bodies, PostgreSQL estimating
+  restart/concurrency evidence, production builds/runtime smokes, and the production
+  dependency audit. These results do not replace the external approvals and deployed
+  evidence recorded in the change control and traceability matrix.
+
+- Activated the task owner's immediate enterprise-expansion priority under a
+  controlled change record: advanced estimating/proposal first, followed by project
+  controls/procurement/scheduling, welding/NDE/PWHT/testing, and governed Bluebeam
+  collaboration. Added proposed requirements, acceptance criteria, and ADR-0011
+  through ADR-0013 without enlarging the MVP or production-readiness claim.
+- Clean hosted verification run `29872313909` passed the guarded initial application
+  identity path, PostgreSQL restart, 79 source tests, five tablet/axe workflows, four
+  production container builds/smokes, dependency audit, and retained a sealed
+  evidence artifact at commit `0ca748f`.
+- Closed the circular first-application-identity gap with a separate guarded
+  operator command that creates exactly two independently authorized, time-bounded
+  identity/access administrators and no project or business authority. Exact retry
+  verifies the complete identity/access/audit boundary; partial or previously used
+  state fails without mutation. In-memory OIDC resolution and PostgreSQL restart
+  evidence cover the path while live Entra approval remains external.
+- Corrected disposable PostgreSQL verification to resolve current TypeScript
+  development exports explicitly, preventing stale compiled packages from masking
+  repository integration changes.
 - Added a guided project-setup workspace for participant organizations, project
   structure, effective responsibilities, governed configuration submission, and
   identity-separated configuration approval; readiness results are invalidated after
@@ -28,10 +248,62 @@ All notable controlled changes to the EIEP program definition and implementation
 - Made the compact tablet sidebar a bounded sticky layer beneath the header so long
   project/workflow content cannot intercept module-navigation taps.
 - Published the controlled baseline to `EPVIND/EPV-EIEP`; clean hosted verification
-  run `29859707003` passed every gate and retained the SBOM artifact. Restricted
+  run `29862697475` passed every gate and retained the SBOM artifact. Restricted
   GitHub-owned Actions, protected `main`, and empty development/test/training/
   fail-closed production environments establish the live repository boundary without
   claiming cloud or production authorization.
+- Replaced the proposed hosted PostgreSQL password path with short-lived Microsoft
+  Entra tokens for API, worker, migration, and verification connections. Production
+  rejects static database authentication and connection-string TLS overrides; the
+  pool requests a new managed-identity token for each connection and verifies the
+  server certificate.
+- Added an idempotent governed Azure PostgreSQL principal bootstrap that verifies
+  exact Entra object IDs and maps distinct API/worker identities to their separate
+  least-privilege roles. The guarded Bicep proposal now requires an explicit Entra
+  administrator, constructs distinct passwordless database URLs from deployed
+  identities, creates the protected metrics secret, and grants only the API access
+  to that exact secret.
+- Split infrastructure and application startup with `runtimeAuthorized=false` by
+  default, so migrations and exact Entra role mapping must finish before reviewed
+  API, web, portal, and worker image digests can start.
+- Corrected CycloneDX generation to union dependency edges seen through multiple
+  workspace traversals, preventing a shallow duplicate from erasing the complete
+  transitive graph while retaining the 150-component production inventory.
+- Changed workspace package exports to serve compiled JavaScript at runtime while
+  retaining explicit TypeScript development conditions, and added a process-level
+  gate that starts the compiled API/browser servers and verifies the worker reaches
+  its controlled fail-closed configuration boundary.
+- Added four production Docker targets on one digest-pinned Node 24 base: rootless
+  API, Playwright-equipped job worker, internal web, and partner portal. Portable
+  pnpm deployments include compiled internal packages and record the exact source
+  revision as OCI metadata.
+- Added process-only `/livez` and dependency-backed `/readyz` probes plus dynamic,
+  HTTPS-only browser API configuration, SPA/static security headers, source-map
+  exclusion, and hosted container build/smoke evidence generation.
+- Clean hosted verification run `29865776583` built and smoke-tested the four Linux
+  production targets at `82aa645`, including the Chromium-equipped worker, then
+  passed PostgreSQL 18, tablet/axe, dependency-audit, and retained-evidence gates.
+  Registry promotion, scanning/signing, Azure deployment, and owner authorization
+  remain separate external controls.
+- Sealed each hosted retained-evidence bundle with a SHA-256 manifest covering the
+  CycloneDX inventory and source-revision/image-ID build record, and verify that
+  manifest before upload.
+- Corrected the API development watch command for the pinned `tsx` CLI so the local
+  visible preview starts consistently on Windows and Linux.
+- Strengthened traceability from ID counting to executable-title, acceptance-link,
+  and 152 repository-evidence-path validation; corrected an invalid test range and
+  made the transactional export/outbox evidence explicit for NFR-REL-003.
+- Removed the unapproved, unused Premium Service Bus namespace, queues, private
+  endpoint, and DNS zone from the proposed MVP environment. The secure module remains
+  compiled but uninstantiated until ADR-0006's separate integration/scale condition
+  is approved and implemented.
+- Added a fail-closed Azure Monitor alert boundary as the twelfth compiled Bicep
+  template. Twelve validated metric rules cover missing/restarting Container Apps,
+  API timeouts, PostgreSQL availability/storage, and managed-storage availability;
+  runtime cannot start without an approved action-group type and alert-configuration
+  reference. Thresholds, windows, evaluation frequency, and severities remain
+  mandatory owner inputs with no invented defaults, and live signal/routing evidence
+  remains required.
 
 ## 0.8.0 - Governed intake, material review, controlled outputs, and derived readiness
 

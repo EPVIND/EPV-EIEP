@@ -6,7 +6,7 @@ import { approveMaterialConfiguration, assignment, readinessDeclaration, scope, 
 test("FR-IAM-001, FR-PRJ-001 / AC-02-04: API requires identity and applies stored scope assignments", async (t) => {
   const store = new InMemoryFoundationStore();
   store.seedAssignments([
-    assignment("api-operations", "api-user", ["project.create", "project.read", "project.activate", "material.receive"], scope()),
+    assignment("api-operations", "api-user", ["project.create", "project.read", "project.activate", "material.receive", "material.read", "inspection.read", "ncr.read", "punch.read", "turnover.read"], scope()),
   ]);
   const service = new FoundationService(store, () => new Date("2026-07-20T22:00:00.000Z"), sequentialIds("api"));
   const operations = new OperationalService(store, () => new Date("2026-07-20T22:00:00.000Z"), sequentialIds("api-operation"));
@@ -128,6 +128,20 @@ test("FR-IAM-001, FR-PRJ-001 / AC-02-04: API requires identity and applies store
   });
   assert.equal(material.statusCode, 201, material.body);
   assert.equal(material.json().state, "received_pending");
+
+  const visibleMaterials = await server.inject({
+    method: "GET", url: `/v1/projects/${created.json().id}/materials`,
+    headers: { "x-eiep-user-id": "api-user", "x-eiep-organization-id": "org-epv", "x-eiep-assurance": "mfa" },
+  });
+  assert.equal(visibleMaterials.statusCode, 200, visibleMaterials.body);
+  assert.deepEqual(visibleMaterials.json().map((item: { id: string }) => item.id), [material.json().id]);
+
+  const qualityExecution = await server.inject({
+    method: "GET", url: `/v1/projects/${created.json().id}/quality-execution`,
+    headers: { "x-eiep-user-id": "api-user", "x-eiep-organization-id": "org-epv", "x-eiep-assurance": "mfa" },
+  });
+  assert.equal(qualityExecution.statusCode, 200, qualityExecution.body);
+  assert.deepEqual(qualityExecution.json(), { inspections: [], ncrs: [], punches: [], turnoverPackages: [] });
 
   const health = await server.inject({ method: "GET", url: "/health" });
   assert.equal(health.statusCode, 200);

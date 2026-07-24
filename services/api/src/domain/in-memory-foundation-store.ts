@@ -10,6 +10,43 @@ import type {
   ImportedRecord,
   ExternalIdentifierRecord,
   ExportJobRecord,
+  EstimateHandoffRecord,
+  EstimateAuthorityPolicyRevisionRecord,
+  EstimateAssemblyRevisionRecord,
+  EstimateLineRecord,
+  EstimateProductivityFactorRevisionRecord,
+  EstimateProposalRecord,
+  EstimateQuoteRecord,
+  EstimateRecord,
+  EstimateRevisionRecord,
+  ProcurementBidPackageRecord,
+  ProcurementCommitmentRecord,
+  ProcurementRequisitionRecord,
+  ProjectChangeRequestRecord,
+  ProjectControlBaselineRecord,
+  ProjectControlsAuthorityPolicyRevisionRecord,
+  ProjectCostEntryRecord,
+  ProjectProgressClaimRecord,
+  ScheduleImportRecord,
+  ScheduleProgramRecord,
+  ScheduleRevisionRecord,
+  WeldingProcedureRevisionRecord,
+  WelderQualificationRecord,
+  WeldJointRecord,
+  NdeRequestRecord,
+  NdeReportRevisionRecord,
+  PwhtCycleRecord,
+  TestPackageRecord,
+  FabricationAssemblyRevisionRecord,
+  FabricationTravelerRecord,
+  FabricationExecutionEventRecord,
+  CncMachineProfileRevisionRecord,
+  CncProgramRevisionRecord,
+  CncExecutionRecord,
+  EngineeringRegisterItemRevisionRecord,
+  DocumentCollaborationImportRecord,
+  CollaborationItemRecord,
+  CollaborationReconciliationRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -105,6 +142,43 @@ export interface MemoryState {
   assignments: RoleAssignment[];
   managedAccessAssignments: Map<string, ManagedAccessAssignmentRecord>;
   delegations: Map<string, DelegationRecord>;
+  estimateAssemblies: Map<string, EstimateAssemblyRevisionRecord>;
+  estimateProductivityFactors: Map<string, EstimateProductivityFactorRevisionRecord>;
+  estimateAuthorityPolicies: Map<string, EstimateAuthorityPolicyRevisionRecord>;
+  estimates: Map<string, EstimateRecord>;
+  estimateRevisions: Map<string, EstimateRevisionRecord>;
+  estimateLines: Map<string, EstimateLineRecord>;
+  estimateQuotes: Map<string, EstimateQuoteRecord>;
+  estimateProposals: Map<string, EstimateProposalRecord>;
+  estimateHandoffs: Map<string, EstimateHandoffRecord>;
+  projectControlsAuthorityPolicies: Map<string, ProjectControlsAuthorityPolicyRevisionRecord>;
+  projectControlBaselines: Map<string, ProjectControlBaselineRecord>;
+  projectChangeRequests: Map<string, ProjectChangeRequestRecord>;
+  projectCostEntries: Map<string, ProjectCostEntryRecord>;
+  projectProgressClaims: Map<string, ProjectProgressClaimRecord>;
+  procurementRequisitions: Map<string, ProcurementRequisitionRecord>;
+  procurementBidPackages: Map<string, ProcurementBidPackageRecord>;
+  procurementCommitments: Map<string, ProcurementCommitmentRecord>;
+  schedulePrograms: Map<string, ScheduleProgramRecord>;
+  scheduleRevisions: Map<string, ScheduleRevisionRecord>;
+  scheduleImports: Map<string, ScheduleImportRecord>;
+  weldingProcedures: Map<string, WeldingProcedureRevisionRecord>;
+  welderQualifications: Map<string, WelderQualificationRecord>;
+  weldJoints: Map<string, WeldJointRecord>;
+  ndeRequests: Map<string, NdeRequestRecord>;
+  ndeReports: Map<string, NdeReportRevisionRecord>;
+  pwhtCycles: Map<string, PwhtCycleRecord>;
+  testPackages: Map<string, TestPackageRecord>;
+  fabricationAssemblies: Map<string, FabricationAssemblyRevisionRecord>;
+  fabricationTravelers: Map<string, FabricationTravelerRecord>;
+  fabricationExecutionEvents: Map<string, FabricationExecutionEventRecord>;
+  cncMachineProfiles: Map<string, CncMachineProfileRevisionRecord>;
+  cncPrograms: Map<string, CncProgramRevisionRecord>;
+  cncExecutions: Map<string, CncExecutionRecord>;
+  engineeringRegisterItems: Map<string, EngineeringRegisterItemRevisionRecord>;
+  collaborationImports: Map<string, DocumentCollaborationImportRecord>;
+  collaborationItems: Map<string, CollaborationItemRecord>;
+  collaborationReconciliations: Map<string, CollaborationReconciliationRecord>;
   audits: AuditEvent[];
 }
 
@@ -114,6 +188,17 @@ function cloneValue<T>(value: T): T {
 
 class MemoryTransaction implements FoundationTransaction {
   public constructor(private readonly state: MemoryState) {}
+
+  public applicationIdentityBootstrapState() {
+    return cloneValue({
+      identityAccounts: [...this.state.identityAccounts.values()],
+      externalIdentities: [...this.state.externalIdentities.values()],
+      seededAssignments: this.state.assignments,
+      managedAccessAssignments: [...this.state.managedAccessAssignments.values()],
+      delegations: [...this.state.delegations.values()],
+      audits: this.state.audits,
+    });
+  }
 
   public identityAccountById(id: string): IdentityAccountRecord | null {
     const account = this.state.identityAccounts.get(id);
@@ -208,6 +293,895 @@ class MemoryTransaction implements FoundationTransaction {
     const current = this.state.delegations.get(delegation.id);
     if (!current || current.version !== expectedVersion) throw new ConflictError();
     this.state.delegations.set(delegation.id, cloneValue(delegation));
+  }
+
+  public estimateAssemblyById(id: string): EstimateAssemblyRevisionRecord | null {
+    const assembly = this.state.estimateAssemblies.get(id);
+    return assembly ? cloneValue(assembly) : null;
+  }
+
+  public estimateAssemblyByRevision(organizationId: string, code: string, revision: string): EstimateAssemblyRevisionRecord | null {
+    const assembly = [...this.state.estimateAssemblies.values()].find((candidate) =>
+      candidate.businessScopeOrganizationId === organizationId && candidate.code === code && candidate.revision === revision);
+    return assembly ? cloneValue(assembly) : null;
+  }
+
+  public estimateAssemblies(organizationId: string, code?: string): readonly EstimateAssemblyRevisionRecord[] {
+    return cloneValue([...this.state.estimateAssemblies.values()]
+      .filter((assembly) => assembly.businessScopeOrganizationId === organizationId && (!code || assembly.code === code))
+      .sort((left, right) => left.code.localeCompare(right.code) || left.revision.localeCompare(right.revision)));
+  }
+
+  public insertEstimateAssembly(assembly: EstimateAssemblyRevisionRecord): void {
+    if (this.state.estimateAssemblies.has(assembly.id)
+      || this.estimateAssemblyByRevision(assembly.businessScopeOrganizationId, assembly.code, assembly.revision)) {
+      throw new ConflictError();
+    }
+    this.state.estimateAssemblies.set(assembly.id, cloneValue(assembly));
+  }
+
+  public updateEstimateAssembly(assembly: EstimateAssemblyRevisionRecord, expectedVersion: number): void {
+    const current = this.state.estimateAssemblies.get(assembly.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateAssemblies.set(assembly.id, cloneValue(assembly));
+  }
+
+  public estimateProductivityFactorById(id: string): EstimateProductivityFactorRevisionRecord | null {
+    const factor = this.state.estimateProductivityFactors.get(id);
+    return factor ? cloneValue(factor) : null;
+  }
+
+  public estimateProductivityFactorByRevision(
+    organizationId: string, code: string, revision: string,
+  ): EstimateProductivityFactorRevisionRecord | null {
+    const factor = [...this.state.estimateProductivityFactors.values()].find((candidate) =>
+      candidate.businessScopeOrganizationId === organizationId && candidate.code === code && candidate.revision === revision);
+    return factor ? cloneValue(factor) : null;
+  }
+
+  public estimateProductivityFactors(
+    organizationId: string, code?: string,
+  ): readonly EstimateProductivityFactorRevisionRecord[] {
+    return cloneValue([...this.state.estimateProductivityFactors.values()]
+      .filter((factor) => factor.businessScopeOrganizationId === organizationId && (!code || factor.code === code))
+      .sort((left, right) => left.code.localeCompare(right.code) || left.revision.localeCompare(right.revision)));
+  }
+
+  public insertEstimateProductivityFactor(factor: EstimateProductivityFactorRevisionRecord): void {
+    if (this.state.estimateProductivityFactors.has(factor.id)
+      || this.estimateProductivityFactorByRevision(
+        factor.businessScopeOrganizationId, factor.code, factor.revision,
+      )) throw new ConflictError();
+    this.state.estimateProductivityFactors.set(factor.id, cloneValue(factor));
+  }
+
+  public updateEstimateProductivityFactor(factor: EstimateProductivityFactorRevisionRecord, expectedVersion: number): void {
+    const current = this.state.estimateProductivityFactors.get(factor.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateProductivityFactors.set(factor.id, cloneValue(factor));
+  }
+
+  public estimateAuthorityPolicyById(id: string): EstimateAuthorityPolicyRevisionRecord | null {
+    const policy = this.state.estimateAuthorityPolicies.get(id);
+    return policy ? cloneValue(policy) : null;
+  }
+
+  public estimateAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): EstimateAuthorityPolicyRevisionRecord | null {
+    const policy = [...this.state.estimateAuthorityPolicies.values()].find((candidate) =>
+      candidate.businessScopeOrganizationId === organizationId && candidate.currency === currency
+      && candidate.revision === revision);
+    return policy ? cloneValue(policy) : null;
+  }
+
+  public estimateAuthorityPolicies(
+    organizationId: string, currency?: string,
+  ): readonly EstimateAuthorityPolicyRevisionRecord[] {
+    return cloneValue([...this.state.estimateAuthorityPolicies.values()]
+      .filter((policy) => policy.businessScopeOrganizationId === organizationId && (!currency || policy.currency === currency))
+      .sort((left, right) => left.currency.localeCompare(right.currency) || left.revision.localeCompare(right.revision)));
+  }
+
+  public insertEstimateAuthorityPolicy(policy: EstimateAuthorityPolicyRevisionRecord): void {
+    if (this.state.estimateAuthorityPolicies.has(policy.id)
+      || this.estimateAuthorityPolicyByRevision(
+        policy.businessScopeOrganizationId, policy.currency, policy.revision,
+      )) throw new ConflictError();
+    this.state.estimateAuthorityPolicies.set(policy.id, cloneValue(policy));
+  }
+
+  public updateEstimateAuthorityPolicy(policy: EstimateAuthorityPolicyRevisionRecord, expectedVersion: number): void {
+    const current = this.state.estimateAuthorityPolicies.get(policy.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateAuthorityPolicies.set(policy.id, cloneValue(policy));
+  }
+
+  public estimateById(id: string): EstimateRecord | null {
+    const estimate = this.state.estimates.get(id);
+    return estimate ? cloneValue(estimate) : null;
+  }
+
+  public estimateByNumber(organizationId: string, number: string): EstimateRecord | null {
+    const estimate = [...this.state.estimates.values()].find((candidate) =>
+      candidate.businessScopeOrganizationId === organizationId && candidate.number === number);
+    return estimate ? cloneValue(estimate) : null;
+  }
+
+  public estimatesForOrganization(organizationId: string): readonly EstimateRecord[] {
+    return cloneValue([...this.state.estimates.values()]
+      .filter((estimate) => estimate.businessScopeOrganizationId === organizationId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertEstimate(estimate: EstimateRecord): void {
+    if (this.state.estimates.has(estimate.id)
+      || this.estimateByNumber(estimate.businessScopeOrganizationId, estimate.number)) throw new ConflictError();
+    this.state.estimates.set(estimate.id, cloneValue(estimate));
+  }
+
+  public updateEstimate(estimate: EstimateRecord, expectedVersion: number): void {
+    const current = this.state.estimates.get(estimate.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    const duplicate = this.estimateByNumber(estimate.businessScopeOrganizationId, estimate.number);
+    if (duplicate && duplicate.id !== estimate.id) throw new ConflictError();
+    this.state.estimates.set(estimate.id, cloneValue(estimate));
+  }
+
+  public estimateRevisionById(id: string): EstimateRevisionRecord | null {
+    const revision = this.state.estimateRevisions.get(id);
+    return revision ? cloneValue(revision) : null;
+  }
+
+  public estimateRevisionByName(estimateId: string, revision: string): EstimateRevisionRecord | null {
+    const match = [...this.state.estimateRevisions.values()].find((candidate) =>
+      candidate.estimateId === estimateId && candidate.revision === revision);
+    return match ? cloneValue(match) : null;
+  }
+
+  public estimateRevisions(estimateId: string): readonly EstimateRevisionRecord[] {
+    return cloneValue([...this.state.estimateRevisions.values()]
+      .filter((revision) => revision.estimateId === estimateId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertEstimateRevision(revision: EstimateRevisionRecord): void {
+    if (this.state.estimateRevisions.has(revision.id)
+      || this.estimateRevisionByName(revision.estimateId, revision.revision)) throw new ConflictError();
+    this.state.estimateRevisions.set(revision.id, cloneValue(revision));
+  }
+
+  public updateEstimateRevision(revision: EstimateRevisionRecord, expectedVersion: number): void {
+    const current = this.state.estimateRevisions.get(revision.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateRevisions.set(revision.id, cloneValue(revision));
+  }
+
+  public estimateLineById(id: string): EstimateLineRecord | null {
+    const line = this.state.estimateLines.get(id);
+    return line ? cloneValue(line) : null;
+  }
+
+  public estimateLineByKey(revisionId: string, lineKey: string): EstimateLineRecord | null {
+    const line = [...this.state.estimateLines.values()].find((candidate) =>
+      candidate.revisionId === revisionId && candidate.lineKey === lineKey);
+    return line ? cloneValue(line) : null;
+  }
+
+  public estimateLines(revisionId: string): readonly EstimateLineRecord[] {
+    return cloneValue([...this.state.estimateLines.values()]
+      .filter((line) => line.revisionId === revisionId)
+      .sort((left, right) => left.sortOrder - right.sortOrder || left.lineKey.localeCompare(right.lineKey)));
+  }
+
+  public insertEstimateLine(line: EstimateLineRecord): void {
+    if (this.state.estimateLines.has(line.id) || this.estimateLineByKey(line.revisionId, line.lineKey)) {
+      throw new ConflictError();
+    }
+    this.state.estimateLines.set(line.id, cloneValue(line));
+  }
+
+  public updateEstimateLine(line: EstimateLineRecord, expectedVersion: number): void {
+    const current = this.state.estimateLines.get(line.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateLines.set(line.id, cloneValue(line));
+  }
+
+  public estimateQuoteById(id: string): EstimateQuoteRecord | null {
+    const quote = this.state.estimateQuotes.get(id);
+    return quote ? cloneValue(quote) : null;
+  }
+
+  public estimateQuoteByNumber(revisionId: string, vendorOrganizationId: string, quoteNumber: string): EstimateQuoteRecord | null {
+    const quote = [...this.state.estimateQuotes.values()].find((candidate) =>
+      candidate.revisionId === revisionId && candidate.vendorOrganizationId === vendorOrganizationId
+      && candidate.quoteNumber === quoteNumber);
+    return quote ? cloneValue(quote) : null;
+  }
+
+  public estimateQuotes(revisionId: string): readonly EstimateQuoteRecord[] {
+    return cloneValue([...this.state.estimateQuotes.values()]
+      .filter((quote) => quote.revisionId === revisionId)
+      .sort((left, right) => left.vendorOrganizationId.localeCompare(right.vendorOrganizationId)
+        || left.quoteNumber.localeCompare(right.quoteNumber)));
+  }
+
+  public insertEstimateQuote(quote: EstimateQuoteRecord): void {
+    if (this.state.estimateQuotes.has(quote.id)
+      || this.estimateQuoteByNumber(quote.revisionId, quote.vendorOrganizationId, quote.quoteNumber)) {
+      throw new ConflictError();
+    }
+    this.state.estimateQuotes.set(quote.id, cloneValue(quote));
+  }
+
+  public updateEstimateQuote(quote: EstimateQuoteRecord, expectedVersion: number): void {
+    const current = this.state.estimateQuotes.get(quote.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateQuotes.set(quote.id, cloneValue(quote));
+  }
+
+  public estimateProposalById(id: string): EstimateProposalRecord | null {
+    const proposal = this.state.estimateProposals.get(id);
+    return proposal ? cloneValue(proposal) : null;
+  }
+
+  public estimateProposalByNumber(estimateId: string, proposalNumber: string): EstimateProposalRecord | null {
+    const proposal = [...this.state.estimateProposals.values()].find((candidate) =>
+      candidate.estimateId === estimateId && candidate.proposalNumber === proposalNumber);
+    return proposal ? cloneValue(proposal) : null;
+  }
+
+  public estimateProposals(estimateId: string): readonly EstimateProposalRecord[] {
+    return cloneValue([...this.state.estimateProposals.values()]
+      .filter((proposal) => proposal.estimateId === estimateId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertEstimateProposal(proposal: EstimateProposalRecord): void {
+    if (this.state.estimateProposals.has(proposal.id)
+      || this.estimateProposalByNumber(proposal.estimateId, proposal.proposalNumber)) throw new ConflictError();
+    this.state.estimateProposals.set(proposal.id, cloneValue(proposal));
+  }
+
+  public updateEstimateProposal(proposal: EstimateProposalRecord, expectedVersion: number): void {
+    const current = this.state.estimateProposals.get(proposal.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.estimateProposals.set(proposal.id, cloneValue(proposal));
+  }
+
+  public estimateHandoffById(id: string): EstimateHandoffRecord | null {
+    const handoff = this.state.estimateHandoffs.get(id);
+    return handoff ? cloneValue(handoff) : null;
+  }
+
+  public estimateHandoffByProposal(proposalId: string): EstimateHandoffRecord | null {
+    const handoff = [...this.state.estimateHandoffs.values()].find((candidate) => candidate.proposalId === proposalId);
+    return handoff ? cloneValue(handoff) : null;
+  }
+
+  public estimateHandoffs(estimateId: string): readonly EstimateHandoffRecord[] {
+    return cloneValue([...this.state.estimateHandoffs.values()]
+      .filter((handoff) => handoff.estimateId === estimateId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertEstimateHandoff(handoff: EstimateHandoffRecord): void {
+    if (this.state.estimateHandoffs.has(handoff.id) || this.estimateHandoffByProposal(handoff.proposalId)) {
+      throw new ConflictError();
+    }
+    this.state.estimateHandoffs.set(handoff.id, cloneValue(handoff));
+  }
+
+  public projectControlsAuthorityPolicyById(id: string): ProjectControlsAuthorityPolicyRevisionRecord | null {
+    const policy = this.state.projectControlsAuthorityPolicies.get(id);
+    return policy ? cloneValue(policy) : null;
+  }
+
+  public projectControlsAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): ProjectControlsAuthorityPolicyRevisionRecord | null {
+    const policy = [...this.state.projectControlsAuthorityPolicies.values()].find((candidate) =>
+      candidate.businessScopeOrganizationId === organizationId && candidate.currency === currency
+      && candidate.revision === revision);
+    return policy ? cloneValue(policy) : null;
+  }
+
+  public projectControlsAuthorityPolicies(
+    organizationId: string, currency?: string,
+  ): readonly ProjectControlsAuthorityPolicyRevisionRecord[] {
+    return cloneValue([...this.state.projectControlsAuthorityPolicies.values()]
+      .filter((policy) => policy.businessScopeOrganizationId === organizationId
+        && (!currency || policy.currency === currency))
+      .sort((left, right) => left.currency.localeCompare(right.currency)
+        || left.proposedAt.getTime() - right.proposedAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectControlsAuthorityPolicy(policy: ProjectControlsAuthorityPolicyRevisionRecord): void {
+    if (this.state.projectControlsAuthorityPolicies.has(policy.id)
+      || this.projectControlsAuthorityPolicyByRevision(
+        policy.businessScopeOrganizationId, policy.currency, policy.revision,
+      )) throw new ConflictError();
+    this.state.projectControlsAuthorityPolicies.set(policy.id, cloneValue(policy));
+  }
+
+  public updateProjectControlsAuthorityPolicy(
+    policy: ProjectControlsAuthorityPolicyRevisionRecord, expectedVersion: number,
+  ): void {
+    const current = this.state.projectControlsAuthorityPolicies.get(policy.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectControlsAuthorityPolicies.set(policy.id, cloneValue(policy));
+  }
+
+  public projectControlBaselineById(id: string): ProjectControlBaselineRecord | null {
+    const baseline = this.state.projectControlBaselines.get(id);
+    return baseline ? cloneValue(baseline) : null;
+  }
+
+  public projectControlBaselineByRevision(
+    projectId: string, number: string, revision: string,
+  ): ProjectControlBaselineRecord | null {
+    const baseline = [...this.state.projectControlBaselines.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number && candidate.revision === revision);
+    return baseline ? cloneValue(baseline) : null;
+  }
+
+  public projectControlBaselines(projectId: string): readonly ProjectControlBaselineRecord[] {
+    return cloneValue([...this.state.projectControlBaselines.values()]
+      .filter((baseline) => baseline.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectControlBaseline(baseline: ProjectControlBaselineRecord): void {
+    if (this.state.projectControlBaselines.has(baseline.id)
+      || this.projectControlBaselineByRevision(baseline.projectId, baseline.number, baseline.revision)) {
+      throw new ConflictError();
+    }
+    this.state.projectControlBaselines.set(baseline.id, cloneValue(baseline));
+  }
+
+  public updateProjectControlBaseline(baseline: ProjectControlBaselineRecord, expectedVersion: number): void {
+    const current = this.state.projectControlBaselines.get(baseline.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectControlBaselines.set(baseline.id, cloneValue(baseline));
+  }
+
+  public projectChangeRequestById(id: string): ProjectChangeRequestRecord | null {
+    const change = this.state.projectChangeRequests.get(id);
+    return change ? cloneValue(change) : null;
+  }
+
+  public projectChangeRequestByNumber(projectId: string, number: string): ProjectChangeRequestRecord | null {
+    const change = [...this.state.projectChangeRequests.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return change ? cloneValue(change) : null;
+  }
+
+  public projectChangeRequests(projectId: string): readonly ProjectChangeRequestRecord[] {
+    return cloneValue([...this.state.projectChangeRequests.values()]
+      .filter((change) => change.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertProjectChangeRequest(change: ProjectChangeRequestRecord): void {
+    if (this.state.projectChangeRequests.has(change.id)
+      || this.projectChangeRequestByNumber(change.projectId, change.number)) throw new ConflictError();
+    this.state.projectChangeRequests.set(change.id, cloneValue(change));
+  }
+
+  public updateProjectChangeRequest(change: ProjectChangeRequestRecord, expectedVersion: number): void {
+    const current = this.state.projectChangeRequests.get(change.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectChangeRequests.set(change.id, cloneValue(change));
+  }
+
+  public projectCostEntryById(id: string): ProjectCostEntryRecord | null {
+    const entry = this.state.projectCostEntries.get(id);
+    return entry ? cloneValue(entry) : null;
+  }
+
+  public projectCostEntries(projectId: string): readonly ProjectCostEntryRecord[] {
+    return cloneValue([...this.state.projectCostEntries.values()]
+      .filter((entry) => entry.projectId === projectId)
+      .sort((left, right) => left.periodStart.getTime() - right.periodStart.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectCostEntry(entry: ProjectCostEntryRecord): void {
+    if (this.state.projectCostEntries.has(entry.id)) throw new ConflictError();
+    this.state.projectCostEntries.set(entry.id, cloneValue(entry));
+  }
+
+  public updateProjectCostEntry(entry: ProjectCostEntryRecord, expectedVersion: number): void {
+    const current = this.state.projectCostEntries.get(entry.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectCostEntries.set(entry.id, cloneValue(entry));
+  }
+
+  public projectProgressClaimById(id: string): ProjectProgressClaimRecord | null {
+    const claim = this.state.projectProgressClaims.get(id);
+    return claim ? cloneValue(claim) : null;
+  }
+
+  public projectProgressClaims(projectId: string): readonly ProjectProgressClaimRecord[] {
+    return cloneValue([...this.state.projectProgressClaims.values()]
+      .filter((claim) => claim.projectId === projectId)
+      .sort((left, right) => left.periodStart.getTime() - right.periodStart.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertProjectProgressClaim(claim: ProjectProgressClaimRecord): void {
+    if (this.state.projectProgressClaims.has(claim.id)) throw new ConflictError();
+    this.state.projectProgressClaims.set(claim.id, cloneValue(claim));
+  }
+
+  public updateProjectProgressClaim(claim: ProjectProgressClaimRecord, expectedVersion: number): void {
+    const current = this.state.projectProgressClaims.get(claim.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.projectProgressClaims.set(claim.id, cloneValue(claim));
+  }
+
+  public procurementRequisitionById(id: string): ProcurementRequisitionRecord | null {
+    const requisition = this.state.procurementRequisitions.get(id);
+    return requisition ? cloneValue(requisition) : null;
+  }
+
+  public procurementRequisitionByNumber(projectId: string, number: string): ProcurementRequisitionRecord | null {
+    const requisition = [...this.state.procurementRequisitions.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return requisition ? cloneValue(requisition) : null;
+  }
+
+  public procurementRequisitions(projectId: string): readonly ProcurementRequisitionRecord[] {
+    return cloneValue([...this.state.procurementRequisitions.values()]
+      .filter((requisition) => requisition.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertProcurementRequisition(requisition: ProcurementRequisitionRecord): void {
+    if (this.state.procurementRequisitions.has(requisition.id)
+      || this.procurementRequisitionByNumber(requisition.projectId, requisition.number)) throw new ConflictError();
+    this.state.procurementRequisitions.set(requisition.id, cloneValue(requisition));
+  }
+
+  public updateProcurementRequisition(requisition: ProcurementRequisitionRecord, expectedVersion: number): void {
+    const current = this.state.procurementRequisitions.get(requisition.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.procurementRequisitions.set(requisition.id, cloneValue(requisition));
+  }
+
+  public procurementBidPackageById(id: string): ProcurementBidPackageRecord | null {
+    const bidPackage = this.state.procurementBidPackages.get(id);
+    return bidPackage ? cloneValue(bidPackage) : null;
+  }
+
+  public procurementBidPackageByNumber(projectId: string, number: string): ProcurementBidPackageRecord | null {
+    const bidPackage = [...this.state.procurementBidPackages.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return bidPackage ? cloneValue(bidPackage) : null;
+  }
+
+  public procurementBidPackages(projectId: string): readonly ProcurementBidPackageRecord[] {
+    return cloneValue([...this.state.procurementBidPackages.values()]
+      .filter((bidPackage) => bidPackage.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertProcurementBidPackage(bidPackage: ProcurementBidPackageRecord): void {
+    if (this.state.procurementBidPackages.has(bidPackage.id)
+      || this.procurementBidPackageByNumber(bidPackage.projectId, bidPackage.number)) throw new ConflictError();
+    this.state.procurementBidPackages.set(bidPackage.id, cloneValue(bidPackage));
+  }
+
+  public updateProcurementBidPackage(bidPackage: ProcurementBidPackageRecord, expectedVersion: number): void {
+    const current = this.state.procurementBidPackages.get(bidPackage.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.procurementBidPackages.set(bidPackage.id, cloneValue(bidPackage));
+  }
+
+  public procurementCommitmentById(id: string): ProcurementCommitmentRecord | null {
+    const commitment = this.state.procurementCommitments.get(id);
+    return commitment ? cloneValue(commitment) : null;
+  }
+
+  public procurementCommitments(projectId: string): readonly ProcurementCommitmentRecord[] {
+    return cloneValue([...this.state.procurementCommitments.values()]
+      .filter((commitment) => commitment.projectId === projectId)
+      .sort((left, right) => left.purchaseOrderReference.localeCompare(right.purchaseOrderReference)));
+  }
+
+  public insertProcurementCommitment(commitment: ProcurementCommitmentRecord): void {
+    if (this.state.procurementCommitments.has(commitment.id)) throw new ConflictError();
+    this.state.procurementCommitments.set(commitment.id, cloneValue(commitment));
+  }
+
+  public updateProcurementCommitment(commitment: ProcurementCommitmentRecord, expectedVersion: number): void {
+    const current = this.state.procurementCommitments.get(commitment.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.procurementCommitments.set(commitment.id, cloneValue(commitment));
+  }
+
+  public scheduleProgramById(id: string): ScheduleProgramRecord | null {
+    const schedule = this.state.schedulePrograms.get(id);
+    return schedule ? cloneValue(schedule) : null;
+  }
+
+  public scheduleProgramByNumber(projectId: string, number: string): ScheduleProgramRecord | null {
+    const schedule = [...this.state.schedulePrograms.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.number === number);
+    return schedule ? cloneValue(schedule) : null;
+  }
+
+  public schedulePrograms(projectId: string): readonly ScheduleProgramRecord[] {
+    return cloneValue([...this.state.schedulePrograms.values()]
+      .filter((schedule) => schedule.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number)));
+  }
+
+  public insertScheduleProgram(schedule: ScheduleProgramRecord): void {
+    if (this.state.schedulePrograms.has(schedule.id)
+      || this.scheduleProgramByNumber(schedule.projectId, schedule.number)) throw new ConflictError();
+    this.state.schedulePrograms.set(schedule.id, cloneValue(schedule));
+  }
+
+  public updateScheduleProgram(schedule: ScheduleProgramRecord, expectedVersion: number): void {
+    const current = this.state.schedulePrograms.get(schedule.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.schedulePrograms.set(schedule.id, cloneValue(schedule));
+  }
+
+  public scheduleRevisionById(id: string): ScheduleRevisionRecord | null {
+    const revision = this.state.scheduleRevisions.get(id);
+    return revision ? cloneValue(revision) : null;
+  }
+
+  public scheduleRevisionByName(scheduleId: string, revision: string): ScheduleRevisionRecord | null {
+    const record = [...this.state.scheduleRevisions.values()].find((candidate) =>
+      candidate.scheduleId === scheduleId && candidate.revision === revision);
+    return record ? cloneValue(record) : null;
+  }
+
+  public scheduleRevisions(scheduleId: string): readonly ScheduleRevisionRecord[] {
+    return cloneValue([...this.state.scheduleRevisions.values()]
+      .filter((revision) => revision.scheduleId === scheduleId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertScheduleRevision(revision: ScheduleRevisionRecord): void {
+    if (this.state.scheduleRevisions.has(revision.id)
+      || this.scheduleRevisionByName(revision.scheduleId, revision.revision)) throw new ConflictError();
+    this.state.scheduleRevisions.set(revision.id, cloneValue(revision));
+  }
+
+  public updateScheduleRevision(revision: ScheduleRevisionRecord, expectedVersion: number): void {
+    const current = this.state.scheduleRevisions.get(revision.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.scheduleRevisions.set(revision.id, cloneValue(revision));
+  }
+
+  public scheduleImportById(id: string): ScheduleImportRecord | null {
+    const scheduleImport = this.state.scheduleImports.get(id);
+    return scheduleImport ? cloneValue(scheduleImport) : null;
+  }
+
+  public scheduleImportByKey(projectId: string, idempotencyKey: string): ScheduleImportRecord | null {
+    const scheduleImport = [...this.state.scheduleImports.values()].find((candidate) =>
+      candidate.projectId === projectId && candidate.idempotencyKey === idempotencyKey);
+    return scheduleImport ? cloneValue(scheduleImport) : null;
+  }
+
+  public scheduleImports(projectId: string): readonly ScheduleImportRecord[] {
+    return cloneValue([...this.state.scheduleImports.values()]
+      .filter((scheduleImport) => scheduleImport.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+
+  public insertScheduleImport(scheduleImport: ScheduleImportRecord): void {
+    if (this.state.scheduleImports.has(scheduleImport.id)
+      || this.scheduleImportByKey(scheduleImport.projectId, scheduleImport.idempotencyKey)) throw new ConflictError();
+    this.state.scheduleImports.set(scheduleImport.id, cloneValue(scheduleImport));
+  }
+
+  public updateScheduleImport(scheduleImport: ScheduleImportRecord, expectedVersion: number): void {
+    const current = this.state.scheduleImports.get(scheduleImport.id);
+    if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.scheduleImports.set(scheduleImport.id, cloneValue(scheduleImport));
+  }
+
+  public weldingProcedureById(id: string): WeldingProcedureRevisionRecord | null {
+    const record = this.state.weldingProcedures.get(id); return record ? cloneValue(record) : null;
+  }
+  public weldingProcedureByRevision(projectId: string, number: string, revision: string): WeldingProcedureRevisionRecord | null {
+    const record = [...this.state.weldingProcedures.values()].find((item) => item.projectId === projectId && item.number === number && item.revision === revision);
+    return record ? cloneValue(record) : null;
+  }
+  public weldingProcedures(projectId: string): readonly WeldingProcedureRevisionRecord[] {
+    return cloneValue([...this.state.weldingProcedures.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertWeldingProcedure(procedure: WeldingProcedureRevisionRecord): void {
+    if (this.state.weldingProcedures.has(procedure.id) || this.weldingProcedureByRevision(procedure.projectId, procedure.number, procedure.revision)) throw new ConflictError();
+    this.state.weldingProcedures.set(procedure.id, cloneValue(procedure));
+  }
+  public updateWeldingProcedure(procedure: WeldingProcedureRevisionRecord, expectedVersion: number): void {
+    const current = this.state.weldingProcedures.get(procedure.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.weldingProcedures.set(procedure.id, cloneValue(procedure));
+  }
+  public welderQualificationById(id: string): WelderQualificationRecord | null {
+    const record = this.state.welderQualifications.get(id); return record ? cloneValue(record) : null;
+  }
+  public welderQualificationByNumber(projectId: string, qualificationNumber: string): WelderQualificationRecord | null {
+    const record = [...this.state.welderQualifications.values()].find((item) => item.projectId === projectId && item.qualificationNumber === qualificationNumber);
+    return record ? cloneValue(record) : null;
+  }
+  public welderQualifications(projectId: string): readonly WelderQualificationRecord[] {
+    return cloneValue([...this.state.welderQualifications.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.qualificationNumber.localeCompare(right.qualificationNumber)));
+  }
+  public insertWelderQualification(qualification: WelderQualificationRecord): void {
+    if (this.state.welderQualifications.has(qualification.id) || this.welderQualificationByNumber(qualification.projectId, qualification.qualificationNumber)) throw new ConflictError();
+    this.state.welderQualifications.set(qualification.id, cloneValue(qualification));
+  }
+  public updateWelderQualification(qualification: WelderQualificationRecord, expectedVersion: number): void {
+    const current = this.state.welderQualifications.get(qualification.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.welderQualifications.set(qualification.id, cloneValue(qualification));
+  }
+  public weldById(id: string): WeldJointRecord | null { const record = this.state.weldJoints.get(id); return record ? cloneValue(record) : null; }
+  public weldByNumber(projectId: string, number: string): WeldJointRecord | null {
+    const record = [...this.state.weldJoints.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public welds(projectId: string): readonly WeldJointRecord[] {
+    return cloneValue([...this.state.weldJoints.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertWeld(weld: WeldJointRecord): void {
+    if (this.state.weldJoints.has(weld.id) || this.weldByNumber(weld.projectId, weld.number)) throw new ConflictError(); this.state.weldJoints.set(weld.id, cloneValue(weld));
+  }
+  public updateWeld(weld: WeldJointRecord, expectedVersion: number): void {
+    const current = this.state.weldJoints.get(weld.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.weldJoints.set(weld.id, cloneValue(weld));
+  }
+  public ndeRequestById(id: string): NdeRequestRecord | null { const record = this.state.ndeRequests.get(id); return record ? cloneValue(record) : null; }
+  public ndeRequestByNumber(projectId: string, number: string): NdeRequestRecord | null {
+    const record = [...this.state.ndeRequests.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public ndeRequests(projectId: string): readonly NdeRequestRecord[] {
+    return cloneValue([...this.state.ndeRequests.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertNdeRequest(request: NdeRequestRecord): void {
+    if (this.state.ndeRequests.has(request.id) || this.ndeRequestByNumber(request.projectId, request.number)) throw new ConflictError(); this.state.ndeRequests.set(request.id, cloneValue(request));
+  }
+  public updateNdeRequest(request: NdeRequestRecord, expectedVersion: number): void {
+    const current = this.state.ndeRequests.get(request.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.ndeRequests.set(request.id, cloneValue(request));
+  }
+  public ndeReportById(id: string): NdeReportRevisionRecord | null { const record = this.state.ndeReports.get(id); return record ? cloneValue(record) : null; }
+  public ndeReports(requestId: string): readonly NdeReportRevisionRecord[] {
+    return cloneValue([...this.state.ndeReports.values()].filter((item) => item.requestId === requestId).sort((left, right) => left.revision.localeCompare(right.revision)));
+  }
+  public insertNdeReport(report: NdeReportRevisionRecord): void {
+    if (this.state.ndeReports.has(report.id) || this.ndeReports(report.requestId).some((item) => item.revision === report.revision)) throw new ConflictError(); this.state.ndeReports.set(report.id, cloneValue(report));
+  }
+  public updateNdeReport(report: NdeReportRevisionRecord, expectedVersion: number): void {
+    const current = this.state.ndeReports.get(report.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.ndeReports.set(report.id, cloneValue(report));
+  }
+  public pwhtCycleById(id: string): PwhtCycleRecord | null { const record = this.state.pwhtCycles.get(id); return record ? cloneValue(record) : null; }
+  public pwhtCycleByNumber(projectId: string, number: string): PwhtCycleRecord | null {
+    const record = [...this.state.pwhtCycles.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public pwhtCycles(projectId: string): readonly PwhtCycleRecord[] {
+    return cloneValue([...this.state.pwhtCycles.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertPwhtCycle(cycle: PwhtCycleRecord): void {
+    if (this.state.pwhtCycles.has(cycle.id) || this.pwhtCycleByNumber(cycle.projectId, cycle.number)) throw new ConflictError(); this.state.pwhtCycles.set(cycle.id, cloneValue(cycle));
+  }
+  public updatePwhtCycle(cycle: PwhtCycleRecord, expectedVersion: number): void {
+    const current = this.state.pwhtCycles.get(cycle.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.pwhtCycles.set(cycle.id, cloneValue(cycle));
+  }
+  public testPackageById(id: string): TestPackageRecord | null { const record = this.state.testPackages.get(id); return record ? cloneValue(record) : null; }
+  public testPackageByNumber(projectId: string, number: string): TestPackageRecord | null {
+    const record = [...this.state.testPackages.values()].find((item) => item.projectId === projectId && item.number === number); return record ? cloneValue(record) : null;
+  }
+  public testPackages(projectId: string): readonly TestPackageRecord[] {
+    return cloneValue([...this.state.testPackages.values()].filter((item) => item.projectId === projectId).sort((left, right) => left.number.localeCompare(right.number)));
+  }
+  public insertTestPackage(testPackage: TestPackageRecord): void {
+    if (this.state.testPackages.has(testPackage.id) || this.testPackageByNumber(testPackage.projectId, testPackage.number)) throw new ConflictError(); this.state.testPackages.set(testPackage.id, cloneValue(testPackage));
+  }
+  public updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void {
+    const current = this.state.testPackages.get(testPackage.id); if (!current || current.version !== expectedVersion) throw new ConflictError(); this.state.testPackages.set(testPackage.id, cloneValue(testPackage));
+  }
+
+  public fabricationAssemblyById(id: string): FabricationAssemblyRevisionRecord | null {
+    const record = this.state.fabricationAssemblies.get(id); return record ? cloneValue(record) : null;
+  }
+  public fabricationAssemblyByRevision(projectId: string, number: string, revision: string): FabricationAssemblyRevisionRecord | null {
+    const record = [...this.state.fabricationAssemblies.values()].find(
+      (item) => item.projectId === projectId && item.number === number && item.revision === revision,
+    ); return record ? cloneValue(record) : null;
+  }
+  public fabricationAssemblies(projectId: string): readonly FabricationAssemblyRevisionRecord[] {
+    return cloneValue([...this.state.fabricationAssemblies.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertFabricationAssembly(assembly: FabricationAssemblyRevisionRecord): void {
+    if (this.state.fabricationAssemblies.has(assembly.id)
+      || this.fabricationAssemblyByRevision(assembly.projectId, assembly.number, assembly.revision)) throw new ConflictError();
+    this.state.fabricationAssemblies.set(assembly.id, cloneValue(assembly));
+  }
+  public updateFabricationAssembly(assembly: FabricationAssemblyRevisionRecord, expectedVersion: number): void {
+    const current = this.state.fabricationAssemblies.get(assembly.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.fabricationAssemblies.set(assembly.id, cloneValue(assembly));
+  }
+  public fabricationTravelerById(id: string): FabricationTravelerRecord | null {
+    const record = this.state.fabricationTravelers.get(id); return record ? cloneValue(record) : null;
+  }
+  public fabricationTravelerForAssembly(assemblyRevisionId: string): FabricationTravelerRecord | null {
+    const record = [...this.state.fabricationTravelers.values()].find((item) => item.assemblyRevisionId === assemblyRevisionId && item.state !== "superseded");
+    return record ? cloneValue(record) : null;
+  }
+  public fabricationTravelers(projectId: string): readonly FabricationTravelerRecord[] {
+    return cloneValue([...this.state.fabricationTravelers.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertFabricationTraveler(traveler: FabricationTravelerRecord): void {
+    if (this.state.fabricationTravelers.has(traveler.id) || this.fabricationTravelerForAssembly(traveler.assemblyRevisionId)) throw new ConflictError();
+    this.state.fabricationTravelers.set(traveler.id, cloneValue(traveler));
+  }
+  public updateFabricationTraveler(traveler: FabricationTravelerRecord, expectedVersion: number): void {
+    const current = this.state.fabricationTravelers.get(traveler.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.fabricationTravelers.set(traveler.id, cloneValue(traveler));
+  }
+  public fabricationExecutionEventById(id: string): FabricationExecutionEventRecord | null {
+    const record = this.state.fabricationExecutionEvents.get(id); return record ? cloneValue(record) : null;
+  }
+  public fabricationExecutionEvents(travelerId: string): readonly FabricationExecutionEventRecord[] {
+    return cloneValue([...this.state.fabricationExecutionEvents.values()].filter((item) => item.travelerId === travelerId)
+      .sort((left, right) => left.sequence - right.sequence));
+  }
+  public insertFabricationExecutionEvent(event: FabricationExecutionEventRecord): void {
+    if (this.state.fabricationExecutionEvents.has(event.id)) throw new ConflictError();
+    this.state.fabricationExecutionEvents.set(event.id, cloneValue(event));
+  }
+
+  public cncMachineProfileById(id: string): CncMachineProfileRevisionRecord | null {
+    const record = this.state.cncMachineProfiles.get(id); return record ? cloneValue(record) : null;
+  }
+  public cncMachineProfileByRevision(projectId: string, workCenterCode: string, revision: string): CncMachineProfileRevisionRecord | null {
+    const record = [...this.state.cncMachineProfiles.values()].find((item) => item.projectId === projectId
+      && item.workCenterCode === workCenterCode && item.revision === revision); return record ? cloneValue(record) : null;
+  }
+  public cncMachineProfiles(projectId: string): readonly CncMachineProfileRevisionRecord[] {
+    return cloneValue([...this.state.cncMachineProfiles.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.workCenterCode.localeCompare(right.workCenterCode) || left.revision.localeCompare(right.revision)));
+  }
+  public insertCncMachineProfile(profile: CncMachineProfileRevisionRecord): void {
+    if (this.state.cncMachineProfiles.has(profile.id)
+      || this.cncMachineProfileByRevision(profile.projectId, profile.workCenterCode, profile.revision)) throw new ConflictError();
+    this.state.cncMachineProfiles.set(profile.id, cloneValue(profile));
+  }
+  public updateCncMachineProfile(profile: CncMachineProfileRevisionRecord, expectedVersion: number): void {
+    const current = this.state.cncMachineProfiles.get(profile.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.cncMachineProfiles.set(profile.id, cloneValue(profile));
+  }
+  public cncProgramById(id: string): CncProgramRevisionRecord | null {
+    const record = this.state.cncPrograms.get(id); return record ? cloneValue(record) : null;
+  }
+  public cncProgramByRevision(projectId: string, number: string, revision: string): CncProgramRevisionRecord | null {
+    const record = [...this.state.cncPrograms.values()].find((item) => item.projectId === projectId
+      && item.number === number && item.revision === revision); return record ? cloneValue(record) : null;
+  }
+  public cncPrograms(projectId: string): readonly CncProgramRevisionRecord[] {
+    return cloneValue([...this.state.cncPrograms.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.number.localeCompare(right.number) || left.revision.localeCompare(right.revision)));
+  }
+  public insertCncProgram(program: CncProgramRevisionRecord): void {
+    if (this.state.cncPrograms.has(program.id) || this.cncProgramByRevision(program.projectId, program.number, program.revision)) throw new ConflictError();
+    this.state.cncPrograms.set(program.id, cloneValue(program));
+  }
+  public updateCncProgram(program: CncProgramRevisionRecord, expectedVersion: number): void {
+    const current = this.state.cncPrograms.get(program.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.cncPrograms.set(program.id, cloneValue(program));
+  }
+  public cncExecutionById(id: string): CncExecutionRecord | null {
+    const record = this.state.cncExecutions.get(id); return record ? cloneValue(record) : null;
+  }
+  public cncExecutionForProgram(programRevisionId: string): CncExecutionRecord | null {
+    const record = [...this.state.cncExecutions.values()].find((item) => item.programRevisionId === programRevisionId);
+    return record ? cloneValue(record) : null;
+  }
+  public cncExecutions(projectId: string): readonly CncExecutionRecord[] {
+    return cloneValue([...this.state.cncExecutions.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCncExecution(execution: CncExecutionRecord): void {
+    if (this.state.cncExecutions.has(execution.id) || this.cncExecutionForProgram(execution.programRevisionId)) throw new ConflictError();
+    this.state.cncExecutions.set(execution.id, cloneValue(execution));
+  }
+  public updateCncExecution(execution: CncExecutionRecord, expectedVersion: number): void {
+    const current = this.state.cncExecutions.get(execution.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.cncExecutions.set(execution.id, cloneValue(execution));
+  }
+  public engineeringRegisterItemById(id: string): EngineeringRegisterItemRevisionRecord | null {
+    const record = this.state.engineeringRegisterItems.get(id); return record ? cloneValue(record) : null;
+  }
+  public engineeringRegisterItemByRevision(projectId: string, registerType: string, tag: string, revision: string): EngineeringRegisterItemRevisionRecord | null {
+    const record = [...this.state.engineeringRegisterItems.values()].find((item) => item.projectId === projectId
+      && item.registerType === registerType && item.tag === tag && item.revision === revision);
+    return record ? cloneValue(record) : null;
+  }
+  public engineeringRegisterItems(projectId: string): readonly EngineeringRegisterItemRevisionRecord[] {
+    return cloneValue([...this.state.engineeringRegisterItems.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.registerType.localeCompare(right.registerType) || left.tag.localeCompare(right.tag)
+        || left.revision.localeCompare(right.revision)));
+  }
+  public insertEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord): void {
+    if (this.state.engineeringRegisterItems.has(item.id)
+      || this.engineeringRegisterItemByRevision(item.projectId, item.registerType, item.tag, item.revision)) throw new ConflictError();
+    this.state.engineeringRegisterItems.set(item.id, cloneValue(item));
+  }
+  public updateEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord, expectedVersion: number): void {
+    const current = this.state.engineeringRegisterItems.get(item.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.engineeringRegisterItems.set(item.id, cloneValue(item));
+  }
+
+  public collaborationImportById(id: string): DocumentCollaborationImportRecord | null {
+    const record = this.state.collaborationImports.get(id); return record ? cloneValue(record) : null;
+  }
+  public collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null {
+    const record = [...this.state.collaborationImports.values()].find((item) => item.projectId === projectId && item.idempotencyKey === idempotencyKey);
+    return record ? cloneValue(record) : null;
+  }
+  public collaborationImportBySource(projectId: string, providerProjectId: string, providerSessionId: string, sourceVersion: string): DocumentCollaborationImportRecord | null {
+    const record = [...this.state.collaborationImports.values()].find((item) => item.projectId === projectId
+      && item.providerProjectId === providerProjectId && item.providerSessionId === providerSessionId && item.sourceVersion === sourceVersion);
+    return record ? cloneValue(record) : null;
+  }
+  public collaborationImports(projectId: string): readonly DocumentCollaborationImportRecord[] {
+    return cloneValue([...this.state.collaborationImports.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.previewedAt.getTime() - right.previewedAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCollaborationImport(collaborationImport: DocumentCollaborationImportRecord): void {
+    if (this.state.collaborationImports.has(collaborationImport.id)
+      || this.collaborationImportByIdempotency(collaborationImport.projectId, collaborationImport.idempotencyKey)) throw new ConflictError();
+    this.state.collaborationImports.set(collaborationImport.id, cloneValue(collaborationImport));
+  }
+  public updateCollaborationImport(collaborationImport: DocumentCollaborationImportRecord, expectedVersion: number): void {
+    const current = this.state.collaborationImports.get(collaborationImport.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.collaborationImports.set(collaborationImport.id, cloneValue(collaborationImport));
+  }
+  public collaborationItemById(id: string): CollaborationItemRecord | null {
+    const record = this.state.collaborationItems.get(id); return record ? cloneValue(record) : null;
+  }
+  public collaborationItemByExternal(projectId: string, providerProjectId: string, providerSessionId: string, providerItemId: string): CollaborationItemRecord | null {
+    const records = [...this.state.collaborationItems.values()].filter((item) => item.projectId === projectId
+      && item.providerProjectId === providerProjectId && item.providerSessionId === providerSessionId && item.providerItemId === providerItemId)
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime() || right.id.localeCompare(left.id));
+    return records[0] ? cloneValue(records[0]) : null;
+  }
+  public collaborationItems(projectId: string): readonly CollaborationItemRecord[] {
+    return cloneValue([...this.state.collaborationItems.values()].filter((item) => item.projectId === projectId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public collaborationItemsForImport(importId: string): readonly CollaborationItemRecord[] {
+    return cloneValue([...this.state.collaborationItems.values()].filter((item) => item.importId === importId)
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCollaborationItem(item: CollaborationItemRecord): void {
+    if (this.state.collaborationItems.has(item.id)) throw new ConflictError(); this.state.collaborationItems.set(item.id, cloneValue(item));
+  }
+  public updateCollaborationItem(item: CollaborationItemRecord, expectedVersion: number): void {
+    const current = this.state.collaborationItems.get(item.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.collaborationItems.set(item.id, cloneValue(item));
+  }
+  public collaborationReconciliationById(id: string): CollaborationReconciliationRecord | null {
+    const record = this.state.collaborationReconciliations.get(id); return record ? cloneValue(record) : null;
+  }
+  public collaborationReconciliations(projectId: string, importId?: string): readonly CollaborationReconciliationRecord[] {
+    return cloneValue([...this.state.collaborationReconciliations.values()].filter((item) => item.projectId === projectId && (!importId || item.importId === importId))
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime() || left.id.localeCompare(right.id)));
+  }
+  public insertCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord): void {
+    if (this.state.collaborationReconciliations.has(reconciliation.id)) throw new ConflictError();
+    this.state.collaborationReconciliations.set(reconciliation.id, cloneValue(reconciliation));
+  }
+  public updateCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord, expectedVersion: number): void {
+    const current = this.state.collaborationReconciliations.get(reconciliation.id); if (!current || current.version !== expectedVersion) throw new ConflictError();
+    this.state.collaborationReconciliations.set(reconciliation.id, cloneValue(reconciliation));
   }
 
   public projectById(id: string): ProjectRecord | null {
@@ -849,6 +1823,10 @@ class MemoryTransaction implements FoundationTransaction {
     return inspection ? cloneValue(inspection) : null;
   }
 
+  public inspectionsForProject(projectId: string): readonly InspectionRecord[] {
+    return cloneValue([...this.state.inspections.values()].filter((inspection) => inspection.projectId === projectId));
+  }
+
   public insertInspection(inspection: InspectionRecord): void {
     if (this.state.inspections.has(inspection.id)) throw new ConflictError();
     this.state.inspections.set(inspection.id, cloneValue(inspection));
@@ -1243,6 +2221,43 @@ export function createEmptyMemoryState(): MemoryState {
     assignments: [],
     managedAccessAssignments: new Map(),
     delegations: new Map(),
+    estimateAssemblies: new Map(),
+    estimateProductivityFactors: new Map(),
+    estimateAuthorityPolicies: new Map(),
+    estimates: new Map(),
+    estimateRevisions: new Map(),
+    estimateLines: new Map(),
+    estimateQuotes: new Map(),
+    estimateProposals: new Map(),
+    estimateHandoffs: new Map(),
+    projectControlsAuthorityPolicies: new Map(),
+    projectControlBaselines: new Map(),
+    projectChangeRequests: new Map(),
+    projectCostEntries: new Map(),
+    projectProgressClaims: new Map(),
+    procurementRequisitions: new Map(),
+    procurementBidPackages: new Map(),
+    procurementCommitments: new Map(),
+    schedulePrograms: new Map(),
+    scheduleRevisions: new Map(),
+    scheduleImports: new Map(),
+    weldingProcedures: new Map(),
+    welderQualifications: new Map(),
+    weldJoints: new Map(),
+    ndeRequests: new Map(),
+    ndeReports: new Map(),
+    pwhtCycles: new Map(),
+    testPackages: new Map(),
+    fabricationAssemblies: new Map(),
+    fabricationTravelers: new Map(),
+    fabricationExecutionEvents: new Map(),
+    cncMachineProfiles: new Map(),
+    cncPrograms: new Map(),
+    cncExecutions: new Map(),
+    engineeringRegisterItems: new Map(),
+    collaborationImports: new Map(),
+    collaborationItems: new Map(),
+    collaborationReconciliations: new Map(),
     audits: [],
   };
 }

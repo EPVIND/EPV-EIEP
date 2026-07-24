@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node --check migrate.mjs && node --check verify-foundation.mjs",
-    "typecheck": "node --check migrate.mjs && node --check verify-foundation.mjs",
+    "build": "node --check connection.mjs && node --check migrate.mjs && node --check verify-foundation.mjs && node --check bootstrap-azure-identities.mjs",
+    "typecheck": "node --check connection.mjs && node --check migrate.mjs && node --check verify-foundation.mjs && node --check bootstrap-azure-identities.mjs",
+    "bootstrap:azure-identities": "node bootstrap-azure-identities.mjs",
     "migrate": "node migrate.mjs",
     "migrate:status": "node migrate.mjs --status",
     "verify:foundation": "node verify-foundation.mjs"
   },
   "dependencies": {
+    "@azure/identity": "4.13.1",
     "pg": "^8.0.0"
   }
 }

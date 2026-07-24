@@ -32,8 +32,10 @@ Thumbs.db
 *.log
 *.sqlite
 *.sqlite3
+.eiep-pilot/
 
 # Source intake payloads may contain confidential material.
 # Track the controlled README and inventory, then add individual artifacts deliberately.
 source-intake/**/*.zip
 source-intake/**/*.7z
+source-intake/unreviewed/qc-chat-history/

@@ -10,6 +10,7 @@ export interface RuntimeConfig {
   readonly oidcIssuer: string | null;
   readonly oidcAudience: string | null;
   readonly databaseUrlPresent: boolean;
+  readonly databaseAuthentication: "connection-string" | "azure-managed-identity";
   readonly databaseRuntimeRole: "eiep_runtime" | null;
   readonly allowedOrigins: readonly string[];
   readonly rateLimitMax: number;
@@ -17,6 +18,9 @@ export interface RuntimeConfig {
   readonly storageAccountName: string | null;
   readonly managedIdentityClientId: string | null;
   readonly fileStorageRoot: string | null;
+  readonly localPilotBootstrapFile: string | null;
+  readonly localPilotBootstrapSha256: string | null;
+  readonly ephemeralPilotBootstrapJson: string | null;
 }
 
 const allowedEnvironments: readonly EnvironmentName[] = ["development", "test", "training", "production"];
@@ -38,6 +42,11 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   if (environment.dataStore === "postgres" && !process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is required for PostgreSQL persistence.");
   }
+  const requestedDatabaseAuthentication = process.env.DATABASE_AUTH_MODE?.trim() || "connection-string";
+  if (requestedDatabaseAuthentication !== "connection-string" && requestedDatabaseAuthentication !== "azure-managed-identity") {
+    throw new Error("DATABASE_AUTH_MODE must be connection-string or azure-managed-identity.");
+  }
+  const databaseAuthentication = requestedDatabaseAuthentication;
   const requestedDatabaseRole = process.env.DATABASE_RUNTIME_ROLE?.trim() || null;
   if (requestedDatabaseRole && requestedDatabaseRole !== "eiep_runtime") {
     throw new Error("DATABASE_RUNTIME_ROLE must be eiep_runtime when supplied.");
@@ -45,6 +54,9 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   const databaseRuntimeRole: "eiep_runtime" | null = requestedDatabaseRole === "eiep_runtime" ? "eiep_runtime" : null;
   if (environment.environment === "production" && databaseRuntimeRole !== "eiep_runtime") {
     throw new Error("Production requires DATABASE_RUNTIME_ROLE=eiep_runtime.");
+  }
+  if (environment.environment === "production" && databaseAuthentication !== "azure-managed-identity") {
+    throw new Error("Production requires DATABASE_AUTH_MODE=azure-managed-identity.");
   }
 
   const port = Number(process.env.PORT ?? "3100");
@@ -76,11 +88,39 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
   const storageAccountName = process.env.AZURE_STORAGE_ACCOUNT_NAME?.trim() || null;
   const managedIdentityClientId = process.env.AZURE_CLIENT_ID?.trim() || null;
   const fileStorageRoot = process.env.FILE_STORAGE_ROOT?.trim() || null;
+  const localPilotBootstrapFile = process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_FILE?.trim() || null;
+  const localPilotBootstrapSha256 = process.env.EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256?.trim().toLowerCase() || null;
+  const ephemeralPilotBootstrapJson = process.env.EIEP_EPHEMERAL_PILOT_BOOTSTRAP_JSON?.trim() || null;
   if (storageAccountName && !/^[a-z0-9]{3,24}$/u.test(storageAccountName)) {
     throw new Error("AZURE_STORAGE_ACCOUNT_NAME is invalid.");
   }
   if (environment.environment === "production" && (!storageAccountName || !managedIdentityClientId)) {
     throw new Error("Production requires AZURE_STORAGE_ACCOUNT_NAME and AZURE_CLIENT_ID for governed uploads.");
+  }
+  if (databaseAuthentication === "azure-managed-identity" && !managedIdentityClientId) {
+    throw new Error("Azure PostgreSQL authentication requires AZURE_CLIENT_ID.");
+  }
+  if ((localPilotBootstrapFile === null) !== (localPilotBootstrapSha256 === null)) {
+    throw new Error("EIEP_LOCAL_PILOT_BOOTSTRAP_FILE and EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 must be supplied together.");
+  }
+  if (localPilotBootstrapSha256 && !/^[0-9a-f]{64}$/u.test(localPilotBootstrapSha256)) {
+    throw new Error("EIEP_LOCAL_PILOT_BOOTSTRAP_SHA256 must be a lowercase SHA-256 value.");
+  }
+  if (ephemeralPilotBootstrapJson && localPilotBootstrapFile) {
+    throw new Error("Persistent and ephemeral pilot bootstrap inputs cannot be combined.");
+  }
+  if (localPilotBootstrapFile && (environment.environment !== "development"
+    || environment.authentication !== "development" || environment.dataStore !== "postgres"
+    || environment.trainingBanner || environment.allowProductionData)) {
+    throw new Error("Local pilot bootstrap requires development authentication, PostgreSQL, no training banner, and no production data.");
+  }
+  if (ephemeralPilotBootstrapJson && Buffer.byteLength(ephemeralPilotBootstrapJson, "utf8") > 128 * 1024) {
+    throw new Error("EIEP_EPHEMERAL_PILOT_BOOTSTRAP_JSON cannot exceed 128 KiB.");
+  }
+  if (ephemeralPilotBootstrapJson && (environment.environment !== "development"
+    || environment.authentication !== "development" || environment.dataStore !== "memory"
+    || environment.trainingBanner || environment.allowProductionData)) {
+    throw new Error("Ephemeral pilot bootstrap requires development authentication, memory data, no training banner, and no production data.");
   }
   return {
     environment,
@@ -89,6 +129,7 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
     oidcIssuer,
     oidcAudience,
     databaseUrlPresent: Boolean(process.env.DATABASE_URL),
+    databaseAuthentication,
     databaseRuntimeRole,
     allowedOrigins,
     rateLimitMax,
@@ -96,5 +137,8 @@ export async function loadRuntimeConfig(rootDirectory = process.cwd()): Promise<
     storageAccountName,
     managedIdentityClientId,
     fileStorageRoot,
+    localPilotBootstrapFile: localPilotBootstrapFile ? resolve(localPilotBootstrapFile) : null,
+    localPilotBootstrapSha256,
+    ephemeralPilotBootstrapJson,
   };
 }

@@ -15,38 +15,131 @@ pnpm run database:verify
 pnpm run test:browser
 pnpm audit --prod --audit-level high
 pnpm run sbom:generate
+pnpm run containers:verify
 ```
 
-Record source revision, lockfile SHA, workflow run/build ID, Bicep version, fourteen migration checksums, 61-constraint result, test reports, CycloneDX artifact, image digests/scans/signatures, approvals, deployment record, and smoke/observation results. `.github/workflows/verify.yml` supplies read-only hosted verification. The `EPVIND/EPV-EIEP` bootstrap restricts Actions to GitHub-owned actions, pins each action by commit, protects `main` with the `controlled-verification` check and pull-request review, and defines empty development/test/training/production environments. Production prevents self-review and has a wait gate; it remains blocked until an additional authorized reviewer and every cloud/release prerequisite below are supplied.
+Record source revision, lockfile SHA, workflow run/build ID, Bicep version, fourteen migration checksums, 61-constraint result, test reports, CycloneDX artifact, image digests/scans/signatures, approvals, deployment record, and smoke/observation results. `.github/workflows/verify.yml` supplies read-only hosted verification and retains the CycloneDX inventory, source-revision/image-ID manifest, and a verified SHA-256 manifest covering both files for 90 days. The `EPVIND/EPV-EIEP` bootstrap restricts Actions to GitHub-owned actions, pins each action by commit, protects `main` with the `controlled-verification` check and pull-request review, and defines empty development/test/training/production environments. Production prevents self-review and has a wait gate; it remains blocked until an additional authorized reviewer and every cloud/release prerequisite below are supplied.
 
 The tracked `docs/02-architecture/openapi-v1.json` and runtime route-schema registry
 are generated from the API's TypeScript route contracts; `pnpm run verify` fails on
 either source-schema or published-contract drift. Record the OpenAPI hash and review
 any breaking change under ADR-0006 before promotion.
 
+## Container build and promotion
+
+`containers/Dockerfile` builds four targets (`api`, `job-worker`, `web`, and
+`portal`) from a single Node 24 image pinned by SHA-256. Each production target runs
+as the unprivileged `node` user and records the full source commit in OCI metadata.
+API and worker receive portable production-only pnpm deployments; the worker image
+installs the pinned Chromium used for governed turnover rendering. Web and portal
+contain only their compiled public bundle plus the minimal runtime server, publish no
+source maps, and receive their exact API origin through `API_BASE_URL` at startup.
+
+On a clean Docker BuildKit host, set `SOURCE_REVISION` to the full reviewed commit and
+optionally set `CONTAINER_BUILD_EVIDENCE`, then run `pnpm run containers:build`. The
+command builds all four targets, confirms their unprivileged user and revision label,
+starts API/web/portal smoke containers, and exercises the compiled worker graph. The
+hosted workflow records the result as `artifacts/container-build.json`.
+Clean hosted run `29872313909` executed this path for commit `0ca748f` and retained
+the four runner-local image IDs with the 150-component SBOM.
+
+For a release, retag and push those same images to the approved ACR, run the approved
+vulnerability scan and signature/attestation process, and record the four registry
+`@sha256:` digests. Only those digests enter Bicep. A local image ID, mutable tag, CI
+success, or source revision alone is not registry promotion evidence.
+
 ## Environment and deployment gates
 
-Development, test, training, and production must use distinct identity registrations, workload identities, database/storage/queue/vault/telemetry resources, configuration, keys, data, and access. Training retains its visible banner and persistent isolation. Production rejects development authentication, memory persistence, plaintext ingress, missing runtime DB role, missing HTTPS CORS origins, missing metrics secret, or missing managed upload/scanner configuration. API containers use `eiep_runtime` and a distinct managed identity whose Blob Data Contributor scope is limited to the private `staged` container. Worker containers use `eiep_job_worker`, atomic leases, heartbeat renewal, a separate user-assigned worker identity, the private Blob account, and an explicitly supplied private `CLAMAV_HOST`; only this worker receives the account-level data role required to validate, quarantine, release, and generate artifacts. Web and portal containers receive neither data role. Keep the lease duration above normal per-message latency and below the operational stuck-work threshold.
+The first Azure handoff is subscription access, not another tenant-only device
+login. The deployment operator must be able to create the proposed resources and the
+scoped role assignments, or a separate Azure RBAC administrator must perform the
+role-assignment steps. Begin with `development`; production stays a distinct later
+authorization.
 
-`infrastructure/bicep/main.bicep` deploys nothing. The proposed environment is eligible for an authorized what-if only after ADR-0009, subscription, region/residency, capacity, budget, RPO/RTO, DNS/certificates, app registrations, role assignments, and action groups are approved. The proposal fails closed for production without a controlled authorization reference and for every environment unless API/web/portal/job-worker images use immutable `@sha256:` references.
+Record these non-secret inputs in the controlled deployment request before what-if:
+
+| Decision/input | Required record |
+|---|---|
+| Azure scope | Active subscription ID, billing/scope owner, resource group, environment, naming/deployment stamp |
+| Authority | IaC operator plus the administrator who can approve/create managed-identity role assignments |
+| Location and cost | Approved region/data residency, service tiers/capacity/quotas, budget and cost-alert owner |
+| Identity | Tenant, approved OIDC issuer/audience, PostgreSQL Entra administrator name/object ID/type, MFA/Conditional Access/B2B policy |
+| Initial application authority | Controlled authorization reference; distinct requester/approver authority UUIDs; exactly two approved internal administrator local/person/external-identity/assignment UUIDs, immutable Entra subjects, organization scope, and bounded effective dates |
+| Network/name | DNS names, certificate owner, exact HTTPS CORS origins, private-connectivity/DNS owner |
+| Images | Approved ACR, GitHub OIDC deployment principal, pull identity/role, four scanned/signed image digests |
+| Work processing | Private malware-scanner hostname, active least-privilege worker user and organization IDs |
+| Operations | RPO/RTO, backup/retention choices, action-group resource ID, alert configuration approval reference, evaluation frequency/windows, paging/ticket severities, timeout/restart/database-storage/storage-availability thresholds, on-call and incident/support owners |
+| Governance | Accepted/superseded ADRs, foundation/runtime authorization records, and—only later—production authorization |
+
+Never record a client secret, access token, database password, signing key, or metrics
+token in this table, a parameter file, GitHub issue, shell history, or chat. Generate
+and transfer protected values only through the approved secure deployment channel.
+
+Development, test, training, and production must use distinct identity registrations, workload identities, database/storage/queue/vault/telemetry resources, configuration, keys, data, and access. Training retains its visible banner and persistent isolation. Production rejects development authentication, memory persistence, plaintext ingress, static database authentication, missing runtime DB role, missing HTTPS CORS origins, missing metrics secret, missing managed upload/scanner configuration, or a non-HTTPS browser API origin. No environment starts application runtime until the action-group resource ID has the Azure Monitor action-group type, a controlled alert-configuration reference is present, and approved alert windows are at least as long as the evaluation frequency. API containers use `eiep_runtime` and a distinct managed identity whose Blob Data Contributor scope is limited to the private `staged` container. Worker containers use `eiep_job_worker`, atomic leases, heartbeat renewal, a separate user-assigned worker identity, the private Blob account, and an explicitly supplied private `CLAMAV_HOST`; only this worker receives the account-level data role required to validate, quarantine, release, and generate artifacts. The template constructs separate passwordless URLs from those deployed identities and both clients obtain short-lived Entra PostgreSQL tokens dynamically while enforcing TLS certificate verification. Only the API receives Key Vault Secrets User at the exact generated metrics-secret scope; worker, web, and portal receive no vault role. Web and portal also receive no Blob data role. Keep the lease duration above normal per-message latency and below the operational stuck-work threshold.
+
+ADR-0006 uses the PostgreSQL transactional outbox/inbox and leased worker for the MVP.
+The repository retains a secure Service Bus blueprint, but the proposed environment
+does not instantiate a namespace, queues, private endpoint, DNS zone, credentials, or
+runtime configuration. Adding that boundary requires a separately approved external
+integration or scale decision and its own adapter/identity/contract evidence.
+
+`infrastructure/bicep/main.bicep` deploys nothing. The proposed environment is eligible for an authorized what-if only after ADR-0009, subscription, region/residency, capacity, budget, RPO/RTO, DNS/certificates, app registrations, role assignments, and action groups are approved. The proposal fails closed for production without a controlled authorization reference and for every environment unless API/web/portal/job-worker images use immutable `@sha256:` references. Runtime remains closed without both the migration/bootstrap authorization record and the separately controlled alert configuration/action route; alert thresholds, windows, evaluation frequency, and severities are required inputs and have no scaffold defaults.
+
+### One-time application identity bootstrap
+
+The database-principal bootstrap maps workload identities to PostgreSQL roles; it does
+not create the first human application authorities. Before any project, audit, seeded
+assignment, delegation, or other application identity state exists, an authorized
+operator must run the separate one-time application bootstrap from the reviewed API
+image. It creates exactly two active internal administrators with only identity and
+access administration qualifications and permissions. It grants no project,
+document, estimating, commercial, quality, release, or business-approval authority.
+
+Inject `APPLICATION_IDENTITY_BOOTSTRAP_JSON` through the approved protected one-off
+job channel. The JSON contract requires `authorizationReference`, distinct
+`requesterAuthorityId` and `approverAuthorityId`,
+`businessScopeOrganizationId`, the exact HTTPS `issuer`, UTC `authorizedAt`,
+`effectiveFrom`, future `effectiveTo`, and exactly two `administrators`. Each
+administrator requires distinct UUID values for `userAccountId`, `personId`,
+`externalIdentityId`, and `accessAssignmentId`, plus `displayName` and the immutable
+Entra `subject`. Requester and approver UUIDs identify the external controlled
+authorization authorities; they are deliberately distinct from the new local
+accounts.
+
+Run `pnpm run database:bootstrap-application-identities` with
+`APPLICATION_IDENTITY_BOOTSTRAP_AUTHORIZED=true`, `EIEP_ENV`, `DATABASE_URL`,
+`DATABASE_RUNTIME_ROLE=eiep_runtime`, `DATABASE_AUTH_MODE`, `OIDC_ISSUER`, and—for
+managed identity—`AZURE_CLIENT_ID`. Production refuses connection-string
+authentication. The issuer in the protected input must exactly match `OIDC_ISSUER`.
+The command emits only status, administrator count, authorization-reference SHA-256,
+and expiration. An exact retry verifies the complete expected identity/access/audit
+boundary without adding records; any partial, previously used, seeded, delegated,
+audited, or conflicting state fails without mutation. Preserve the sanitized result
+as deployment evidence, then remove the protected JSON and one-off job definition.
 
 Deployment sequence after those approvals:
 
 1. Confirm release/change window, migration and rollback plans, communications, on-call owner, backup currency, and authorization record.
-2. Run and review cloud what-if; verify no public data-service path, password database auth, shared storage key, or unapproved resource/region appears.
-3. Validate Key Vault references and managed identities without displaying secret values.
-4. Capture a coordinated pre-change database/object/configuration/audit/package recovery point.
-5. Run the checksum migration runner using the migrator identity; never use the API runtime identity for DDL.
-6. Deploy the already-reviewed image digests, smoke test, observe agreed signals, and either close or execute the rehearsed rollback.
+2. Build once from the reviewed revision, scan/sign and push all four images, and record their ACR digests plus build evidence.
+3. Run and review a foundation cloud what-if with `runtimeAuthorized=false`; verify no public data-service path, password database auth, shared storage key, application container, or unapproved resource/region appears.
+4. Deploy that foundation and validate private connectivity, the generated metrics secret/API-only role, PostgreSQL Entra administrator, storage roles, and managed identities without displaying protected values.
+5. For an existing environment, capture a coordinated pre-change database/object/configuration/audit/package recovery point.
+6. Run the checksum migration runner using the approved Entra administrator/migrator identity; never use the API runtime identity for DDL or retain an access token.
+7. From the `postgres` administration database, run `pnpm run database:bootstrap-azure` with the exact API/worker identity names and object IDs emitted by the reviewed deployment. Verify each Entra mapping and its distinct `eiep_runtime`/`eiep_job_worker` membership.
+8. Using the API managed identity and the protected independently approved input, run the one-time application identity bootstrap. Verify its sanitized result, then prove both initial administrators can resolve only in the approved organization and remove the protected one-off input/job.
+9. Run and approve the runtime what-if, confirm ACR pull authority and the same immutable image digests, supply the approved action-group ID and every measured alert parameter, then set `runtimeAuthorized=true` with the controlled migration/bootstrap and alert-configuration evidence references. Smoke test, inject each safe alert signal, confirm fire/route/acknowledge/resolve evidence, and either close or execute the rehearsed rollback.
 
 ## Smoke checks
 
 - HTTPS health responds with the expected environment/training boundary and still reports `productionReady: false` until all blockers are closed.
+- API `/livez` proves only that the process can answer; `/readyz` fails closed until
+  PostgreSQL and managed staging are reachable. Web and portal `/healthz` answer, and
+  `/runtime-config.js` exposes only the reviewed HTTPS API origin with `no-store`.
 - OIDC issuer/audience/MFA and a current local subject map correctly; disabled/unassigned/cross-project/direct-object cases fail closed.
-- Runtime DB identity is `eiep_runtime`; schema mutation is denied; expected migration checksum/revision is present.
+- Runtime DB identity is the expected API managed identity with membership in `eiep_runtime`; worker identity is distinct with membership in `eiep_job_worker`; static passwords/TLS overrides and schema mutation are denied; expected migration checksum/revision is present.
 - An authenticated multipart upload persists exact bytes once under an opaque server key in the staged boundary; retry is idempotent, changed bytes conflict, and an unauthorized request writes nothing. The safe test object then moves staged -> scanned/validated -> independently released -> newly authorized download; quarantine and spoof/malware cases deny.
 - Project activation ignores client-supplied readiness claims and recalculates customer participation, effective named authorities, released governing references, active configuration, boundaries/turnover requirements, and open exceptions before transition.
-- All eleven controlled MVP report snapshots enforce generation/download authorization, exact source identifiers/versions/states/hashes, redaction, print warning, and immutable revisions; the live dashboard recalculates from authoritative project records.
+- All eleven controlled MVP report snapshots enforce generation/download authorization, exact source identifiers/versions/states/hashes, redaction, print warning, and immutable revisions; the live dashboard recalculates from authoritative project records. The command center separately proves per-module read filtering, exact-revision schedule lineage, authorized/owned work filtering, audit-read gating, and authoritative drill-through without persisting a second workflow state.
 - The Azure Blob adapter resolves through the workload identity, asserts every stage
   container is private, preserves opaque keys/hash/ETag across interrupted release or
   quarantine moves, and never returns a public object URL.
@@ -64,14 +157,16 @@ Monitor availability, latency, status classes, saturation, DB/storage/queue heal
 
 The API exposes low-cardinality OpenMetrics counters, in-flight gauge, and duration histogram at `/metrics`. Supply `x-eiep-metrics-token` from protected scraper configuration; never place it in dashboards, logs, code, or client bundles. Rotate it after suspected exposure.
 
-Alert thresholds and destinations are intentionally not claimed as approved. Before pilot, owners must set measured availability/error/latency/saturation targets and action routes. At minimum page on sustained unavailability, database/storage/queue unreachability, failed restore/backup, integrity failure, malware escape, authorization anomaly, migration failure, and growing dead-letter backlog; ticket sustained latency or stuck-review/job/business-integrity conditions.
+The proposed Bicep creates twelve enabled Azure Monitor metric rules after runtime authorization: missing replicas and excessive restart counts for API, web, portal, and worker; API resiliency timeouts; PostgreSQL `is_db_alive` and storage-percent conditions; and storage-account availability. Every rule uses platform metric validation, auto-resolution, and the one supplied action group. The repository supplies no default thresholds, frequency, windows, or paging/ticket severities, and refuses to start runtime if the action-group type/reference or window ordering is invalid.
+
+These platform rules are a baseline, not complete alert acceptance. Before pilot, owners must set measured availability/error/latency/saturation targets and action routes, add approved domain-signal collection for backup/restore, integrity, malware, authorization anomalies, migration, dead-letter/job age, and governed-record conditions, and demonstrate every action route. At minimum page on sustained unavailability, database/storage unreachability, failed restore/backup, integrity failure, malware escape, authorization anomaly, migration failure, and growing dead-letter backlog; ticket sustained latency or stuck-review/job/business-integrity conditions.
 
 ## Backup and restore
 
 The local acceptance suite creates an AES-256-GCM authenticated bundle containing typed repository state and exact object bytes, then restores into a clean store and verifies relationships, audit hashes, permissions, dates, storage keys, and bytes. It also fails closed for wrong keys and tampering:
 
 ```powershell
-pnpm exec tsx --test tests/acceptance/operations.backup.test.ts tests/acceptance/operations.restore.test.ts
+pnpm exec tsx --conditions=development --test tests/acceptance/operations.backup.test.ts tests/acceptance/operations.restore.test.ts
 ```
 
 This is review evidence, not the production backup mechanism. Production needs monitored PostgreSQL backups, object/version retention, protected configuration/key recovery, immutable audit/package coverage, cross-failure-domain copies where approved, and a coordinated restore. A database-only restore is insufficient.

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EIEP Controlled Document Studio</title>
+    <link rel="stylesheet" href="/tools/document-preview/preview.css" />
+  </head>
+  <body>
+    <header class="studio-bar">
+      <div class="studio-brand"><span aria-hidden="true">E</span><div><strong>EIEP document studio</strong><small>Development-only · live repository source</small></div></div>
+      <label>Visible document<select id="document-select"></select></label>
+      <div class="live-state" role="status"><span aria-hidden="true"></span><strong>Live</strong><small id="refresh-state">Loading source…</small></div>
+    </header>
+    <main>
+      <aside>
+        <p class="eyebrow">Controlled source</p>
+        <h2 id="source-name">Document</h2>
+        <p id="source-path"></p>
+        <dl><div><dt>Mode</dt><dd>Read-only preview</dd></div><div><dt>Refresh</dt><dd>Every 2 seconds</dd></div><div><dt>Truth</dt><dd>Current local file</dd></div></dl>
+        <p class="boundary">This viewer renders the repository document being edited. It does not approve, release, or alter the controlled source.</p>
+      </aside>
+      <article id="document" class="paper" aria-live="polite"></article>
+    </main>
+    <script type="module" src="/tools/document-preview/preview.js"></script>
+  </body>
+</html>

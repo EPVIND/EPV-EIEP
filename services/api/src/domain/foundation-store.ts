@@ -9,6 +9,43 @@ import type {
   ImportedRecord,
   ExternalIdentifierRecord,
   ExportJobRecord,
+  EstimateHandoffRecord,
+  EstimateAuthorityPolicyRevisionRecord,
+  EstimateAssemblyRevisionRecord,
+  EstimateLineRecord,
+  EstimateProductivityFactorRevisionRecord,
+  EstimateProposalRecord,
+  EstimateQuoteRecord,
+  EstimateRecord,
+  EstimateRevisionRecord,
+  ProcurementBidPackageRecord,
+  ProcurementCommitmentRecord,
+  ProcurementRequisitionRecord,
+  ProjectChangeRequestRecord,
+  ProjectControlBaselineRecord,
+  ProjectControlsAuthorityPolicyRevisionRecord,
+  ProjectCostEntryRecord,
+  ProjectProgressClaimRecord,
+  ScheduleImportRecord,
+  ScheduleProgramRecord,
+  ScheduleRevisionRecord,
+  WeldingProcedureRevisionRecord,
+  WelderQualificationRecord,
+  WeldJointRecord,
+  NdeRequestRecord,
+  NdeReportRevisionRecord,
+  PwhtCycleRecord,
+  TestPackageRecord,
+  FabricationAssemblyRevisionRecord,
+  FabricationTravelerRecord,
+  FabricationExecutionEventRecord,
+  CncMachineProfileRevisionRecord,
+  CncProgramRevisionRecord,
+  CncExecutionRecord,
+  EngineeringRegisterItemRevisionRecord,
+  DocumentCollaborationImportRecord,
+  CollaborationItemRecord,
+  CollaborationReconciliationRecord,
   IntegrationMessageRecord,
   IdentityAccountRecord,
   ExternalIdentityRecord,
@@ -50,6 +87,14 @@ import type {
 } from "@eiep/shared-types";
 
 export interface FoundationTransaction {
+  applicationIdentityBootstrapState(): {
+    readonly identityAccounts: readonly IdentityAccountRecord[];
+    readonly externalIdentities: readonly ExternalIdentityRecord[];
+    readonly seededAssignments: readonly RoleAssignment[];
+    readonly managedAccessAssignments: readonly ManagedAccessAssignmentRecord[];
+    readonly delegations: readonly DelegationRecord[];
+    readonly audits: readonly AuditEvent[];
+  };
   identityAccountById(id: string): IdentityAccountRecord | null;
   insertIdentityAccount(account: IdentityAccountRecord): void;
   updateIdentityAccount(account: IdentityAccountRecord, expectedVersion: number): void;
@@ -66,6 +111,197 @@ export interface FoundationTransaction {
   delegationsForUser(userId: string): readonly DelegationRecord[];
   insertDelegation(delegation: DelegationRecord): void;
   updateDelegation(delegation: DelegationRecord, expectedVersion: number): void;
+  estimateAssemblyById(id: string): EstimateAssemblyRevisionRecord | null;
+  estimateAssemblyByRevision(organizationId: string, code: string, revision: string): EstimateAssemblyRevisionRecord | null;
+  estimateAssemblies(organizationId: string, code?: string): readonly EstimateAssemblyRevisionRecord[];
+  insertEstimateAssembly(assembly: EstimateAssemblyRevisionRecord): void;
+  updateEstimateAssembly(assembly: EstimateAssemblyRevisionRecord, expectedVersion: number): void;
+  estimateProductivityFactorById(id: string): EstimateProductivityFactorRevisionRecord | null;
+  estimateProductivityFactorByRevision(
+    organizationId: string, code: string, revision: string,
+  ): EstimateProductivityFactorRevisionRecord | null;
+  estimateProductivityFactors(organizationId: string, code?: string): readonly EstimateProductivityFactorRevisionRecord[];
+  insertEstimateProductivityFactor(factor: EstimateProductivityFactorRevisionRecord): void;
+  updateEstimateProductivityFactor(factor: EstimateProductivityFactorRevisionRecord, expectedVersion: number): void;
+  estimateAuthorityPolicyById(id: string): EstimateAuthorityPolicyRevisionRecord | null;
+  estimateAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): EstimateAuthorityPolicyRevisionRecord | null;
+  estimateAuthorityPolicies(organizationId: string, currency?: string): readonly EstimateAuthorityPolicyRevisionRecord[];
+  insertEstimateAuthorityPolicy(policy: EstimateAuthorityPolicyRevisionRecord): void;
+  updateEstimateAuthorityPolicy(policy: EstimateAuthorityPolicyRevisionRecord, expectedVersion: number): void;
+  estimateById(id: string): EstimateRecord | null;
+  estimateByNumber(organizationId: string, number: string): EstimateRecord | null;
+  estimatesForOrganization(organizationId: string): readonly EstimateRecord[];
+  insertEstimate(estimate: EstimateRecord): void;
+  updateEstimate(estimate: EstimateRecord, expectedVersion: number): void;
+  estimateRevisionById(id: string): EstimateRevisionRecord | null;
+  estimateRevisionByName(estimateId: string, revision: string): EstimateRevisionRecord | null;
+  estimateRevisions(estimateId: string): readonly EstimateRevisionRecord[];
+  insertEstimateRevision(revision: EstimateRevisionRecord): void;
+  updateEstimateRevision(revision: EstimateRevisionRecord, expectedVersion: number): void;
+  estimateLineById(id: string): EstimateLineRecord | null;
+  estimateLineByKey(revisionId: string, lineKey: string): EstimateLineRecord | null;
+  estimateLines(revisionId: string): readonly EstimateLineRecord[];
+  insertEstimateLine(line: EstimateLineRecord): void;
+  updateEstimateLine(line: EstimateLineRecord, expectedVersion: number): void;
+  estimateQuoteById(id: string): EstimateQuoteRecord | null;
+  estimateQuoteByNumber(revisionId: string, vendorOrganizationId: string, quoteNumber: string): EstimateQuoteRecord | null;
+  estimateQuotes(revisionId: string): readonly EstimateQuoteRecord[];
+  insertEstimateQuote(quote: EstimateQuoteRecord): void;
+  updateEstimateQuote(quote: EstimateQuoteRecord, expectedVersion: number): void;
+  estimateProposalById(id: string): EstimateProposalRecord | null;
+  estimateProposalByNumber(estimateId: string, proposalNumber: string): EstimateProposalRecord | null;
+  estimateProposals(estimateId: string): readonly EstimateProposalRecord[];
+  insertEstimateProposal(proposal: EstimateProposalRecord): void;
+  updateEstimateProposal(proposal: EstimateProposalRecord, expectedVersion: number): void;
+  estimateHandoffById(id: string): EstimateHandoffRecord | null;
+  estimateHandoffByProposal(proposalId: string): EstimateHandoffRecord | null;
+  estimateHandoffs(estimateId: string): readonly EstimateHandoffRecord[];
+  insertEstimateHandoff(handoff: EstimateHandoffRecord): void;
+  projectControlsAuthorityPolicyById(id: string): ProjectControlsAuthorityPolicyRevisionRecord | null;
+  projectControlsAuthorityPolicyByRevision(
+    organizationId: string, currency: string, revision: string,
+  ): ProjectControlsAuthorityPolicyRevisionRecord | null;
+  projectControlsAuthorityPolicies(
+    organizationId: string, currency?: string,
+  ): readonly ProjectControlsAuthorityPolicyRevisionRecord[];
+  insertProjectControlsAuthorityPolicy(policy: ProjectControlsAuthorityPolicyRevisionRecord): void;
+  updateProjectControlsAuthorityPolicy(policy: ProjectControlsAuthorityPolicyRevisionRecord, expectedVersion: number): void;
+  projectControlBaselineById(id: string): ProjectControlBaselineRecord | null;
+  projectControlBaselineByRevision(projectId: string, number: string, revision: string): ProjectControlBaselineRecord | null;
+  projectControlBaselines(projectId: string): readonly ProjectControlBaselineRecord[];
+  insertProjectControlBaseline(baseline: ProjectControlBaselineRecord): void;
+  updateProjectControlBaseline(baseline: ProjectControlBaselineRecord, expectedVersion: number): void;
+  projectChangeRequestById(id: string): ProjectChangeRequestRecord | null;
+  projectChangeRequestByNumber(projectId: string, number: string): ProjectChangeRequestRecord | null;
+  projectChangeRequests(projectId: string): readonly ProjectChangeRequestRecord[];
+  insertProjectChangeRequest(change: ProjectChangeRequestRecord): void;
+  updateProjectChangeRequest(change: ProjectChangeRequestRecord, expectedVersion: number): void;
+  projectCostEntryById(id: string): ProjectCostEntryRecord | null;
+  projectCostEntries(projectId: string): readonly ProjectCostEntryRecord[];
+  insertProjectCostEntry(entry: ProjectCostEntryRecord): void;
+  updateProjectCostEntry(entry: ProjectCostEntryRecord, expectedVersion: number): void;
+  projectProgressClaimById(id: string): ProjectProgressClaimRecord | null;
+  projectProgressClaims(projectId: string): readonly ProjectProgressClaimRecord[];
+  insertProjectProgressClaim(claim: ProjectProgressClaimRecord): void;
+  updateProjectProgressClaim(claim: ProjectProgressClaimRecord, expectedVersion: number): void;
+  procurementRequisitionById(id: string): ProcurementRequisitionRecord | null;
+  procurementRequisitionByNumber(projectId: string, number: string): ProcurementRequisitionRecord | null;
+  procurementRequisitions(projectId: string): readonly ProcurementRequisitionRecord[];
+  insertProcurementRequisition(requisition: ProcurementRequisitionRecord): void;
+  updateProcurementRequisition(requisition: ProcurementRequisitionRecord, expectedVersion: number): void;
+  procurementBidPackageById(id: string): ProcurementBidPackageRecord | null;
+  procurementBidPackageByNumber(projectId: string, number: string): ProcurementBidPackageRecord | null;
+  procurementBidPackages(projectId: string): readonly ProcurementBidPackageRecord[];
+  insertProcurementBidPackage(bidPackage: ProcurementBidPackageRecord): void;
+  updateProcurementBidPackage(bidPackage: ProcurementBidPackageRecord, expectedVersion: number): void;
+  procurementCommitmentById(id: string): ProcurementCommitmentRecord | null;
+  procurementCommitments(projectId: string): readonly ProcurementCommitmentRecord[];
+  insertProcurementCommitment(commitment: ProcurementCommitmentRecord): void;
+  updateProcurementCommitment(commitment: ProcurementCommitmentRecord, expectedVersion: number): void;
+  scheduleProgramById(id: string): ScheduleProgramRecord | null;
+  scheduleProgramByNumber(projectId: string, number: string): ScheduleProgramRecord | null;
+  schedulePrograms(projectId: string): readonly ScheduleProgramRecord[];
+  insertScheduleProgram(schedule: ScheduleProgramRecord): void;
+  updateScheduleProgram(schedule: ScheduleProgramRecord, expectedVersion: number): void;
+  scheduleRevisionById(id: string): ScheduleRevisionRecord | null;
+  scheduleRevisionByName(scheduleId: string, revision: string): ScheduleRevisionRecord | null;
+  scheduleRevisions(scheduleId: string): readonly ScheduleRevisionRecord[];
+  insertScheduleRevision(revision: ScheduleRevisionRecord): void;
+  updateScheduleRevision(revision: ScheduleRevisionRecord, expectedVersion: number): void;
+  scheduleImportById(id: string): ScheduleImportRecord | null;
+  scheduleImportByKey(projectId: string, idempotencyKey: string): ScheduleImportRecord | null;
+  scheduleImports(projectId: string): readonly ScheduleImportRecord[];
+  insertScheduleImport(scheduleImport: ScheduleImportRecord): void;
+  updateScheduleImport(scheduleImport: ScheduleImportRecord, expectedVersion: number): void;
+  weldingProcedureById(id: string): WeldingProcedureRevisionRecord | null;
+  weldingProcedureByRevision(projectId: string, number: string, revision: string): WeldingProcedureRevisionRecord | null;
+  weldingProcedures(projectId: string): readonly WeldingProcedureRevisionRecord[];
+  insertWeldingProcedure(procedure: WeldingProcedureRevisionRecord): void;
+  updateWeldingProcedure(procedure: WeldingProcedureRevisionRecord, expectedVersion: number): void;
+  welderQualificationById(id: string): WelderQualificationRecord | null;
+  welderQualificationByNumber(projectId: string, qualificationNumber: string): WelderQualificationRecord | null;
+  welderQualifications(projectId: string): readonly WelderQualificationRecord[];
+  insertWelderQualification(qualification: WelderQualificationRecord): void;
+  updateWelderQualification(qualification: WelderQualificationRecord, expectedVersion: number): void;
+  weldById(id: string): WeldJointRecord | null;
+  weldByNumber(projectId: string, number: string): WeldJointRecord | null;
+  welds(projectId: string): readonly WeldJointRecord[];
+  insertWeld(weld: WeldJointRecord): void;
+  updateWeld(weld: WeldJointRecord, expectedVersion: number): void;
+  ndeRequestById(id: string): NdeRequestRecord | null;
+  ndeRequestByNumber(projectId: string, number: string): NdeRequestRecord | null;
+  ndeRequests(projectId: string): readonly NdeRequestRecord[];
+  insertNdeRequest(request: NdeRequestRecord): void;
+  updateNdeRequest(request: NdeRequestRecord, expectedVersion: number): void;
+  ndeReportById(id: string): NdeReportRevisionRecord | null;
+  ndeReports(requestId: string): readonly NdeReportRevisionRecord[];
+  insertNdeReport(report: NdeReportRevisionRecord): void;
+  updateNdeReport(report: NdeReportRevisionRecord, expectedVersion: number): void;
+  pwhtCycleById(id: string): PwhtCycleRecord | null;
+  pwhtCycleByNumber(projectId: string, number: string): PwhtCycleRecord | null;
+  pwhtCycles(projectId: string): readonly PwhtCycleRecord[];
+  insertPwhtCycle(cycle: PwhtCycleRecord): void;
+  updatePwhtCycle(cycle: PwhtCycleRecord, expectedVersion: number): void;
+  testPackageById(id: string): TestPackageRecord | null;
+  testPackageByNumber(projectId: string, number: string): TestPackageRecord | null;
+  testPackages(projectId: string): readonly TestPackageRecord[];
+  insertTestPackage(testPackage: TestPackageRecord): void;
+  updateTestPackage(testPackage: TestPackageRecord, expectedVersion: number): void;
+  fabricationAssemblyById(id: string): FabricationAssemblyRevisionRecord | null;
+  fabricationAssemblyByRevision(projectId: string, number: string, revision: string): FabricationAssemblyRevisionRecord | null;
+  fabricationAssemblies(projectId: string): readonly FabricationAssemblyRevisionRecord[];
+  insertFabricationAssembly(assembly: FabricationAssemblyRevisionRecord): void;
+  updateFabricationAssembly(assembly: FabricationAssemblyRevisionRecord, expectedVersion: number): void;
+  fabricationTravelerById(id: string): FabricationTravelerRecord | null;
+  fabricationTravelerForAssembly(assemblyRevisionId: string): FabricationTravelerRecord | null;
+  fabricationTravelers(projectId: string): readonly FabricationTravelerRecord[];
+  insertFabricationTraveler(traveler: FabricationTravelerRecord): void;
+  updateFabricationTraveler(traveler: FabricationTravelerRecord, expectedVersion: number): void;
+  fabricationExecutionEventById(id: string): FabricationExecutionEventRecord | null;
+  fabricationExecutionEvents(travelerId: string): readonly FabricationExecutionEventRecord[];
+  insertFabricationExecutionEvent(event: FabricationExecutionEventRecord): void;
+  cncMachineProfileById(id: string): CncMachineProfileRevisionRecord | null;
+  cncMachineProfileByRevision(projectId: string, workCenterCode: string, revision: string): CncMachineProfileRevisionRecord | null;
+  cncMachineProfiles(projectId: string): readonly CncMachineProfileRevisionRecord[];
+  insertCncMachineProfile(profile: CncMachineProfileRevisionRecord): void;
+  updateCncMachineProfile(profile: CncMachineProfileRevisionRecord, expectedVersion: number): void;
+  cncProgramById(id: string): CncProgramRevisionRecord | null;
+  cncProgramByRevision(projectId: string, number: string, revision: string): CncProgramRevisionRecord | null;
+  cncPrograms(projectId: string): readonly CncProgramRevisionRecord[];
+  insertCncProgram(program: CncProgramRevisionRecord): void;
+  updateCncProgram(program: CncProgramRevisionRecord, expectedVersion: number): void;
+  cncExecutionById(id: string): CncExecutionRecord | null;
+  cncExecutionForProgram(programRevisionId: string): CncExecutionRecord | null;
+  cncExecutions(projectId: string): readonly CncExecutionRecord[];
+  insertCncExecution(execution: CncExecutionRecord): void;
+  updateCncExecution(execution: CncExecutionRecord, expectedVersion: number): void;
+  engineeringRegisterItemById(id: string): EngineeringRegisterItemRevisionRecord | null;
+  engineeringRegisterItemByRevision(projectId: string, registerType: string, tag: string, revision: string): EngineeringRegisterItemRevisionRecord | null;
+  engineeringRegisterItems(projectId: string): readonly EngineeringRegisterItemRevisionRecord[];
+  insertEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord): void;
+  updateEngineeringRegisterItem(item: EngineeringRegisterItemRevisionRecord, expectedVersion: number): void;
+  collaborationImportById(id: string): DocumentCollaborationImportRecord | null;
+  collaborationImportByIdempotency(projectId: string, idempotencyKey: string): DocumentCollaborationImportRecord | null;
+  collaborationImportBySource(
+    projectId: string, providerProjectId: string, providerSessionId: string, sourceVersion: string,
+  ): DocumentCollaborationImportRecord | null;
+  collaborationImports(projectId: string): readonly DocumentCollaborationImportRecord[];
+  insertCollaborationImport(collaborationImport: DocumentCollaborationImportRecord): void;
+  updateCollaborationImport(collaborationImport: DocumentCollaborationImportRecord, expectedVersion: number): void;
+  collaborationItemById(id: string): CollaborationItemRecord | null;
+  collaborationItemByExternal(
+    projectId: string, providerProjectId: string, providerSessionId: string, providerItemId: string,
+  ): CollaborationItemRecord | null;
+  collaborationItems(projectId: string): readonly CollaborationItemRecord[];
+  collaborationItemsForImport(importId: string): readonly CollaborationItemRecord[];
+  insertCollaborationItem(item: CollaborationItemRecord): void;
+  updateCollaborationItem(item: CollaborationItemRecord, expectedVersion: number): void;
+  collaborationReconciliationById(id: string): CollaborationReconciliationRecord | null;
+  collaborationReconciliations(projectId: string, importId?: string): readonly CollaborationReconciliationRecord[];
+  insertCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord): void;
+  updateCollaborationReconciliation(reconciliation: CollaborationReconciliationRecord, expectedVersion: number): void;
   projectById(id: string): ProjectRecord | null;
   projectByNumber(businessScopeOrganizationId: string, number: string): ProjectRecord | null;
   projects(): readonly ProjectRecord[];
@@ -174,6 +410,7 @@ export interface FoundationTransaction {
   insertInspectionPlan(plan: InspectionPlanRevisionRecord): void;
   updateInspectionPlan(plan: InspectionPlanRevisionRecord, expectedVersion: number): void;
   inspectionById(id: string): InspectionRecord | null;
+  inspectionsForProject(projectId: string): readonly InspectionRecord[];
   insertInspection(inspection: InspectionRecord): void;
   updateInspection(inspection: InspectionRecord, expectedVersion: number): void;
   pmiById(id: string): PmiRecord | null;

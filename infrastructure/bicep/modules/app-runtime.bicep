@@ -5,6 +5,7 @@ param location string
 param tags object
 param managedEnvironmentName string
 param infrastructureSubnetId string
+param logAnalyticsWorkspaceId string
 param workloadIdentityId string
 param apiIdentityId string
 param apiIdentityClientId string
@@ -17,7 +18,8 @@ param apiImage string
 param webImage string
 param portalImage string
 param jobWorkerImage string
-param databaseSecretUri string
+param apiDatabaseUrl string
+param jobWorkerDatabaseUrl string
 param metricsSecretUri string
 param oidcIssuer string
 param oidcAudience string
@@ -38,6 +40,21 @@ resource managedEnvironment 'Microsoft.App/managedEnvironments@2026-01-01' = {
       internal: false
     }
     zoneRedundant: true
+  }
+}
+
+resource managedEnvironmentDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'eiep-${environmentName}-logs'
+  scope: managedEnvironment
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logAnalyticsDestinationType: 'Dedicated'
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
   }
 }
 
@@ -70,11 +87,6 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
       secrets: [
         {
           identity: apiIdentityId
-          keyVaultUrl: databaseSecretUri
-          name: 'database-url'
-        }
-        {
-          identity: apiIdentityId
           keyVaultUrl: metricsSecretUri
           name: 'metrics-token'
         }
@@ -87,9 +99,11 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
           image: apiImage
           env: [
             { name: 'EIEP_ENV', value: environmentName }
+            { name: 'EIEP_CONFIG_ROOT', value: '/app' }
             { name: 'HOST', value: '0.0.0.0' }
             { name: 'PORT', value: '3100' }
-            { name: 'DATABASE_URL', secretRef: 'database-url' }
+            { name: 'DATABASE_URL', value: apiDatabaseUrl }
+            { name: 'DATABASE_AUTH_MODE', value: 'azure-managed-identity' }
             { name: 'DATABASE_RUNTIME_ROLE', value: 'eiep_runtime' }
             { name: 'METRICS_TOKEN', secretRef: 'metrics-token' }
             { name: 'OIDC_ISSUER', value: oidcIssuer }
@@ -101,13 +115,13 @@ resource api 'Microsoft.App/containerApps@2026-01-01' = {
           probes: [
             {
               type: 'Liveness'
-              httpGet: { path: '/health', port: 3100, scheme: 'HTTP' }
+              httpGet: { path: '/livez', port: 3100, scheme: 'HTTP' }
               initialDelaySeconds: 15
               periodSeconds: 30
             }
             {
               type: 'Readiness'
-              httpGet: { path: '/health', port: 3100, scheme: 'HTTP' }
+              httpGet: { path: '/readyz', port: 3100, scheme: 'HTTP' }
               initialDelaySeconds: 5
               periodSeconds: 10
             }
@@ -158,7 +172,11 @@ resource web 'Microsoft.App/containerApps@2026-01-01' = {
         {
           name: 'web'
           image: webImage
-          probes: [{ type: 'Liveness', httpGet: { path: '/', port: 8080, scheme: 'HTTP' } }]
+          env: [
+            { name: 'EIEP_ENV', value: environmentName }
+            { name: 'API_BASE_URL', value: 'https://${api.properties.configuration.ingress.fqdn}' }
+          ]
+          probes: [{ type: 'Liveness', httpGet: { path: '/healthz', port: 8080, scheme: 'HTTP' } }]
           resources: { cpu: json('0.5'), memory: '1Gi' }
         }
       ]
@@ -189,7 +207,11 @@ resource portal 'Microsoft.App/containerApps@2026-01-01' = {
         {
           name: 'portal'
           image: portalImage
-          probes: [{ type: 'Liveness', httpGet: { path: '/', port: 8080, scheme: 'HTTP' } }]
+          env: [
+            { name: 'EIEP_ENV', value: environmentName }
+            { name: 'API_BASE_URL', value: 'https://${api.properties.configuration.ingress.fqdn}' }
+          ]
+          probes: [{ type: 'Liveness', httpGet: { path: '/healthz', port: 8080, scheme: 'HTTP' } }]
           resources: { cpu: json('0.5'), memory: '1Gi' }
         }
       ]
@@ -213,7 +235,6 @@ resource jobWorker 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       activeRevisionsMode: 'Single'
       registries: [{ identity: jobWorkerIdentityId, server: registryServer }]
-      secrets: [{ identity: jobWorkerIdentityId, keyVaultUrl: databaseSecretUri, name: 'database-url' }]
     }
     template: {
       containers: [
@@ -222,7 +243,8 @@ resource jobWorker 'Microsoft.App/containerApps@2026-01-01' = {
           image: jobWorkerImage
           env: [
             { name: 'EIEP_ENV', value: environmentName }
-            { name: 'DATABASE_URL', secretRef: 'database-url' }
+            { name: 'DATABASE_URL', value: jobWorkerDatabaseUrl }
+            { name: 'DATABASE_AUTH_MODE', value: 'azure-managed-identity' }
             { name: 'DATABASE_RUNTIME_ROLE', value: 'eiep_job_worker' }
             { name: 'AZURE_STORAGE_ACCOUNT_NAME', value: storageAccountName }
             { name: 'AZURE_CLIENT_ID', value: jobWorkerIdentityClientId }
@@ -246,3 +268,7 @@ resource jobWorker 'Microsoft.App/containerApps@2026-01-01' = {
 output apiFqdn string = api.properties.configuration.ingress.fqdn
 output webFqdn string = web.properties.configuration.ingress.fqdn
 output portalFqdn string = portal.properties.configuration.ingress.fqdn
+output apiId string = api.id
+output webId string = web.id
+output portalId string = portal.id
+output jobWorkerId string = jobWorker.id

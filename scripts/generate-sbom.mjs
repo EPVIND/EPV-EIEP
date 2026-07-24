@@ -56,7 +56,7 @@ function visit(name, node) {
     const childReference = visit(childName, child);
     children.push(childReference);
   }
-  relationships.set(reference, [...new Set(children)].sort());
+  relationships.set(reference, [...new Set([...(relationships.get(reference) ?? []), ...children])].sort());
   return reference;
 }
 

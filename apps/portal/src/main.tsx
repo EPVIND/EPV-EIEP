@@ -4,6 +4,11 @@ import { EnvironmentBanner } from "@eiep/ui-components";
 import "./styles.css";
 
 interface HealthStatus { readonly environment: string; readonly training: boolean; }
+declare global {
+  interface Window {
+    readonly __EIEP_RUNTIME_CONFIG__?: { readonly apiBaseUrl?: string };
+  }
+}
 interface AssignedWork {
   readonly id: string;
   readonly projectId: string;
@@ -25,7 +30,12 @@ interface Submission {
 }
 
 function Portal() {
-  const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:3100";
+  const apiBase = window.__EIEP_RUNTIME_CONFIG__?.apiBaseUrl
+    ?? import.meta.env.VITE_API_BASE_URL
+    ?? "http://127.0.0.1:3100";
+  const apiCredentials: RequestCredentials = new URL(apiBase).origin === window.location.origin
+    ? "same-origin"
+    : "omit";
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [userId, setUserId] = useState(() => sessionStorage.getItem("eiep.portal.userId") ?? "");
@@ -38,7 +48,7 @@ function Portal() {
 
   const request = useCallback(async <T,>(path: string, init: RequestInit = {}): Promise<T> => {
     const response = await fetch(`${apiBase}${path}`, {
-      ...init, credentials: "omit", headers: {
+      ...init, credentials: apiCredentials, headers: {
         "content-type": "application/json", "x-eiep-user-id": userId,
         "x-eiep-organization-id": organizationId, "x-eiep-assurance": "mfa", ...(init.headers ?? {}),
       },
@@ -46,11 +56,11 @@ function Portal() {
     const body = await response.json().catch(() => ({})) as { error?: string; details?: readonly string[] };
     if (!response.ok) throw new Error(body.details?.join(", ") || body.error || `Request failed (${response.status}).`);
     return body as T;
-  }, [apiBase, organizationId, userId]);
+  }, [apiBase, apiCredentials, organizationId, userId]);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`${apiBase}/health`, { signal: controller.signal, credentials: "omit" })
+    fetch(`${apiBase}/health`, { signal: controller.signal, credentials: apiCredentials })
       .then(async (response) => {
         if (!response.ok) throw new Error();
         setHealth((await response.json()) as HealthStatus);
@@ -60,7 +70,7 @@ function Portal() {
         if (!(error instanceof DOMException && error.name === "AbortError")) setUnavailable(true);
       });
     return () => controller.abort();
-  }, [apiBase]);
+  }, [apiBase, apiCredentials]);
 
   async function loadAssignedWork(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();

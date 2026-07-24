@@ -68,7 +68,17 @@ Required: tenant/licensing review, MFA/step-up tests, guest invitation/removal,
 disabled-user/session revocation, direct-ID/search/export/file denial, service
 identity tests, and break-glass exercise.
 
+Implementation evidence now includes a separate one-time operator command for the
+otherwise circular first-account boundary. Before any application identity, access,
+delegation, or audit state exists, it requires an external authorization reference,
+two distinct authority UUIDs, and exactly two distinct time-bounded internal
+identity/access administrators. It records provision, independent activation,
+immutable subject linkage, grant, independent review, and completion audits; grants
+no project or business authority; verifies only an exact idempotent retry; and rejects
+partial/conflicting state without mutation. Local in-memory, OIDC-resolution, and
+PostgreSQL restart evidence passes. This does not accept this Proposed ADR or prove
+live Entra policy, subjects, invitation, MFA, review, or revocation behavior.
+
 ## Supersedes / superseded by
 
 None.
-

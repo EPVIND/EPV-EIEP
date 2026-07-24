@@ -716,6 +716,1411 @@ export interface DelegationRecord {
   readonly createdAt: Date;
 }
 
+export type EstimateState = "draft" | "under_review" | "approved" | "proposal_issued" | "awarded" | "closed";
+export type EstimateRevisionState = "draft" | "under_review" | "approved" | "rejected" | "superseded";
+
+export interface EstimateAssemblyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly code: string;
+  readonly revision: string;
+  readonly description: string;
+  readonly costCode: string;
+  readonly unitCode: string;
+  readonly baseLaborHoursPerUnit: string;
+  readonly laborRatePerHour: string;
+  readonly materialUnitCost: string;
+  readonly equipmentUnitCost: string;
+  readonly subcontractUnitCost: string;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface EstimateProductivityFactorRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly code: string;
+  readonly revision: string;
+  readonly name: string;
+  readonly multiplier: string;
+  readonly sourceReference: string;
+  readonly justification: string;
+  readonly discipline: string;
+  readonly conditionCode: string;
+  readonly effectiveFrom: Date;
+  readonly effectiveTo: Date | null;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface EstimateAuthorityPolicyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly currency: string;
+  readonly revision: string;
+  readonly standardEstimateApprovalLimit: string;
+  readonly standardQuoteSelectionLimit: string;
+  readonly standardProposalApprovalLimit: string;
+  readonly estimateAboveThresholdQualification: string;
+  readonly quoteAboveThresholdQualification: string;
+  readonly proposalAboveThresholdQualification: string;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface EstimateRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly number: string;
+  readonly name: string;
+  readonly customerOrganizationId: string;
+  readonly facilityId: string;
+  readonly opportunityReference: string | null;
+  readonly scopeStatement: string;
+  readonly dueAt: Date;
+  readonly originatingTimeZone: string;
+  readonly currency: string;
+  readonly basisReferences: readonly string[];
+  readonly ownerUserId: string;
+  readonly state: EstimateState;
+  readonly currentRevisionId: string;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateProductivityFactorSnapshot {
+  readonly factorRevisionId: string;
+  readonly multiplier: string;
+  readonly sourceReference: string;
+  readonly justification: string;
+  readonly approvedBy: string;
+  readonly approvedAt: Date;
+}
+
+export interface EstimateLineCalculation {
+  readonly version: "estimate-v1";
+  readonly productivityMultiplier: string;
+  readonly adjustedLaborHours: string;
+  readonly laborCost: string;
+  readonly materialCost: string;
+  readonly equipmentCost: string;
+  readonly subcontractCost: string;
+  readonly allowanceCost: string;
+  readonly otherCost: string;
+  readonly totalCost: string;
+}
+
+export interface EstimateLineRecord {
+  readonly id: string;
+  readonly revisionId: string;
+  readonly lineKey: string;
+  readonly parentLineKey: string | null;
+  readonly sortOrder: number;
+  readonly costCode: string;
+  readonly bidItemCode: string | null;
+  readonly alternateCode: string | null;
+  readonly wbsCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly assemblyRevisionId: string | null;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly baseLaborHoursPerUnit: string;
+  readonly laborRatePerHour: string;
+  readonly materialUnitCost: string;
+  readonly equipmentUnitCost: string;
+  readonly subcontractUnitCost: string;
+  readonly allowanceCost: string;
+  readonly otherCost: string;
+  readonly productivityFactors: readonly EstimateProductivityFactorSnapshot[];
+  readonly calculation: EstimateLineCalculation;
+  readonly state: "active" | "removed";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateRevisionTotals {
+  readonly version: "estimate-v1";
+  readonly currency: string;
+  readonly directCost: string;
+  readonly contingencyAmount: string;
+  readonly escalationAmount: string;
+  readonly markupAmount: string;
+  readonly taxAmount: string;
+  readonly finalPrice: string;
+}
+
+export interface EstimateRevisionRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly state: EstimateRevisionState;
+  readonly assumptions: readonly string[];
+  readonly exclusions: readonly string[];
+  readonly alternates: readonly string[];
+  readonly contingencyPercent: string;
+  readonly escalationPercent: string;
+  readonly markupPercent: string;
+  readonly taxPercent: string;
+  readonly totals: EstimateRevisionTotals;
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateQuoteLine {
+  readonly id: string;
+  readonly bidScopeLineKey: string;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly amount: string;
+}
+
+export interface EstimateQuoteRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly revisionId: string;
+  readonly vendorOrganizationId: string;
+  readonly quoteNumber: string;
+  readonly sourceFileId: string;
+  readonly sourceSha256: string;
+  readonly currency: string;
+  readonly validUntil: Date;
+  readonly inclusions: readonly string[];
+  readonly exclusions: readonly string[];
+  readonly qualifications: readonly string[];
+  readonly freightAmount: string;
+  readonly taxAmount: string;
+  readonly lines: readonly EstimateQuoteLine[];
+  readonly normalizedTotal: string;
+  readonly unresolvedScopeLineKeys: readonly string[];
+  readonly state: "received" | "normalized" | "selected" | "not_selected" | "rejected";
+  readonly selectedAt: Date | null;
+  readonly selectedBy: string | null;
+  readonly selectionReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateProposalRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly revisionId: string;
+  readonly proposalNumber: string;
+  readonly customerOrganizationId: string;
+  readonly totalPrice: string;
+  readonly currency: string;
+  readonly validUntil: Date;
+  readonly commercialTermsReferences: readonly string[];
+  readonly sourceCanonicalSha256: string;
+  readonly artifactManifestSha256: string;
+  readonly artifactSha256: string;
+  readonly artifactMediaType: "text/html";
+  readonly artifactFilename: string;
+  readonly artifactContent: string;
+  readonly state: "draft" | "approved" | "issued" | "superseded";
+  readonly approvedAt: Date | null;
+  readonly approvedBy: string | null;
+  readonly issuedAt: Date | null;
+  readonly issuedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface EstimateHandoffMapping {
+  readonly estimateLineKey: string;
+  readonly category: "direct_cost" | "contingency" | "escalation" | "markup" | "tax";
+  readonly costCode: string;
+  readonly wbsCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly amount: string;
+}
+
+export interface EstimateHandoffRecord {
+  readonly id: string;
+  readonly estimateId: string;
+  readonly proposalId: string;
+  readonly projectId: string;
+  readonly sourceRevisionId: string;
+  readonly sourceCanonicalSha256: string;
+  readonly mappings: readonly EstimateHandoffMapping[];
+  readonly mappedTotal: string;
+  readonly sourceTotal: string;
+  readonly reconciliationDifference: string;
+  readonly authorizationReference: string;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+
+export interface ProjectControlsAuthorityPolicyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly currency: string;
+  readonly revision: string;
+  readonly standardChangeApprovalLimit: string;
+  readonly standardProcurementAwardLimit: string;
+  readonly changeAboveThresholdQualification: string;
+  readonly procurementAboveThresholdQualification: string;
+  readonly state: "under_review" | "active" | "superseded" | "rejected";
+  readonly supersedesRevisionId: string | null;
+  readonly proposedAt: Date;
+  readonly proposedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface ProjectControlBaselineLine {
+  readonly lineKey: string;
+  readonly sourceEstimateLineKey: string;
+  readonly sourceCategory: EstimateHandoffMapping["category"];
+  readonly costCode: string;
+  readonly wbsCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly controlAccountCode: string;
+  readonly responsibleOrganizationId: string;
+  readonly budgetQuantity: string;
+  readonly unitCode: string;
+  readonly budgetAmount: string;
+}
+
+export interface ProjectControlBaselineRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly sourceHandoffId: string;
+  readonly sourceHandoffSha256: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly parentBaselineId: string | null;
+  readonly revisionReason: string;
+  readonly currency: string;
+  readonly periodStart: Date;
+  readonly periodFinish: Date;
+  readonly lines: readonly ProjectControlBaselineLine[];
+  readonly sourceAwardAmount: string;
+  readonly approvedChangeAmount: string;
+  readonly managementReserveAmount: string;
+  readonly currentBudgetAmount: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "superseded";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ProjectChangeLineImpact {
+  readonly baselineLineKey: string;
+  readonly quantityDelta: string;
+  readonly amountDelta: string;
+  readonly reason: string;
+}
+
+export interface ProjectChangeRequestRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly number: string;
+  readonly title: string;
+  readonly origin: string;
+  readonly description: string;
+  readonly scheduleDaysImpact: string;
+  readonly quotationReference: string | null;
+  readonly evidenceFileIds: readonly string[];
+  readonly lineImpacts: readonly ProjectChangeLineImpact[];
+  readonly totalCostImpact: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "incorporated";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly resultingBaselineId: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type ProjectCostEntryType =
+  | "actual"
+  | "accrual"
+  | "forecast_remaining"
+  | "contingency_draw"
+  | "reserve_movement";
+
+export interface ProjectCostEntryRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly baselineLineKey: string | null;
+  readonly entryType: ProjectCostEntryType;
+  readonly amount: string;
+  readonly currency: string;
+  readonly periodStart: Date;
+  readonly periodFinish: Date;
+  readonly sourceType: string;
+  readonly sourceId: string;
+  readonly sourceSha256: string;
+  readonly description: string;
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface ProjectProgressClaimRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly baselineLineKey: string;
+  readonly periodStart: Date;
+  readonly periodFinish: Date;
+  readonly claimedQuantity: string;
+  readonly unitCode: string;
+  readonly claimedEarnedAmount: string;
+  readonly evidenceFileIds: readonly string[];
+  readonly fieldStatus: string;
+  readonly qualityAcceptanceState: "not_evaluated";
+  readonly invoiceApprovalState: "not_submitted";
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface ProcurementRequisitionItem {
+  readonly itemKey: string;
+  readonly baselineLineKey: string;
+  readonly itemType: "material" | "service" | "equipment" | "subcontract";
+  readonly description: string;
+  readonly specificationReference: string;
+  readonly governingDocumentRevisionIds: readonly string[];
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly needBy: Date;
+  readonly deliveryTerms: string;
+  readonly inspectionRequirements: readonly string[];
+  readonly documentRequirements: readonly string[];
+  readonly turnoverRequirements: readonly string[];
+  readonly costCode: string;
+  readonly workPackageCode: string | null;
+  readonly budgetAmount: string;
+}
+
+export interface ProcurementRequisitionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly number: string;
+  readonly title: string;
+  readonly items: readonly ProcurementRequisitionItem[];
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "issued";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ProcurementOffer {
+  readonly offerKey: string;
+  readonly vendorOrganizationId: string;
+  readonly quoteReference: string;
+  readonly sourceFileId: string;
+  readonly sourceSha256: string;
+  readonly currency: string;
+  readonly validUntil: Date;
+  readonly totalAmount: string;
+  readonly promisedDate: Date;
+  readonly inclusions: readonly string[];
+  readonly exclusions: readonly string[];
+  readonly clarifications: readonly string[];
+  readonly unresolvedItemKeys: readonly string[];
+  readonly receivedAt: Date;
+  readonly receivedBy: string;
+}
+
+export interface ProcurementBidPackageRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly requisitionId: string;
+  readonly number: string;
+  readonly bidderOrganizationIds: readonly string[];
+  readonly offers: readonly ProcurementOffer[];
+  readonly recommendedOfferKey: string | null;
+  readonly recommendationReason: string | null;
+  readonly recommendedAt: Date | null;
+  readonly recommendedBy: string | null;
+  readonly awardedOfferKey: string | null;
+  readonly awardReason: string | null;
+  readonly awardedAt: Date | null;
+  readonly awardedBy: string | null;
+  readonly state: "issued" | "comparison" | "recommended" | "awarded" | "cancelled";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ProcurementStatusEvent {
+  readonly id: string;
+  readonly eventType: "acknowledgement" | "submittal" | "fabrication_milestone" | "shipment" | "exception" | "receipt";
+  readonly status: string;
+  readonly promisedAt: Date | null;
+  readonly forecastAt: Date | null;
+  readonly actualAt: Date | null;
+  readonly sourceReference: string;
+  readonly evidenceFileIds: readonly string[];
+  readonly receivedMaterialItemIds: readonly string[];
+  readonly responsibleUserId: string;
+  readonly recordedAt: Date;
+  readonly recordedBy: string;
+}
+
+export interface ProcurementCommitmentRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly baselineId: string;
+  readonly requisitionId: string;
+  readonly bidPackageId: string;
+  readonly offerKey: string;
+  readonly vendorOrganizationId: string;
+  readonly purchaseOrderReference: string;
+  readonly revision: string;
+  readonly amount: string;
+  readonly currency: string;
+  readonly statusEvents: readonly ProcurementStatusEvent[];
+  readonly state: "awarded" | "acknowledged" | "in_fabrication" | "shipped" | "partially_received" | "received" | "exception" | "closed";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ScheduleActivity {
+  readonly activityKey: string;
+  readonly displayId: string;
+  readonly name: string;
+  readonly activityType: "activity" | "milestone";
+  readonly calendarCode: string;
+  readonly wbsCode: string;
+  readonly workPackageCode: string | null;
+  readonly responsibleOrganizationId: string;
+  readonly completionBoundaryId: string | null;
+  readonly plannedStart: Date;
+  readonly plannedFinish: Date;
+  readonly actualStart: Date | null;
+  readonly actualFinish: Date | null;
+  readonly remainingDurationDays: string;
+  readonly quantity: string | null;
+  readonly unitCode: string | null;
+  readonly resourceCodes: readonly string[];
+  readonly constraintCodes: readonly string[];
+  readonly requiredDocumentRevisionIds: readonly string[];
+  readonly requiredMaterialItemIds: readonly string[];
+  readonly requiredInspectionIds: readonly string[];
+  readonly fieldClaimPercent: string;
+  readonly acceptedProgressPercent: string;
+  readonly sourceExternalId: string | null;
+}
+
+export interface ScheduleDependency {
+  readonly predecessorActivityKey: string;
+  readonly successorActivityKey: string;
+  readonly relationship: "FS" | "SS" | "FF" | "SF";
+  readonly lagDays: string;
+}
+
+export interface ScheduleProgramRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly name: string;
+  readonly timeZone: string;
+  readonly currentRevisionId: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface ScheduleRevisionRecord {
+  readonly id: string;
+  readonly scheduleId: string;
+  readonly revision: string;
+  readonly revisionType: "baseline" | "update";
+  readonly parentRevisionId: string | null;
+  readonly sourceBaselineId: string;
+  readonly dataDate: Date;
+  readonly reason: string;
+  readonly sourceSystem: "manual" | "p6" | "microsoft_project";
+  readonly sourceVersion: string | null;
+  readonly sourceSha256: string | null;
+  readonly activities: readonly ScheduleActivity[];
+  readonly dependencies: readonly ScheduleDependency[];
+  readonly baselineVarianceDays: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "superseded";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+
+export interface ScheduleImportRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly scheduleId: string;
+  readonly idempotencyKey: string;
+  readonly sourceSystem: "p6" | "microsoft_project";
+  readonly sourceVersion: string;
+  readonly sourceFileId: string;
+  readonly sourceSha256: string;
+  readonly mappingVersion: string;
+  readonly targetRevision: string;
+  readonly targetRevisionType: "baseline" | "update";
+  readonly parentRevisionId: string | null;
+  readonly dataDate: Date;
+  readonly activities: readonly ScheduleActivity[];
+  readonly dependencies: readonly ScheduleDependency[];
+  readonly previewErrors: readonly string[];
+  readonly state: "previewed" | "invalid" | "committed";
+  readonly committedRevisionId: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly committedAt: Date | null;
+  readonly committedBy: string | null;
+}
+
+export type WeldingProcedureType = "pqr" | "wps";
+export interface WeldingProcessStepSpecification {
+  readonly sequence: number;
+  readonly processCode: string;
+  readonly operationMode: "manual" | "semiautomatic" | "machine" | "automatic";
+  readonly passScope: string;
+  readonly transferMode: string;
+  readonly currentType: string;
+  readonly polarity: string;
+  readonly amperageRange: string;
+  readonly voltageRange: string;
+  readonly travelSpeedRange: string;
+  readonly heatInputRange: string;
+  readonly fillerSpecification: string;
+  readonly fillerClassification: string;
+  readonly fillerGroup: string;
+  readonly fillerDiameterRange: string;
+  readonly electrodeConfiguration: string;
+  readonly shieldingGasComposition: string;
+  readonly shieldingGasFlowRange: string;
+  readonly backingGasComposition: string;
+  readonly backingGasFlowRange: string;
+  readonly fluxOrBackingMaterial: string;
+}
+
+export interface WeldingProcedureSpecification {
+  readonly codeProfileId: string;
+  readonly governingCode: string;
+  readonly codeEdition: string;
+  readonly constructionCode: string;
+  readonly controlledCatalogVersion: string;
+  readonly qualificationRoute: "procedure_qualification" | "prequalified" | "standard_wps" | "project_specific";
+  readonly procedureTitle: string;
+  readonly serviceDescription: string;
+  readonly units: "us_customary" | "metric" | "mixed";
+  readonly joint: {
+    readonly jointType: string; readonly designReference: string; readonly grooveAngle: string;
+    readonly rootOpening: string; readonly rootFace: string; readonly backingType: string;
+    readonly backingMaterial: string; readonly weldProgression: string; readonly misalignmentTolerance: string;
+  };
+  readonly baseMetals: {
+    readonly materialSpecifications: readonly string[]; readonly materialGrades: readonly string[];
+    readonly groupSystem: string; readonly groupCodes: readonly string[]; readonly productForms: readonly string[];
+    readonly thicknessRange: string; readonly diameterRange: string; readonly qualificationRangeBasis: string; readonly dissimilarMetalBasis: string;
+  };
+  readonly processSteps: readonly WeldingProcessStepSpecification[];
+  readonly thermalControl: {
+    readonly preheatMethod: string; readonly preheatMaintenance: string; readonly temperatureMeasurementMethod: string;
+    readonly temperatureControlBasis: string;
+    readonly pwhtDetermination: "required" | "not_required";
+    readonly pwhtRuleCitation: string;
+    readonly pwhtRequired: boolean; readonly pwhtTemperatureRange: string; readonly pwhtHoldingTime: string;
+    readonly heatingRateLimit: string; readonly coolingRateLimit: string;
+  };
+  readonly technique: {
+    readonly beadTechnique: string; readonly cleaningMethod: string; readonly backGougingMethod: string;
+    readonly oscillation: string; readonly peening: string; readonly contactTubeDistance: string;
+    readonly interpassCleaning: string; readonly singleOrMultiplePass: string; readonly singleOrMultipleElectrode: string;
+  };
+  readonly examinationAndTests: {
+    readonly visualAcceptanceReference: string; readonly ndeMethods: readonly string[];
+    readonly mechanicalTests: readonly string[]; readonly impactTestTemperature: string;
+    readonly hardnessLimit: string; readonly macroOrFractureTests: readonly string[];
+    readonly specimenReferences: readonly string[]; readonly essentialVariableNotes: string;
+  };
+  readonly revisionReason: string;
+}
+export interface WeldingProcedureRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly procedureType: WeldingProcedureType;
+  readonly number: string;
+  readonly revision: string;
+  readonly governingDocumentRevisionId: string;
+  readonly supportingPqrIds: readonly string[];
+  readonly processCodes: readonly string[];
+  readonly materialGroupCodes: readonly string[];
+  readonly positionCodes: readonly string[];
+  readonly thicknessMinimum: string;
+  readonly thicknessMaximum: string;
+  readonly diameterMinimum: string;
+  readonly diameterMaximum: string;
+  readonly jointDesignCodes: readonly string[];
+  readonly consumableClassifications: readonly string[];
+  readonly preheatMinimum: string;
+  readonly interpassMaximum: string;
+  readonly specification?: WeldingProcedureSpecification | null;
+  readonly effectiveFrom: Date;
+  readonly effectiveTo: Date | null;
+  readonly state: "under_review" | "approved" | "rejected" | "superseded";
+  readonly supersedesRevisionId: string | null;
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface WelderQualificationRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly welderUserId: string;
+  readonly employerOrganizationId: string;
+  readonly qualificationNumber: string;
+  readonly governingDocumentRevisionId: string;
+  readonly processCodes: readonly string[];
+  readonly materialGroupCodes: readonly string[];
+  readonly positionCodes: readonly string[];
+  readonly thicknessMinimum: string;
+  readonly thicknessMaximum: string;
+  readonly diameterMinimum: string;
+  readonly diameterMaximum: string;
+  readonly qualifiedAt: Date;
+  readonly validTo: Date;
+  readonly continuityIntervalDays: number;
+  readonly lastContinuityAt: Date;
+  readonly evidenceFileIds: readonly string[];
+  readonly state: "under_review" | "active" | "rejected" | "expired" | "revoked";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export type WeldExecutionEventType =
+  | "fit_up"
+  | "consumable_issue"
+  | "preheat_observation"
+  | "weld_pass"
+  | "visual_examination"
+  | "repair_excavation"
+  | "repair_weld";
+export interface WeldExecutionEvent {
+  readonly id: string;
+  readonly eventType: WeldExecutionEventType;
+  readonly repairCycle: number;
+  readonly performedAt: Date;
+  readonly performedBy: string;
+  readonly welderQualificationIds: readonly string[];
+  readonly consumableClassification: string | null;
+  readonly observations: Readonly<Record<string, string>>;
+  readonly evidenceFileIds: readonly string[];
+  readonly result: "pass" | "fail" | "observed";
+}
+
+export interface WeldJointRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly systemCode: string;
+  readonly areaCode: string;
+  readonly workPackageCode: string;
+  readonly componentReferences: readonly string[];
+  readonly materialItemIds: readonly string[];
+  readonly drawingRevisionId: string;
+  readonly weldMapLocation: string;
+  readonly wpsRevisionId: string;
+  readonly processCode: string;
+  readonly materialGroupCode: string;
+  readonly positionCode: string;
+  readonly thickness: string;
+  readonly diameter: string;
+  readonly jointDesignCode: string;
+  readonly requiredExaminationMethods: readonly string[];
+  readonly pwhtRequired: boolean;
+  readonly completionBoundaryId: string;
+  readonly repairCycle: number;
+  readonly events: readonly WeldExecutionEvent[];
+  readonly state: "planned" | "fit_up_accepted" | "welded" | "visual_accepted" | "pending_examination" | "repair_required" | "ready_for_release" | "released";
+  readonly releasedAt: Date | null;
+  readonly releasedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface NdeRequestRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly weldId: string;
+  readonly repairCycle: number;
+  readonly methodCode: string;
+  readonly extent: string;
+  readonly techniqueDocumentRevisionId: string;
+  readonly acceptanceReference: string;
+  readonly examinationStage: string;
+  readonly requiredPersonnelQualification: string;
+  readonly dueAt: Date;
+  readonly holdWitnessContext: string;
+  readonly reportRevisionIds: readonly string[];
+  readonly state: "requested" | "submitted" | "accepted" | "rejected" | "superseded";
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface NdeReportRevisionRecord {
+  readonly id: string;
+  readonly requestId: string;
+  readonly revision: string;
+  readonly examinerUserId: string;
+  readonly examinerOrganizationId: string;
+  readonly personnelQualificationReference: string;
+  readonly equipmentIds: readonly string[];
+  readonly mediaFileIds: readonly string[];
+  readonly performedAt: Date;
+  readonly conditions: Readonly<Record<string, string>>;
+  readonly indications: readonly string[];
+  readonly result: "accept" | "reject";
+  readonly evidenceFileIds: readonly string[];
+  readonly repairCycle: number;
+  readonly state: "submitted" | "accepted" | "rejected" | "superseded";
+  readonly submittedAt: Date;
+  readonly submittedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface PwhtThermocoupleReading {
+  readonly thermocoupleId: string;
+  readonly location: string;
+  readonly minimumTemperature: string;
+  readonly maximumTemperature: string;
+  readonly withinTolerance: boolean;
+}
+export interface PwhtCycleRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly procedureDocumentRevisionId: string;
+  readonly weldIds: readonly string[];
+  readonly heatingRate: string;
+  readonly coolingRate: string;
+  readonly soakTemperatureMinimum: string;
+  readonly soakTemperatureMaximum: string;
+  readonly soakDurationMinutes: string;
+  readonly thermocouples: readonly PwhtThermocoupleReading[];
+  readonly equipmentIds: readonly string[];
+  readonly chartFileId: string;
+  readonly evidenceFileIds: readonly string[];
+  readonly interruptions: readonly string[];
+  readonly result: "pass" | "fail";
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly performedAt: Date;
+  readonly performedBy: string;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+}
+
+export interface TestPackageRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly testType: "pressure" | "leak" | "functional";
+  readonly completionBoundaryId: string;
+  readonly governingDocumentRevisionIds: readonly string[];
+  readonly drawingRevisionIds: readonly string[];
+  readonly testMedium: string;
+  readonly targetPressure: string | null;
+  readonly holdDurationMinutes: string;
+  readonly hazardPermitReferences: readonly string[];
+  readonly prerequisiteReferences: readonly string[];
+  readonly blindValveInstrumentReferences: readonly string[];
+  readonly gaugeEquipmentIds: readonly string[];
+  readonly participantUserIds: readonly string[];
+  readonly witnessUserIds: readonly string[];
+  readonly evidenceFileIds: readonly string[];
+  readonly result: "pass" | "fail" | null;
+  readonly deficiencyNcrIds: readonly string[];
+  readonly restorationConfirmation: string | null;
+  readonly state: "draft" | "ready" | "submitted" | "accepted" | "rejected";
+  readonly performedAt: Date | null;
+  readonly performedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type FabricationAssemblyType = "pipe_spool" | "structural_assembly" | "equipment_skid" | "module";
+export type FabricationAssemblyState =
+  | "draft"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "superseded"
+  | "released_to_fabrication"
+  | "in_fabrication"
+  | "fabrication_complete"
+  | "accepted";
+
+export interface FabricationBomLine {
+  readonly lineKey: string;
+  readonly materialItemId: string;
+  readonly description: string;
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly pieceMark: string;
+}
+
+export interface FabricationCutLine {
+  readonly lineKey: string;
+  readonly bomLineKey: string;
+  readonly materialItemId: string;
+  readonly cutLength: string;
+  readonly lengthUnitCode: string;
+  readonly cutAngleDegrees: string;
+  readonly bevelCode: string | null;
+  readonly quantity: string;
+}
+
+export interface FabricationAssemblyRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly assemblyType: FabricationAssemblyType;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly sourceSystem: "manual" | "model_import";
+  readonly sourceVersion: string | null;
+  readonly sourceSha256: string | null;
+  readonly systemCode: string;
+  readonly areaCode: string;
+  readonly workPackageCode: string;
+  readonly completionBoundaryId: string;
+  readonly drawingRevisionIds: readonly string[];
+  readonly materialItemIds: readonly string[];
+  readonly weldIds: readonly string[];
+  readonly requiredInspectionIds: readonly string[];
+  readonly bomLines: readonly FabricationBomLine[];
+  readonly cutLines: readonly FabricationCutLine[];
+  readonly state: FabricationAssemblyState;
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly releasedAt: Date | null;
+  readonly releasedBy: string | null;
+  readonly acceptedAt: Date | null;
+  readonly acceptedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type FabricationOperationType =
+  | "layout"
+  | "cut"
+  | "bevel"
+  | "fit_up"
+  | "weld"
+  | "machine"
+  | "surface_prep"
+  | "inspection"
+  | "assembly"
+  | "package";
+
+export interface FabricationTravelerOperation {
+  readonly operationKey: string;
+  readonly sequence: number;
+  readonly operationType: FabricationOperationType;
+  readonly workCenterCode: string;
+  readonly requiredQualificationCodes: readonly string[];
+  readonly procedureDocumentRevisionId: string | null;
+  readonly holdPoint: boolean;
+  readonly materialItemIds: readonly string[];
+  readonly weldIds: readonly string[];
+  readonly plannedHours: string;
+  readonly instructions: string;
+}
+
+export interface FabricationTravelerRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly assemblyRevisionId: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly operations: readonly FabricationTravelerOperation[];
+  readonly state: "draft" | "issued" | "in_progress" | "on_hold" | "complete" | "superseded";
+  readonly issuedAt: Date | null;
+  readonly issuedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type FabricationExecutionEventType = "start" | "complete" | "hold" | "release_hold" | "rework" | "scrap";
+
+export interface FabricationExecutionEventRecord {
+  readonly id: string;
+  readonly sequence: number;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly assemblyRevisionId: string;
+  readonly travelerId: string;
+  readonly operationKey: string;
+  readonly eventType: FabricationExecutionEventType;
+  readonly result: "pass" | "fail" | "observed";
+  readonly quantity: string;
+  readonly unitCode: string;
+  readonly observations: Readonly<Record<string, string>>;
+  readonly evidenceFileIds: readonly string[];
+  readonly performedAt: Date;
+  readonly performedBy: string;
+  readonly version: 1;
+}
+
+export type CncProcessType = "saw" | "drill" | "plasma" | "oxy_fuel" | "waterjet" | "laser" | "cope" | "profiling";
+export type CncOperationType = "cut" | "miter" | "drill" | "punch" | "slot" | "countersink" | "profile"
+  | "cope" | "notch" | "bevel" | "scribe" | "mark";
+
+export interface CncMachineProfileRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly workCenterCode: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly processTypes: readonly CncProcessType[];
+  readonly stockFormCodes: readonly string[];
+  readonly supportedOperationTypes: readonly CncOperationType[];
+  readonly supportedFeatureCodes: readonly string[];
+  readonly unitCode: string;
+  readonly coordinateSystemCode: string;
+  readonly maximumLength: string;
+  readonly maximumWidth: string;
+  readonly maximumThickness: string;
+  readonly postprocessorName: string;
+  readonly postprocessorVersion: string;
+  readonly effectiveFrom: Date;
+  readonly effectiveTo: Date | null;
+  readonly state: "under_review" | "approved" | "rejected" | "superseded";
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface CncStockDefinition {
+  readonly formCode: string;
+  readonly unitCode: string;
+  readonly length: string;
+  readonly width: string;
+  readonly thickness: string;
+  readonly diameter: string | null;
+}
+
+export interface CncNormalizedOperation {
+  readonly operationKey: string;
+  readonly sequence: number;
+  readonly operationType: CncOperationType;
+  readonly featureCode: string;
+  readonly x: string;
+  readonly y: string;
+  readonly z: string;
+  readonly length: string;
+  readonly width: string;
+  readonly depth: string;
+  readonly diameter: string;
+  readonly angleDegrees: string;
+  readonly toolCode: string | null;
+  readonly instruction: string;
+}
+
+export interface CncValidationFinding {
+  readonly code: string;
+  readonly severity: "error" | "warning";
+  readonly operationKey: string | null;
+  readonly detail: string;
+}
+
+export type CncProgramState = "draft" | "validated" | "under_review" | "approved" | "rejected"
+  | "released" | "execution_recorded" | "reconciled" | "superseded";
+
+export interface CncProgramRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly number: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly processType: CncProcessType;
+  readonly sourceFormat: "machine_neutral_json" | "dstv_nc1" | "dxf" | "step" | "ifc" | "tekla" | "sds2" | "advance_steel";
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly sourceFileId: string;
+  readonly sourceDocumentRevisionId: string;
+  readonly assemblyRevisionId: string;
+  readonly travelerId: string;
+  readonly travelerOperationKey: string;
+  readonly machineProfileRevisionId: string;
+  readonly materialItemId: string;
+  readonly pieceMark: string;
+  readonly quantity: string;
+  readonly stock: CncStockDefinition;
+  readonly coordinateSystemCode: string;
+  readonly operations: readonly CncNormalizedOperation[];
+  readonly validationRuleVersion: string;
+  readonly validationFindings: readonly CncValidationFinding[];
+  readonly warningDispositions: Readonly<Record<string, string>>;
+  readonly normalizedPackageJson: string;
+  readonly normalizedPackageSha256: string;
+  readonly releasedArtifactJson: string | null;
+  readonly releasedArtifactSha256: string | null;
+  readonly state: CncProgramState;
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly releasedAt: Date | null;
+  readonly releasedBy: string | null;
+  readonly releaseReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export interface CncExecutionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly programRevisionId: string;
+  readonly releasedArtifactSha256: string;
+  readonly workCenterCode: string;
+  readonly machineIdentifier: string;
+  readonly operatorUserId: string;
+  readonly startedAt: Date;
+  readonly completedAt: Date;
+  readonly actualQuantity: string;
+  readonly scrapQuantity: string;
+  readonly producedMaterialItemIds: readonly string[];
+  readonly remnantMaterialItemIds: readonly string[];
+  readonly evidenceFileIds: readonly string[];
+  readonly exceptionNcrIds: readonly string[];
+  readonly result: "complete" | "complete_with_exception" | "aborted";
+  readonly state: "submitted" | "accepted" | "rejected";
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type EngineeringRegisterType = "requirement" | "deliverable" | "system" | "equipment" | "line"
+  | "instrument" | "component" | "tag";
+
+export interface EngineeringValidationFinding {
+  readonly code: string;
+  readonly severity: "error" | "warning";
+  readonly detail: string;
+}
+
+export interface EngineeringRegisterItemRevisionRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly registerType: EngineeringRegisterType;
+  readonly tag: string;
+  readonly revision: string;
+  readonly parentRevisionId: string | null;
+  readonly revisionReason: string;
+  readonly title: string;
+  readonly disciplineCode: string;
+  readonly systemCode: string | null;
+  readonly areaCode: string | null;
+  readonly workPackageCode: string | null;
+  readonly responsibleOrganizationId: string;
+  readonly documentRevisionIds: readonly string[];
+  readonly relatedItemRevisionIds: readonly string[];
+  readonly attributes: Readonly<Record<string, string>>;
+  readonly plannedIssueDate: Date | null;
+  readonly forecastIssueDate: Date | null;
+  readonly actualIssueDate: Date | null;
+  readonly validationRuleVersion: "engineering-register-v1";
+  readonly validationFindings: readonly EngineeringValidationFinding[];
+  readonly canonicalSha256: string;
+  readonly state: "draft" | "under_review" | "approved" | "rejected" | "superseded";
+  readonly submittedAt: Date | null;
+  readonly submittedBy: string | null;
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: string;
+}
+
+export type CollaborationEvidenceStatus = "open" | "resolved_claim" | "closed_claim" | "unknown";
+export interface CollaborationDocumentMapping {
+  readonly providerDocumentId: string;
+  readonly documentRevisionId: string;
+}
+export interface CollaborationAuthorMapping {
+  readonly providerAuthorId: string;
+  readonly userAccountId: string;
+  readonly organizationId: string;
+}
+export interface CollaborationStatusMapping {
+  readonly providerStatusCode: string;
+  readonly evidenceStatus: CollaborationEvidenceStatus;
+}
+export interface CollaborationRegion {
+  readonly x: string;
+  readonly y: string;
+  readonly width: string;
+  readonly height: string;
+  readonly units: "points" | "normalized";
+}
+export interface CollaborationSourceItem {
+  readonly providerItemId: string;
+  readonly providerDocumentId: string;
+  readonly parentProviderItemId: string | null;
+  readonly itemType: "markup" | "comment" | "reply" | "status";
+  readonly pageNumber: number;
+  readonly region: CollaborationRegion | null;
+  readonly authorProviderId: string;
+  readonly providerStatusCode: string;
+  readonly subject: string;
+  readonly body: string;
+  readonly appearance: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  readonly unsupportedContentCodes: readonly string[];
+}
+export interface CollaborationPreviewIssue {
+  readonly code: string;
+  readonly sourceObjectId: string | null;
+  readonly field: string | null;
+  readonly detail: string;
+}
+export interface DocumentCollaborationImportRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly provider: "bluebeam_export";
+  readonly providerProduct: string;
+  readonly providerProjectId: string;
+  readonly providerSessionId: string;
+  readonly sourceFileId: string;
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly canonicalSha256: string;
+  readonly schemaVersion: number;
+  readonly mappingVersion: string;
+  readonly idempotencyKey: string;
+  readonly documentMappings: readonly CollaborationDocumentMapping[];
+  readonly authorMappings: readonly CollaborationAuthorMapping[];
+  readonly statusMappings: readonly CollaborationStatusMapping[];
+  readonly sourceItems: readonly CollaborationSourceItem[];
+  readonly previewIssues: readonly CollaborationPreviewIssue[];
+  readonly committedItemIds: readonly string[];
+  readonly state: "previewed" | "invalid" | "conflict" | "committed";
+  readonly previewedAt: Date;
+  readonly previewedBy: string;
+  readonly committedAt: Date | null;
+  readonly committedBy: string | null;
+  readonly version: number;
+}
+export interface CollaborationItemRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly importId: string;
+  readonly provider: "bluebeam_export";
+  readonly providerProjectId: string;
+  readonly providerSessionId: string;
+  readonly providerItemId: string;
+  readonly providerDocumentId: string;
+  readonly sourceVersion: string;
+  readonly sourceSha256: string;
+  readonly documentRevisionId: string;
+  readonly parentItemId: string | null;
+  readonly itemType: "markup" | "comment" | "reply" | "status";
+  readonly pageNumber: number;
+  readonly region: CollaborationRegion | null;
+  readonly authorUserId: string;
+  readonly authorOrganizationId: string;
+  readonly providerStatusCode: string;
+  readonly evidenceStatus: CollaborationEvidenceStatus;
+  readonly subject: string;
+  readonly body: string;
+  readonly appearance: string | null;
+  readonly sourceCreatedAt: Date;
+  readonly sourceUpdatedAt: Date;
+  readonly state: "submitted" | "accepted" | "rejected" | "superseded";
+  readonly reviewedAt: Date | null;
+  readonly reviewedBy: string | null;
+  readonly reviewReason: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+export interface CollaborationReconciliationRecord {
+  readonly id: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string;
+  readonly importId: string;
+  readonly code: string;
+  readonly sourceObjectId: string | null;
+  readonly field: string | null;
+  readonly detail: string;
+  readonly state: "open" | "resolved" | "waived";
+  readonly resolution: string | null;
+  readonly resolvedAt: Date | null;
+  readonly resolvedBy: string | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly createdBy: string;
+}
+
 export type ProjectStructureType = "system" | "area" | "wbs" | "work_package";
 
 export interface ProjectStructureElementRecord {
@@ -858,7 +2263,8 @@ export interface RetentionDispositionRecord {
 
 export interface GovernedFileRecord {
   readonly id: string;
-  readonly projectId: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string | null;
   readonly storageKey: string;
   readonly originalFilename: string;
   readonly declaredMediaType: string;
@@ -951,7 +2357,8 @@ export interface ExportJobRecord {
 export interface IntegrationMessageRecord {
   readonly id: string;
   readonly direction: "inbox" | "outbox";
-  readonly projectId: string;
+  readonly businessScopeOrganizationId: string;
+  readonly projectId: string | null;
   readonly interfaceCode: string;
   readonly idempotencyKey: string;
   readonly externalId: string;
@@ -968,7 +2375,7 @@ export interface IntegrationMessageRecord {
 }
 
 export interface ScopedSearchResult {
-  readonly recordType: "document" | "material" | "ncr" | "punch" | "imported";
+  readonly recordType: "document" | "material" | "ncr" | "punch" | "imported" | "collaboration";
   readonly recordId: string;
   readonly projectId: string;
   readonly label: string;
@@ -1019,7 +2426,7 @@ export interface NotificationRecord {
   readonly recipientUserId: string;
   readonly recipientOrganizationId: string;
   readonly eventType: string;
-  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported";
+  readonly recordClass: "document" | "material" | "ncr" | "punch" | "imported" | "collaboration";
   readonly recordId: string;
   readonly channel: "in_app" | "email";
   readonly templateCode: string;

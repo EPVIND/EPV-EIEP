@@ -131,6 +131,13 @@ test("FR-MAT-001-005, FR-PMI-001-003, FR-TOV-002-004 / AC-05-06-09: accepted mat
       pmiRequired: true, governingPmiRule: "PROJECT-RULE-PMI-001",
     },
   );
+  const visibleMaterials = await operations.materials(
+    context("material-list-reader", "mfa"),
+    [assignment("material-list", "material-list-reader", ["material.read"], scope(project.id))],
+    project.id,
+  );
+  assert.deepEqual(visibleMaterials.map((item) => item.id), [received.id]);
+  assert.deepEqual(await operations.materials(context("unassigned-reader", "mfa"), [], project.id), []);
   const pmiRequirement = await operations.pmiRequirement(
     context("quality-reader", "standard"),
     [assignment("read-pmi-rule", "quality-reader", ["pmi.read"], scope(project.id))],

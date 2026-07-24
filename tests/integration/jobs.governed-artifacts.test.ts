@@ -133,7 +133,8 @@ test("FR-TOV-003-004, NFR-PER-003, NFR-REL-004 / AC-09-10: turnover rendering pe
         manifestSha256: digest(JSON.stringify(manifest)),
       });
       transaction.insertIntegrationMessage({
-        id: messageId, direction: "outbox", projectId: project.id, interfaceCode: "turnover-render.worker",
+        id: messageId, direction: "outbox", businessScopeOrganizationId: "org-epv",
+        projectId: project.id, interfaceCode: "turnover-render.worker",
         idempotencyKey: versionId, externalId: versionId, schemaVersion: 1,
         payload: { turnoverPackageVersionId: versionId }, payloadSha256: "a".repeat(64),
         correlationId: "turnover-render-correlation", state: "pending", attemptCount: 0,

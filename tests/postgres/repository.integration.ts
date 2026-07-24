@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
+  bootstrapInitialApplicationAdministrators,
   ConflictError,
+  EstimatingService,
   FoundationService,
   PlatformService,
   PostgresFoundationStore,
@@ -19,6 +21,36 @@ try {
   assert.equal(initialHealth.schemaMigration, "0014_pmi_ncr_execution_detail.up.sql");
   assert.equal(initialHealth.repositoryRevision, 1);
   assert.equal(initialHealth.repositoryEntityCount, 0);
+  const bootstrapInput = {
+    authorizationReference: "CAB-2026-0042 / PostgreSQL bootstrap verification",
+    requesterAuthorityId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    approverAuthorityId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    businessScopeOrganizationId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    issuer: "https://identity.example.test/tenant/v2.0",
+    authorizedAt: new Date("2026-07-21T11:00:00.000Z"),
+    effectiveFrom: new Date("2026-07-21T11:30:00.000Z"),
+    effectiveTo: new Date("2026-10-19T12:00:00.000Z"),
+    administrators: [
+      {
+        userAccountId: "11111111-1111-4111-8111-111111111111",
+        personId: "22222222-2222-4222-8222-222222222222",
+        displayName: "PostgreSQL bootstrap administrator one",
+        externalIdentityId: "33333333-3333-4333-8333-333333333333",
+        subject: "postgres-entra-object-id-one",
+        accessAssignmentId: "44444444-4444-4444-8444-444444444444",
+      },
+      {
+        userAccountId: "55555555-5555-4555-8555-555555555555",
+        personId: "66666666-6666-4666-8666-666666666666",
+        displayName: "PostgreSQL bootstrap administrator two",
+        externalIdentityId: "77777777-7777-4777-8777-777777777777",
+        subject: "postgres-entra-object-id-two",
+        accessAssignmentId: "88888888-8888-4888-8888-888888888888",
+      },
+    ],
+  } as const;
+  assert.equal((await bootstrapInitialApplicationAdministrators(store, bootstrapInput, () => now)).status, "created");
+  assert.equal((await bootstrapInitialApplicationAdministrators(store, bootstrapInput, () => now)).status, "verified");
   const foundation = new FoundationService(store, () => now, ids);
   const project = await foundation.createProject(
     context("postgres-project-creator"),
@@ -78,10 +110,265 @@ try {
     project.id,
     { formCode: "FORM-PRJ-001", targetId: project.id },
   );
+  const estimating = new EstimatingService(store, () => now, ids);
+  const estimator = context("postgres-estimator", "mfa");
+  const estimatingAssignments = [assignment(
+    "postgres-estimating", estimator.userId,
+    ["estimate.create", "estimate.read", "estimate.edit", "estimate.submit"], scope(),
+  )];
+  const persistentEstimate = await estimating.createEstimate(estimator, estimatingAssignments, {
+    businessScopeOrganizationId: "org-epv", number: "PG-EST-001", name: "Persistent estimate",
+    customerOrganizationId: "org-customer", facilityId: "facility-1", opportunityReference: "PG-RFQ-001",
+    scopeStatement: "Persistent PostgreSQL estimating verification.", dueAt: new Date("2026-08-31T17:00:00.000Z"),
+    originatingTimeZone: "America/Denver", currency: "USD", basisReferences: ["PG-RFQ-001-REV-0"],
+    initialRevision: "A", assumptions: ["Single shift"], exclusions: ["Owner testing"], alternates: [],
+    contingencyPercent: "5", escalationPercent: "2", markupPercent: "10", taxPercent: "8",
+  });
+  const persistentEstimateLine = await estimating.upsertLine(
+    estimator, estimatingAssignments, persistentEstimate.revisions[0]!.id, null, null,
+    {
+      lineKey: "PG-LINE-001", parentLineKey: null, sortOrder: 10, costCode: "PIPING",
+      bidItemCode: "BASE", alternateCode: null, wbsCode: "WBS-PIPING", workPackageCode: "WP-PIPING",
+      assemblyRevisionId: null, description: "PostgreSQL direct-cost line", quantity: "2", unitCode: "EA",
+      baseLaborHoursPerUnit: "4", laborRatePerHour: "50", materialUnitCost: "100",
+      equipmentUnitCost: "25", subcontractUnitCost: "0", allowanceCost: "10", otherCost: "5",
+      productivityFactorRevisionIds: [],
+    },
+  );
+  const persistentEstimateRevision = await estimating.submitRevision(
+    estimator, estimatingAssignments, persistentEstimate.revisions[0]!.id, persistentEstimate.revisions[0]!.version,
+  );
+  await store.transaction((transaction) => {
+    transaction.insertProjectControlsAuthorityPolicy({
+      id: "postgres-controls-policy", businessScopeOrganizationId: "org-epv", currency: "USD", revision: "1",
+      standardChangeApprovalLimit: "1000.00", standardProcurementAwardLimit: "5000.00",
+      changeAboveThresholdQualification: "EXECUTIVE_CHANGE_AUTHORITY",
+      procurementAboveThresholdQualification: "EXECUTIVE_PROCUREMENT_AUTHORITY", state: "active",
+      supersedesRevisionId: null, proposedAt: now, proposedBy: "postgres-controls-editor",
+      reviewedAt: now, reviewedBy: "postgres-controls-reviewer", reviewReason: "Persistent controls policy.", version: 2,
+    });
+    transaction.insertProjectControlBaseline({
+      id: "postgres-control-baseline", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      sourceHandoffId: "postgres-handoff", sourceHandoffSha256: "b".repeat(64), number: "PG-CB-001", revision: "0",
+      parentBaselineId: null, revisionReason: "Persistent award baseline", currency: "USD",
+      periodStart: new Date("2026-07-01T00:00:00.000Z"), periodFinish: new Date("2027-06-30T00:00:00.000Z"),
+      lines: [{ lineKey: "PG-LINE-001", sourceEstimateLineKey: "PG-LINE-001", sourceCategory: "direct_cost",
+        costCode: "PIPING", wbsCode: "WBS-PIPING", workPackageCode: "WP-PIPING",
+        controlAccountCode: "CA-PIPING", responsibleOrganizationId: "org-epv",
+        budgetQuantity: "2", unitCode: "EA", budgetAmount: "665.00" }],
+      sourceAwardAmount: "665.00", approvedChangeAmount: "0.00", managementReserveAmount: "35.00",
+      currentBudgetAmount: "700.00", state: "approved", submittedAt: now, submittedBy: "postgres-controls-author",
+      reviewedAt: now, reviewedBy: "postgres-controls-reviewer", reviewReason: "Persistent control baseline.",
+      version: 3, createdAt: now, createdBy: "postgres-controls-author", updatedAt: now, updatedBy: "postgres-controls-reviewer",
+    });
+    transaction.insertScheduleProgram({
+      id: "postgres-schedule", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      number: "PG-SCH-001", name: "Persistent schedule", timeZone: "UTC",
+      currentRevisionId: "postgres-schedule-revision", version: 2, createdAt: now,
+      createdBy: "postgres-scheduler", updatedAt: now, updatedBy: "postgres-schedule-reviewer",
+    });
+    transaction.insertScheduleRevision({
+      id: "postgres-schedule-revision", scheduleId: "postgres-schedule", revision: "B0",
+      revisionType: "baseline", parentRevisionId: null, sourceBaselineId: "postgres-control-baseline",
+      dataDate: now, reason: "Persistent schedule baseline", sourceSystem: "manual", sourceVersion: null,
+      sourceSha256: null, activities: [], dependencies: [], baselineVarianceDays: "0", state: "approved",
+      submittedAt: now, submittedBy: "postgres-scheduler", reviewedAt: now,
+      reviewedBy: "postgres-schedule-reviewer", reviewReason: "Persistent schedule verified.",
+      version: 3, createdAt: now, createdBy: "postgres-scheduler",
+    });
+    transaction.insertWeldingProcedure({
+      id: "postgres-wps", businessScopeOrganizationId: "org-epv", projectId: project.id, procedureType: "wps",
+      number: "PG-WPS-001", revision: "0", governingDocumentRevisionId: "postgres-wps-document-revision",
+      supportingPqrIds: ["postgres-pqr"], processCodes: ["GTAW"], materialGroupCodes: ["P1"], positionCodes: ["6G"],
+      thicknessMinimum: "0.1", thicknessMaximum: "1", diameterMinimum: "2", diameterMaximum: "24",
+      jointDesignCodes: ["BW-V"], consumableClassifications: ["ER70S-2"], preheatMinimum: "100",
+      interpassMaximum: "350", effectiveFrom: new Date("2026-01-01T00:00:00.000Z"), effectiveTo: null,
+      state: "approved", supersedesRevisionId: null, submittedAt: now, submittedBy: "postgres-wps-author",
+      reviewedAt: now, reviewedBy: "postgres-wps-reviewer", reviewReason: "Persistent WPS.", version: 2,
+    });
+    transaction.insertWelderQualification({
+      id: "postgres-wpq", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      welderUserId: "postgres-welder", employerOrganizationId: "org-epv", qualificationNumber: "PG-WPQ-001",
+      governingDocumentRevisionId: "postgres-wpq-document-revision", processCodes: ["GTAW"], materialGroupCodes: ["P1"],
+      positionCodes: ["6G"], thicknessMinimum: "0.1", thicknessMaximum: "1", diameterMinimum: "2", diameterMaximum: "24",
+      qualifiedAt: new Date("2026-01-01T00:00:00.000Z"), validTo: new Date("2027-01-01T00:00:00.000Z"),
+      continuityIntervalDays: 180, lastContinuityAt: new Date("2026-07-01T00:00:00.000Z"), evidenceFileIds: ["postgres-wpq-file"],
+      state: "active", submittedAt: now, submittedBy: "postgres-wpq-author", reviewedAt: now,
+      reviewedBy: "postgres-wpq-reviewer", reviewReason: "Persistent qualification.", version: 2,
+    });
+    transaction.insertWeld({
+      id: "postgres-weld", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-W-001",
+      systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-PIPING", componentReferences: ["ISO-001"],
+      materialItemIds: ["postgres-material"], drawingRevisionId: "postgres-drawing-revision", weldMapLocation: "ISO-001 / J1",
+      wpsRevisionId: "postgres-wps", processCode: "GTAW", materialGroupCode: "P1", positionCode: "6G",
+      thickness: "0.25", diameter: "4", jointDesignCode: "BW-V", requiredExaminationMethods: ["RT"], pwhtRequired: true,
+      completionBoundaryId: "postgres-boundary", repairCycle: 1, events: [{ id: "postgres-weld-event", eventType: "repair_weld",
+        repairCycle: 1, performedAt: now, performedBy: "postgres-welder", welderQualificationIds: ["postgres-wpq"],
+        consumableClassification: "ER70S-2", observations: { INTERPASS_TEMPERATURE: "300" },
+        evidenceFileIds: ["postgres-weld-file"], result: "pass" }], state: "pending_examination", releasedAt: null,
+      releasedBy: null, version: 4, createdAt: now, createdBy: "postgres-weld-coordinator", updatedAt: now, updatedBy: "postgres-welder",
+    });
+    transaction.insertNdeRequest({
+      id: "postgres-nde-request", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-NDE-001",
+      weldId: "postgres-weld", repairCycle: 1, methodCode: "RT", extent: "100%",
+      techniqueDocumentRevisionId: "postgres-nde-technique", acceptanceReference: "PG-SPEC", examinationStage: "FINAL",
+      requiredPersonnelQualification: "NDE_RT_LEVEL_II", dueAt: new Date("2026-07-22T00:00:00.000Z"),
+      holdWitnessContext: "OWNER HOLD", reportRevisionIds: ["postgres-nde-report"], state: "accepted", version: 3,
+      createdAt: now, createdBy: "postgres-nde-coordinator", updatedAt: now, updatedBy: "postgres-nde-reviewer",
+    });
+    transaction.insertNdeReport({
+      id: "postgres-nde-report", requestId: "postgres-nde-request", revision: "1", examinerUserId: "postgres-nde-examiner",
+      examinerOrganizationId: "org-nde", personnelQualificationReference: "RT LEVEL II", equipmentIds: ["postgres-rt-equipment"],
+      mediaFileIds: ["postgres-nde-media"], performedAt: now, conditions: { SOURCE_DISTANCE: "24 IN" }, indications: [], result: "accept",
+      evidenceFileIds: ["postgres-nde-file"], repairCycle: 1, state: "accepted", submittedAt: now,
+      submittedBy: "postgres-nde-examiner", reviewedAt: now, reviewedBy: "postgres-nde-reviewer",
+      reviewReason: "Persistent accepted NDE report.", version: 2,
+    });
+    transaction.insertPwhtCycle({
+      id: "postgres-pwht", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-PWHT-001",
+      procedureDocumentRevisionId: "postgres-pwht-procedure", weldIds: ["postgres-weld"], heatingRate: "300", coolingRate: "300",
+      soakTemperatureMinimum: "1100", soakTemperatureMaximum: "1150", soakDurationMinutes: "60",
+      thermocouples: [{ thermocoupleId: "TC-1", location: "CENTERLINE", minimumTemperature: "1110", maximumTemperature: "1140", withinTolerance: true }],
+      equipmentIds: ["postgres-pwht-equipment"], chartFileId: "postgres-pwht-chart", evidenceFileIds: ["postgres-pwht-file"],
+      interruptions: [], result: "pass", state: "accepted", performedAt: now, performedBy: "postgres-pwht-operator",
+      reviewedAt: now, reviewedBy: "postgres-pwht-reviewer", reviewReason: "Persistent accepted PWHT cycle.", version: 2,
+    });
+    transaction.insertTestPackage({
+      id: "postgres-test-package", businessScopeOrganizationId: "org-epv", projectId: project.id, number: "PG-TP-001",
+      testType: "pressure", completionBoundaryId: "postgres-boundary", governingDocumentRevisionIds: ["postgres-test-procedure"],
+      drawingRevisionIds: ["postgres-drawing-revision"], testMedium: "WATER", targetPressure: "225", holdDurationMinutes: "30",
+      hazardPermitReferences: ["PG-JHA-001"], prerequisiteReferences: ["PG-LINE-WALK"], blindValveInstrumentReferences: ["PG-BLIND-LIST"],
+      gaugeEquipmentIds: ["postgres-gauge"], participantUserIds: ["postgres-test-director"], witnessUserIds: ["postgres-owner-witness"],
+      evidenceFileIds: ["postgres-test-file"], result: "pass", deficiencyNcrIds: [], restorationConfirmation: "Restored.",
+      state: "accepted", performedAt: now, performedBy: "postgres-test-director", reviewedAt: now,
+      reviewedBy: "postgres-test-reviewer", reviewReason: "Persistent accepted test.", version: 3,
+      createdAt: now, createdBy: "postgres-test-manager", updatedAt: now, updatedBy: "postgres-test-reviewer",
+    });
+    transaction.insertFabricationAssembly({
+      id: "postgres-fabrication-assembly", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      number: "PG-SP-001", revision: "0", assemblyType: "pipe_spool", parentRevisionId: null,
+      revisionReason: "Persistent fabrication spool revision.", sourceSystem: "model_import", sourceVersion: "MODEL-7",
+      sourceSha256: "e".repeat(64), systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-PIPING",
+      completionBoundaryId: "postgres-boundary", drawingRevisionIds: ["postgres-drawing-revision"],
+      materialItemIds: ["postgres-material"], weldIds: ["postgres-weld"], requiredInspectionIds: [],
+      bomLines: [{ lineKey: "PG-BOM-001", materialItemId: "postgres-material", description: "NPS 2 pipe",
+        quantity: "1", unitCode: "EA", pieceMark: "PG-P-001" }],
+      cutLines: [{ lineKey: "PG-CUT-001", bomLineKey: "PG-BOM-001", materialItemId: "postgres-material",
+        cutLength: "24", lengthUnitCode: "IN", cutAngleDegrees: "0", bevelCode: "BW-V", quantity: "1" }],
+      state: "in_fabrication", submittedAt: now, submittedBy: "postgres-fabrication-planner", reviewedAt: now,
+      reviewedBy: "postgres-fabrication-engineer", reviewReason: "Persistent engineering approval.", releasedAt: now,
+      releasedBy: "postgres-fabrication-release", acceptedAt: null, acceptedBy: null, version: 5,
+      createdAt: now, createdBy: "postgres-fabrication-planner", updatedAt: now, updatedBy: "postgres-fabricator",
+    });
+    transaction.insertFabricationTraveler({
+      id: "postgres-fabrication-traveler", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      assemblyRevisionId: "postgres-fabrication-assembly", number: "PG-TRV-001", revision: "0",
+      operations: [{ operationKey: "CUT", sequence: 10, operationType: "cut", workCenterCode: "PG-SAW",
+        requiredQualificationCodes: ["FABRICATOR"], procedureDocumentRevisionId: "postgres-drawing-revision",
+        holdPoint: true, materialItemIds: ["postgres-material"], weldIds: [], plannedHours: "1.5",
+        instructions: "Cut and preserve material identity." }], state: "on_hold", issuedAt: now,
+      issuedBy: "postgres-fabrication-release", version: 4, createdAt: now,
+      createdBy: "postgres-fabrication-planner", updatedAt: now, updatedBy: "postgres-fabricator",
+    });
+    transaction.insertFabricationExecutionEvent({
+      id: "postgres-fabrication-event", sequence: 2, businessScopeOrganizationId: "org-epv", projectId: project.id,
+      assemblyRevisionId: "postgres-fabrication-assembly", travelerId: "postgres-fabrication-traveler",
+      operationKey: "CUT", eventType: "hold", result: "observed", quantity: "1", unitCode: "EA",
+      observations: { REASON: "DIMENSIONAL_HOLD" }, evidenceFileIds: ["postgres-fabrication-evidence"],
+      performedAt: now, performedBy: "postgres-fabricator", version: 1,
+    });
+    transaction.insertCncMachineProfile({
+      id: "postgres-cnc-profile", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      workCenterCode: "PG-SAW", revision: "1", parentRevisionId: null, revisionReason: "Persistent machine profile.",
+      processTypes: ["saw"], stockFormCodes: ["PIPE"], supportedOperationTypes: ["cut"],
+      supportedFeatureCodes: ["STRAIGHT_CUT"], unitCode: "IN", coordinateSystemCode: "XYZ_RIGHT_HAND",
+      maximumLength: "240", maximumWidth: "24", maximumThickness: "4", postprocessorName: "Machine-neutral package",
+      postprocessorVersion: "1.0", effectiveFrom: now, effectiveTo: null, state: "approved", reviewedAt: now,
+      reviewedBy: "postgres-cnc-profile-authority", reviewReason: "Persistent profile approval.", version: 2,
+      createdAt: now, createdBy: "postgres-cnc-programmer", updatedAt: now, updatedBy: "postgres-cnc-profile-authority",
+    });
+    transaction.insertCncProgram({
+      id: "postgres-cnc-program", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      number: "PG-CNC-001", revision: "0", parentRevisionId: null, revisionReason: "Persistent machine-neutral job.",
+      processType: "saw", sourceFormat: "machine_neutral_json", sourceVersion: "1.0", sourceSha256: "a".repeat(64),
+      sourceFileId: "postgres-fabrication-evidence", sourceDocumentRevisionId: "postgres-drawing-revision",
+      assemblyRevisionId: "postgres-fabrication-assembly", travelerId: "postgres-fabrication-traveler",
+      travelerOperationKey: "CUT", machineProfileRevisionId: "postgres-cnc-profile", materialItemId: "postgres-material",
+      pieceMark: "PG-P-001", quantity: "1", stock: { formCode: "PIPE", unitCode: "IN", length: "24",
+        width: "2.5", thickness: "0.154", diameter: "2.5" }, coordinateSystemCode: "XYZ_RIGHT_HAND",
+      operations: [{ operationKey: "CUT-10", sequence: 10, operationType: "cut", featureCode: "STRAIGHT_CUT",
+        x: "0", y: "0", z: "0", length: "24", width: "2.5", depth: "0.154", diameter: "2.5",
+        angleDegrees: "0", toolCode: null, instruction: "Cut and retain material identity." }],
+      validationRuleVersion: "cnc-validation-v1", validationFindings: [], warningDispositions: {},
+      normalizedPackageJson: "{\"schema\":\"eiep-machine-neutral-v1\"}", normalizedPackageSha256: "b".repeat(64),
+      releasedArtifactJson: "{\"controlBoundary\":\"NO_DIRECT_MACHINE_CONTROL\"}", releasedArtifactSha256: "c".repeat(64),
+      state: "execution_recorded", submittedAt: now, submittedBy: "postgres-cnc-programmer", reviewedAt: now,
+      reviewedBy: "postgres-cnc-technical-authority", reviewReason: "Persistent technical approval.", releasedAt: now,
+      releasedBy: "postgres-cnc-release-authority", releaseReason: "Persistent controlled release.", version: 5,
+      createdAt: now, createdBy: "postgres-cnc-programmer", updatedAt: now, updatedBy: "postgres-cnc-operator",
+    });
+    transaction.insertCncExecution({
+      id: "postgres-cnc-execution", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      programRevisionId: "postgres-cnc-program", releasedArtifactSha256: "c".repeat(64), workCenterCode: "PG-SAW",
+      machineIdentifier: "PG-SAW-A", operatorUserId: "postgres-cnc-operator", startedAt: now, completedAt: now,
+      actualQuantity: "1", scrapQuantity: "0", producedMaterialItemIds: [], remnantMaterialItemIds: [],
+      evidenceFileIds: ["postgres-fabrication-evidence"], exceptionNcrIds: [], result: "complete", state: "submitted",
+      reviewedAt: null, reviewedBy: null, reviewReason: null, version: 1, createdAt: now,
+      createdBy: "postgres-cnc-operator", updatedAt: now, updatedBy: "postgres-cnc-operator",
+    });
+    transaction.insertEngineeringRegisterItem({
+      id: "postgres-engineering-item", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      registerType: "equipment", tag: "PG-P-101", revision: "0", parentRevisionId: null,
+      revisionReason: "Persistent engineering register fixture.", title: "Persistent transfer pump",
+      disciplineCode: "MECH", systemCode: "SYS-01", areaCode: "AREA-01", workPackageCode: "WP-01",
+      responsibleOrganizationId: "org-epv", documentRevisionIds: ["postgres-drawing-revision"],
+      relatedItemRevisionIds: [], attributes: { SERVICE: "TRANSFER" }, plannedIssueDate: now,
+      forecastIssueDate: now, actualIssueDate: now, validationRuleVersion: "engineering-register-v1",
+      validationFindings: [], canonicalSha256: "e".repeat(64), state: "approved", submittedAt: now,
+      submittedBy: "postgres-engineering-author", reviewedAt: now, reviewedBy: "postgres-engineering-authority",
+      reviewReason: "Persistent independent engineering approval.", version: 3, createdAt: now,
+      createdBy: "postgres-engineering-author", updatedAt: now, updatedBy: "postgres-engineering-authority",
+    });
+    transaction.insertCollaborationImport({
+      id: "postgres-collaboration-import", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      provider: "bluebeam_export", providerProduct: "Bluebeam Revu Studio export", providerProjectId: "PG-BB-PROJECT",
+      providerSessionId: "PG-BB-SESSION", sourceFileId: "postgres-bluebeam-file", sourceVersion: "BB-EXPORT-1",
+      sourceSha256: "c".repeat(64), canonicalSha256: "d".repeat(64), schemaVersion: 1,
+      mappingVersion: "PG-BB-MAP-1", idempotencyKey: "PG-BB-IMPORT-1",
+      documentMappings: [{ providerDocumentId: "PG-BB-DOC", documentRevisionId: "postgres-drawing-revision" }],
+      authorMappings: [{ providerAuthorId: "PG-BB-AUTHOR", userAccountId: "postgres-designer", organizationId: "org-epv" }],
+      statusMappings: [{ providerStatusCode: "Accepted", evidenceStatus: "closed_claim" }], sourceItems: [],
+      previewIssues: [], committedItemIds: ["postgres-collaboration-item"], state: "committed",
+      previewedAt: now, previewedBy: "postgres-collaboration-previewer", committedAt: now,
+      committedBy: "postgres-collaboration-committer", version: 2,
+    });
+    transaction.insertCollaborationItem({
+      id: "postgres-collaboration-item", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      importId: "postgres-collaboration-import", provider: "bluebeam_export", providerProjectId: "PG-BB-PROJECT",
+      providerSessionId: "PG-BB-SESSION", providerItemId: "PG-BB-MARKUP", providerDocumentId: "PG-BB-DOC",
+      sourceVersion: "BB-EXPORT-1", sourceSha256: "c".repeat(64), documentRevisionId: "postgres-drawing-revision",
+      parentItemId: null, itemType: "markup", pageNumber: 2,
+      region: { x: "0.1", y: "0.2", width: "0.3", height: "0.1", units: "normalized" },
+      authorUserId: "postgres-designer", authorOrganizationId: "org-epv", providerStatusCode: "Accepted",
+      evidenceStatus: "closed_claim", subject: "Persistent markup", body: "Persistent collaboration evidence.",
+      appearance: "cloud:red", sourceCreatedAt: now, sourceUpdatedAt: now, state: "accepted", reviewedAt: now,
+      reviewedBy: "postgres-collaboration-reviewer", reviewReason: "Persistent collaboration evidence reviewed.",
+      version: 2, createdAt: now, createdBy: "postgres-collaboration-committer",
+    });
+    transaction.insertCollaborationReconciliation({
+      id: "postgres-collaboration-reconciliation", businessScopeOrganizationId: "org-epv", projectId: project.id,
+      importId: "postgres-collaboration-import", code: "unsupported_content", sourceObjectId: "PG-BB-MARKUP-2",
+      field: "unsupportedContentCodes", detail: "Unsupported provider content type: calibration.", state: "resolved",
+      resolution: "Mapped through an independently reviewed replacement export.", resolvedAt: now,
+      resolvedBy: "postgres-integration-authority", version: 2, createdAt: now,
+      createdBy: "postgres-collaboration-previewer",
+    });
+  });
   await store.close();
 
   store = await PostgresFoundationStore.connect(connectionString);
   const persisted = await store.transaction((transaction) => ({
+    applicationIdentityBootstrap: transaction.applicationIdentityBootstrapState(),
     project: transaction.projectById(project.id),
     audits: transaction.auditForProject(project.id),
     exportJob: transaction.exportJobById(queuedExport.id),
@@ -89,7 +376,37 @@ try {
     mtrReviews: transaction.mtrReviewsForMaterial("postgres-material"),
     movements: transaction.materialMovementsForItem("postgres-material"),
     controlledReport: transaction.controlledReportById(persistentReport.id),
+    estimate: transaction.estimateById(persistentEstimate.estimate.id),
+    estimateRevision: transaction.estimateRevisionById(persistentEstimateRevision.id),
+    estimateLines: transaction.estimateLines(persistentEstimateRevision.id),
+    controlBaseline: transaction.projectControlBaselineById("postgres-control-baseline"),
+    controlsPolicy: transaction.projectControlsAuthorityPolicyById("postgres-controls-policy"),
+    schedule: transaction.scheduleProgramById("postgres-schedule"),
+    scheduleRevision: transaction.scheduleRevisionById("postgres-schedule-revision"),
+    weldingProcedure: transaction.weldingProcedureById("postgres-wps"),
+    welderQualification: transaction.welderQualificationById("postgres-wpq"),
+    weld: transaction.weldById("postgres-weld"),
+    ndeRequest: transaction.ndeRequestById("postgres-nde-request"),
+    ndeReport: transaction.ndeReportById("postgres-nde-report"),
+    pwhtCycle: transaction.pwhtCycleById("postgres-pwht"),
+    testPackage: transaction.testPackageById("postgres-test-package"),
+    fabricationAssembly: transaction.fabricationAssemblyById("postgres-fabrication-assembly"),
+    fabricationTraveler: transaction.fabricationTravelerForAssembly("postgres-fabrication-assembly"),
+    fabricationEvents: transaction.fabricationExecutionEvents("postgres-fabrication-traveler"),
+    cncProfile: transaction.cncMachineProfileById("postgres-cnc-profile"),
+    cncProgram: transaction.cncProgramById("postgres-cnc-program"),
+    cncExecution: transaction.cncExecutionForProgram("postgres-cnc-program"),
+    engineeringItem: transaction.engineeringRegisterItemById("postgres-engineering-item"),
+    collaborationImport: transaction.collaborationImportById("postgres-collaboration-import"),
+    collaborationItem: transaction.collaborationItemById("postgres-collaboration-item"),
+    collaborationReconciliation: transaction.collaborationReconciliationById("postgres-collaboration-reconciliation"),
   }));
+  assert.equal(persisted.applicationIdentityBootstrap.identityAccounts.length, 2);
+  assert.equal(persisted.applicationIdentityBootstrap.externalIdentities.length, 2);
+  assert.equal(persisted.applicationIdentityBootstrap.managedAccessAssignments.length, 2);
+  assert.equal(persisted.applicationIdentityBootstrap.audits.filter(
+    (event) => event.action === "identity.bootstrap_completed",
+  ).length, 1);
   assert.equal(persisted.project?.number, "PG-001");
   assert.ok(persisted.project?.createdAt instanceof Date);
   assert.ok(persisted.audits.some((event) => event.action === "project.created"));
@@ -98,6 +415,48 @@ try {
   assert.equal(persisted.mtrReviews[0]?.decision, "accepted");
   assert.equal(persisted.movements[0]?.movementType, "received");
   assert.equal(persisted.controlledReport?.formCode, "FORM-PRJ-001");
+  assert.equal(persisted.estimate?.number, "PG-EST-001");
+  assert.equal(persisted.estimateRevision?.state, "under_review");
+  assert.equal(persisted.estimateRevision?.totals.finalPrice, "845.33");
+  assert.equal(persisted.estimateLines[0]?.id, persistentEstimateLine.id);
+  assert.equal(persisted.estimateLines[0]?.calculation.totalCost, "665.00");
+  assert.equal(persisted.controlBaseline?.currentBudgetAmount, "700.00");
+  assert.ok(persisted.controlBaseline?.periodStart instanceof Date);
+  assert.equal(persisted.controlsPolicy?.standardChangeApprovalLimit, "1000.00");
+  assert.equal(persisted.schedule?.currentRevisionId, persisted.scheduleRevision?.id);
+  assert.ok(persisted.scheduleRevision?.dataDate instanceof Date);
+  assert.equal(persisted.weldingProcedure?.number, "PG-WPS-001");
+  assert.ok(persisted.weldingProcedure?.effectiveFrom instanceof Date);
+  assert.ok(persisted.welderQualification?.validTo instanceof Date);
+  assert.equal(persisted.weld?.events[0]?.repairCycle, 1);
+  assert.ok(persisted.weld?.events[0]?.performedAt instanceof Date);
+  assert.equal(persisted.ndeRequest?.repairCycle, persisted.ndeReport?.repairCycle);
+  assert.ok(persisted.ndeRequest?.dueAt instanceof Date);
+  assert.equal(persisted.pwhtCycle?.thermocouples[0]?.withinTolerance, true);
+  assert.ok(persisted.pwhtCycle?.performedAt instanceof Date);
+  assert.equal(persisted.testPackage?.restorationConfirmation, "Restored.");
+  assert.ok(persisted.testPackage?.performedAt instanceof Date);
+  assert.equal(persisted.fabricationAssembly?.sourceVersion, "MODEL-7");
+  assert.ok(persisted.fabricationAssembly?.releasedAt instanceof Date);
+  assert.equal(persisted.fabricationTraveler?.operations[0]?.holdPoint, true);
+  assert.ok(persisted.fabricationTraveler?.issuedAt instanceof Date);
+  assert.equal(persisted.fabricationEvents[0]?.eventType, "hold");
+  assert.ok(persisted.fabricationEvents[0]?.performedAt instanceof Date);
+  assert.equal(persisted.cncProfile?.supportedFeatureCodes[0], "STRAIGHT_CUT");
+  assert.ok(persisted.cncProfile?.effectiveFrom instanceof Date);
+  assert.equal(persisted.cncProgram?.releasedArtifactSha256, "c".repeat(64));
+  assert.equal(persisted.cncProgram?.operations[0]?.operationType, "cut");
+  assert.ok(persisted.cncProgram?.releasedAt instanceof Date);
+  assert.equal(persisted.cncExecution?.machineIdentifier, "PG-SAW-A");
+  assert.ok(persisted.cncExecution?.completedAt instanceof Date);
+  assert.equal(persisted.engineeringItem?.attributes.SERVICE, "TRANSFER");
+  assert.ok(persisted.engineeringItem?.actualIssueDate instanceof Date);
+  assert.equal(persisted.collaborationImport?.providerSessionId, "PG-BB-SESSION");
+  assert.ok(persisted.collaborationImport?.committedAt instanceof Date);
+  assert.equal(persisted.collaborationItem?.documentRevisionId, "postgres-drawing-revision");
+  assert.ok(persisted.collaborationItem?.sourceUpdatedAt instanceof Date);
+  assert.equal(persisted.collaborationReconciliation?.state, "resolved");
+  assert.ok(persisted.collaborationReconciliation?.resolvedAt instanceof Date);
 
   const claim = {
     interfaceCodes: new Set(["export.worker"]), limit: 1, now,
@@ -174,7 +533,7 @@ try {
 
   const finalHealth = await store.health();
   assert.ok(finalHealth.repositoryRevision >= 4);
-  assert.ok(finalHealth.repositoryEntityCount >= representativeRecordCount + 6);
+  assert.ok(finalHealth.repositoryEntityCount >= representativeRecordCount + 10);
   await store.close();
   store = await PostgresFoundationStore.connect(connectionString, "eiep_runtime");
   const leastPrivilegeHealth = await store.health();
@@ -187,7 +546,7 @@ try {
   store = await PostgresFoundationStore.connect(connectionString, "eiep_job_worker");
   assert.equal((await store.health()).currentUser, "eiep_job_worker");
   assert.equal((await store.transaction((transaction) => transaction.projectById(project.id)))?.version, 2);
-  process.stdout.write("PostgreSQL record-normalized restart, typed hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
+  process.stdout.write("PostgreSQL record-normalized restart, estimating/project-controls/execution-discipline/fabrication/CNC/engineering/collaboration hydration, rollback, atomic outbox, concurrency, and competing lease checks passed.\n");
 } finally {
   await store.close();
 }

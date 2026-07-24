@@ -108,6 +108,24 @@ test("FR-PRJ-001, FR-PRJ-003, FR-DOC-001-004, FR-AUD-001-003 / AC-03-04: control
   );
   assert.equal(current?.id, releasedB.id);
   assert.equal(current?.revision, "B");
+  const candidates = await service.currentDocumentRevisionCandidates(
+    context("field-reader", "standard"),
+    [assignment("current-catalog", "field-reader", ["document.read_current"], scope(project.id))],
+    project.id,
+  );
+  assert.deepEqual(candidates, [{
+    documentId: document.id,
+    documentNumber: "DWG-100",
+    documentTitle: "Controlled drawing",
+    revisionId: releasedB.id,
+    revision: "B",
+    sourceFilename: "file-b.pdf",
+  }]);
+  assert.deepEqual(await service.currentDocumentRevisionCandidates(
+    context("other-reader", "standard"),
+    [assignment("other-current-catalog", "other-reader", ["document.read_current"], scope("other-project"))],
+    project.id,
+  ), []);
 
   const history = await service.auditHistory(
     context("auditor", "mfa"),

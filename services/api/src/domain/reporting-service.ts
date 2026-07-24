@@ -7,7 +7,7 @@ import type {
   MvpFormCode,
   RoleAssignment,
 } from "@eiep/shared-types";
-import { projectReadinessBlockers, requireAuthorization } from "@eiep/rules-engine";
+import { authorize, projectReadinessBlockers, requireAuthorization } from "@eiep/rules-engine";
 import { NotFoundError, ValidationError } from "./errors.js";
 import type { FoundationStore, FoundationTransaction } from "./foundation-store.js";
 import { authoritativeProjectReadiness } from "./authoritative-project-readiness.js";
@@ -60,6 +60,86 @@ export interface OperationalDashboard {
   readonly privilegedAudit: {
     readonly total: number;
     readonly recent: readonly Pick<AuditEvent, "id" | "occurredAt" | "actorUserId" | "action" | "objectType" | "objectId">[];
+  };
+}
+
+export type CommandCenterModule =
+  | "projects"
+  | "estimating"
+  | "controls"
+  | "procurement"
+  | "scheduling"
+  | "documents"
+  | "materials"
+  | "quality"
+  | "welding"
+  | "nde"
+  | "testing"
+  | "fabrication"
+  | "cnc"
+  | "engineering"
+  | "bluebeam"
+  | "turnover";
+
+export interface CommandCenterTask {
+  readonly id: string;
+  readonly module: CommandCenterModule;
+  readonly recordType: string;
+  readonly recordId: string;
+  readonly title: string;
+  readonly state: string;
+  readonly priority: "critical" | "high" | "medium" | "normal";
+  readonly dueAt: Date | null;
+  readonly overdue: boolean;
+  readonly action: string;
+  readonly version: number;
+}
+
+export interface CommandCenterModuleSummary {
+  readonly module: CommandCenterModule;
+  readonly label: string;
+  readonly total: number;
+  readonly open: number;
+  readonly attention: number;
+  readonly completed: number;
+  readonly progressPercent: number | null;
+}
+
+export interface CommandCenterSnapshot {
+  readonly generatedAt: Date;
+  readonly project: { readonly id: string; readonly number: string; readonly name: string; readonly state: string };
+  readonly metrics: {
+    readonly documentsCurrent: number;
+    readonly documentsTotal: number;
+    readonly materialsTracked: number;
+    readonly weldsComplete: number;
+    readonly weldsTotal: number;
+    readonly executionAccepted: number;
+    readonly executionTotal: number;
+    readonly openExceptions: number;
+    readonly scheduleProgressPercent: number | null;
+    readonly openTasks: number;
+  };
+  readonly tasks: readonly CommandCenterTask[];
+  readonly recentActivity: readonly {
+    readonly id: string;
+    readonly occurredAt: Date;
+    readonly actorUserId: string;
+    readonly action: string;
+    readonly module: CommandCenterModule;
+    readonly objectType: string;
+    readonly objectId: string;
+    readonly priorState: string | null;
+    readonly newState: string | null;
+  }[];
+  readonly activityVisible: boolean;
+  readonly modules: readonly CommandCenterModuleSummary[];
+  readonly schedule: {
+    readonly sourceRevisionIds: readonly string[];
+    readonly activityCount: number;
+    readonly completedActivities: number;
+    readonly lateActivities: number;
+    readonly progressPercent: number | null;
   };
 }
 
@@ -162,6 +242,36 @@ function countBy(values: readonly string[]): Readonly<Record<string, number>> {
 
 function ageDays(now: Date, createdAt: Date): number {
   return Math.max(0, Math.floor((now.getTime() - createdAt.getTime()) / 86_400_000));
+}
+
+function moduleForObjectType(objectType: string): CommandCenterModule {
+  const value = objectType.toLowerCase();
+  if (value.includes("cnc_")) return "cnc";
+  if (value.includes("engineering_register")) return "engineering";
+  if (value.includes("fabrication") || value.includes("traveler")) return "fabrication";
+  if (value.includes("estimate") || value.includes("proposal")) return "estimating";
+  if (value.includes("procurement") || value.includes("requisition") || value.includes("bid_package") || value.includes("commitment")) return "procurement";
+  if (value.includes("schedule")) return "scheduling";
+  if (value.includes("baseline") || value.includes("change") || value.includes("cost_entry") || value.includes("progress_claim")) return "controls";
+  if (value.includes("collaboration")) return "bluebeam";
+  if (value.includes("document")) return "documents";
+  if (value.includes("material") || value.includes("mtr") || value.includes("pmi")) return "materials";
+  if (value.includes("nde") || value.includes("pwht")) return "nde";
+  if (value.includes("weld") || value.includes("procedure") || value.includes("qualification")) return "welding";
+  if (value.includes("test_package") || value.includes("testing")) return "testing";
+  if (value.includes("ncr") || value.includes("nonconformance") || value.includes("punch") || value.includes("inspection")) return "quality";
+  if (value.includes("turnover") || value.includes("completion")) return "turnover";
+  return "projects";
+}
+
+function progressPercent(completed: number, total: number): number | null {
+  return total === 0 ? null : Math.round((completed / total) * 100);
+}
+
+function commandCenterPriority(dueAt: Date | null, now: Date, preferred: CommandCenterTask["priority"]): CommandCenterTask["priority"] {
+  if (dueAt && dueAt.getTime() < now.getTime()) return "critical";
+  if (dueAt && dueAt.getTime() <= now.getTime() + 7 * 86_400_000) return "high";
+  return preferred;
 }
 
 function printableHtml(input: {
@@ -301,6 +411,453 @@ export class ReportingService {
         requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
       }, now);
       return transaction.controlledReportsForProject(project.id);
+    });
+  }
+
+  public commandCenter(
+    context: AccessContext, assignments: readonly RoleAssignment[], projectId: string,
+  ): Promise<CommandCenterSnapshot> {
+    const now = this.clock();
+    return this.store.transaction((transaction) => {
+      const project = transaction.projectById(projectId);
+      if (!project) throw new NotFoundError();
+      requireAuthorization(context, assignments, {
+        action: "report.read",
+        resource: { organizationId: project.businessScopeOrganizationId, projectId: project.id, workPackageId: null, objectId: null },
+        requiredQualifications: [], forbiddenActorIds: [], minimumAssurance: "mfa",
+      }, now);
+
+      const permitted = (
+        action: string,
+        objectId: string | null,
+        requiredQualifications: readonly string[] = [],
+        forbiddenActorIds: readonly string[] = [],
+        minimumAssurance: AccessContext["assurance"] = "standard",
+        resourceProjectId: string | null = project.id,
+      ) => authorize(context, assignments, {
+        action,
+        resource: {
+          organizationId: project.businessScopeOrganizationId,
+          projectId: resourceProjectId,
+          workPackageId: null,
+          objectId,
+        },
+        requiredQualifications,
+        forbiddenActorIds,
+        minimumAssurance,
+      }, now).allowed;
+
+      const tasks: CommandCenterTask[] = [];
+      const addTask = (input: Omit<CommandCenterTask, "id" | "priority" | "overdue"> & {
+        readonly preferredPriority?: CommandCenterTask["priority"];
+        readonly authorized: boolean;
+      }) => {
+        if (!input.authorized) return;
+        const { authorized: _authorized, preferredPriority = "normal", ...task } = input;
+        tasks.push({
+          ...task,
+          id: `${task.module}:${task.recordType}:${task.recordId}:${task.action}`,
+          priority: commandCenterPriority(task.dueAt, now, preferredPriority),
+          overdue: task.dueAt !== null && task.dueAt.getTime() < now.getTime(),
+        });
+      };
+
+      const readiness = authoritativeProjectReadiness(transaction, project, now);
+      const readinessBlockers = projectReadinessBlockers(readiness);
+      if (project.state === "draft") addTask({
+        module: "projects", recordType: "project", recordId: project.id,
+        title: readinessBlockers.length === 0 ? `Activate ${project.number}` : `Resolve ${readinessBlockers.length} project readiness blocker(s)`,
+        state: readinessBlockers.length === 0 ? "ready_for_activation" : "blocked", dueAt: null,
+        action: "project.activate", version: project.version, preferredPriority: "high",
+        authorized: permitted("project.activate", project.id, [], [], "step-up"),
+      });
+
+      const documents = transaction.documentsForProject(project.id)
+        .filter((document) => permitted("document.read_current", document.id));
+      const documentRevisions = documents.flatMap((document) => transaction.revisionsForDocument(document.id)
+        .filter((revision) => revision.id === document.currentRevisionId || permitted("document.read_history", document.id))
+        .map((revision) => ({ document, revision })));
+      const documentReviewCandidates = documents.flatMap((document) => transaction.revisionsForDocument(document.id)
+        .filter((revision) => revision.state === "under_review")
+        .map((revision) => ({ document, revision })));
+      for (const { document, revision } of documentReviewCandidates) {
+        addTask({ module: "documents", recordType: "document_revision", recordId: revision.id,
+          title: `Review ${document.number} revision ${revision.revision}`, state: revision.state, dueAt: null,
+          action: "document.approve", version: revision.version, preferredPriority: "high",
+          authorized: permitted("document.approve", document.id, [], [revision.createdBy], "step-up") });
+      }
+
+      const materials = transaction.materialsForProject(project.id)
+        .filter((material) => permitted("material.read", material.id));
+      for (const material of materials.filter((candidate) => candidate.state === "received_pending")) {
+        addTask({ module: "materials", recordType: "material_item", recordId: material.id,
+          title: `Review material ${material.identifier} for release`, state: material.state, dueAt: null,
+          action: "material.release.approve", version: material.version, preferredPriority: "medium",
+          authorized: permitted("material.release.approve", material.id, ["material_release_authority"], [material.createdBy], "step-up") });
+      }
+
+      const ncrs = transaction.ncrForProject(project.id).filter((ncr) => permitted("ncr.read", ncr.id));
+      const punches = transaction.punchForProject(project.id).filter((punch) => permitted("punch.read", punch.id));
+      for (const punch of punches.filter((candidate) => !["closed", "transferred"].includes(candidate.state))) {
+        if (punch.ownerUserId === context.userId && punch.state === "open") addTask({
+          module: "quality", recordType: "punch_item", recordId: punch.id, title: `Complete punch ${punch.number}`,
+          state: punch.state, dueAt: punch.targetAt, action: "punch.update.owned", version: punch.version,
+          preferredPriority: punch.priority === "low" ? "normal" : punch.priority,
+          authorized: permitted("punch.update.owned", punch.id),
+        });
+        if (punch.state === "ready_for_verification") addTask({
+          module: "quality", recordType: "punch_item", recordId: punch.id, title: `Verify punch ${punch.number}`,
+          state: punch.state, dueAt: punch.targetAt, action: "punch.verify", version: punch.version, preferredPriority: "high",
+          authorized: permitted("punch.verify", punch.id, ["punch_verifier"], [punch.ownerUserId, punch.createdBy], "step-up"),
+        });
+      }
+      for (const ncr of ncrs.filter((candidate) => candidate.state === "reinspection_complete")) addTask({
+        module: "quality", recordType: "nonconformance", recordId: ncr.id, title: `Close NCR ${ncr.number}`,
+        state: ncr.state, dueAt: null, action: "ncr.close", version: ncr.version, preferredPriority: "high",
+        authorized: permitted("ncr.close", ncr.id, ["ncr_close_authority"], ncr.dispositionProposedBy ? [ncr.dispositionProposedBy] : [], "step-up"),
+      });
+
+      const linkedEstimates = transaction.estimatesForOrganization(project.businessScopeOrganizationId)
+        .filter((estimate) => transaction.estimateHandoffs(estimate.id).some((handoff) => handoff.projectId === project.id))
+        .filter((estimate) => permitted("estimate.read", estimate.id, [], [], "standard", null));
+
+      const baselines = transaction.projectControlBaselines(project.id).filter((record) => permitted("controls.read", record.id));
+      const changes = transaction.projectChangeRequests(project.id).filter((record) => permitted("controls.read", record.id));
+      const costEntries = transaction.projectCostEntries(project.id).filter((record) => permitted("controls.read", record.id));
+      const progressClaims = transaction.projectProgressClaims(project.id).filter((record) => permitted("controls.read", record.id));
+      for (const baseline of baselines.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "controls", recordType: "project_control_baseline", recordId: baseline.id,
+        title: `Review baseline ${baseline.number} revision ${baseline.revision}`, state: baseline.state, dueAt: baseline.periodStart,
+        action: "controls.baseline.approve", version: baseline.version, preferredPriority: "high",
+        authorized: permitted("controls.baseline.approve", baseline.id, ["project_controls_authority"], [baseline.createdBy, baseline.submittedBy ?? baseline.createdBy], "step-up") });
+      for (const entry of costEntries.filter((candidate) => candidate.state === "submitted")) addTask({
+        module: "controls", recordType: "project_cost_entry", recordId: entry.id, title: `Review ${entry.entryType} cost entry`,
+        state: entry.state, dueAt: entry.periodFinish, action: "controls.cost.accept", version: entry.version, preferredPriority: "medium",
+        authorized: permitted("controls.cost.accept", entry.id, ["project_controls_authority"], [entry.submittedBy], "step-up") });
+      for (const claim of progressClaims.filter((candidate) => candidate.state === "submitted")) addTask({
+        module: "controls", recordType: "project_progress_claim", recordId: claim.id, title: "Review submitted progress claim",
+        state: claim.state, dueAt: claim.periodFinish, action: "controls.progress.accept", version: claim.version, preferredPriority: "medium",
+        authorized: permitted("controls.progress.accept", claim.id, ["project_controls_authority"], [claim.submittedBy], "step-up") });
+
+      const requisitions = transaction.procurementRequisitions(project.id).filter((record) => permitted("controls.read", record.id));
+      const bidPackages = transaction.procurementBidPackages(project.id).filter((record) => permitted("controls.read", record.id));
+      const commitments = transaction.procurementCommitments(project.id).filter((record) => permitted("controls.read", record.id));
+      for (const requisition of requisitions.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "procurement", recordType: "procurement_requisition", recordId: requisition.id,
+        title: `Review requisition ${requisition.number}`, state: requisition.state,
+        dueAt: requisition.items.map((item) => item.needBy).sort((left, right) => left.getTime() - right.getTime())[0] ?? null,
+        action: "procurement.requisition.approve", version: requisition.version, preferredPriority: "high",
+        authorized: permitted("procurement.requisition.approve", requisition.id, ["procurement_authority"], [requisition.createdBy, requisition.submittedBy ?? requisition.createdBy], "step-up") });
+      for (const bidPackage of bidPackages.filter((candidate) => candidate.state === "comparison")) addTask({
+        module: "procurement", recordType: "procurement_bid_package", recordId: bidPackage.id,
+        title: `Complete commercial comparison ${bidPackage.number}`, state: bidPackage.state,
+        dueAt: bidPackage.offers.map((offer) => offer.validUntil).sort((left, right) => left.getTime() - right.getTime())[0] ?? null,
+        action: "procurement.bid.recommend", version: bidPackage.version, preferredPriority: "high",
+        authorized: permitted("procurement.bid.recommend", bidPackage.id, ["procurement_authority"], [], "mfa") });
+      for (const commitment of commitments.filter((candidate) => candidate.state === "exception")) addTask({
+        module: "procurement", recordType: "procurement_commitment", recordId: commitment.id,
+        title: `Resolve procurement exception ${commitment.purchaseOrderReference}`, state: commitment.state,
+        dueAt: commitment.statusEvents.at(-1)?.forecastAt ?? commitment.statusEvents.at(-1)?.promisedAt ?? null,
+        action: "procurement.expedite.manage", version: commitment.version, preferredPriority: "critical",
+        authorized: permitted("procurement.expedite.manage", commitment.id, [], [], "mfa") });
+
+      const schedules = transaction.schedulePrograms(project.id).filter((schedule) => permitted("schedule.read", schedule.id));
+      const scheduleRevisions = schedules.flatMap((schedule) => transaction.scheduleRevisions(schedule.id)
+        .map((revision) => ({ schedule, revision })));
+      for (const { revision } of scheduleRevisions.filter(({ revision }) => revision.state === "under_review")) addTask({
+        module: "scheduling", recordType: "schedule_revision", recordId: revision.id,
+        title: `Review schedule revision ${revision.revision}`, state: revision.state, dueAt: revision.dataDate,
+        action: "schedule.approve", version: revision.version, preferredPriority: "high",
+        authorized: permitted("schedule.approve", revision.id, ["scheduling_authority"], [revision.createdBy, revision.submittedBy ?? revision.createdBy], "step-up") });
+      const currentScheduleRevisions = schedules.flatMap((schedule) => {
+        const revision = schedule.currentRevisionId ? transaction.scheduleRevisionById(schedule.currentRevisionId) : null;
+        return revision ? [{ schedule, revision }] : [];
+      });
+      const scheduleActivities = currentScheduleRevisions.flatMap(({ schedule, revision }) => revision.activities.map((activity) => ({ schedule, revision, activity })));
+      const acceptedProgress = scheduleActivities.map(({ activity }) => Math.max(0, Math.min(100, Number(activity.acceptedProgressPercent))));
+      const completedScheduleActivities = scheduleActivities.filter(({ activity }) => activity.actualFinish !== null || Number(activity.acceptedProgressPercent) >= 100).length;
+      const lateScheduleActivities = scheduleActivities.filter(({ activity }) => activity.plannedFinish.getTime() < now.getTime()
+        && activity.actualFinish === null && Number(activity.acceptedProgressPercent) < 100);
+      for (const { schedule, revision, activity } of lateScheduleActivities) addTask({
+        module: "scheduling", recordType: "schedule_activity", recordId: `${revision.id}:${activity.activityKey}`,
+        title: `Recover late activity ${activity.displayId}: ${activity.name}`, state: "late", dueAt: activity.plannedFinish,
+        action: "schedule.manage", version: revision.version, preferredPriority: "critical",
+        authorized: permitted("schedule.manage", schedule.id, [], [], "mfa") });
+
+      const procedures = transaction.weldingProcedures(project.id).filter((record) => permitted("execution.read", record.id));
+      const qualifications = transaction.welderQualifications(project.id).filter((record) => permitted("execution.read", record.id));
+      const welds = transaction.welds(project.id).filter((record) => permitted("execution.read", record.id));
+      const ndeRequests = transaction.ndeRequests(project.id).filter((record) => permitted("execution.read", record.id));
+      const pwhtCycles = transaction.pwhtCycles(project.id).filter((record) => permitted("execution.read", record.id));
+      const testPackages = transaction.testPackages(project.id).filter((record) => permitted("execution.read", record.id));
+      for (const procedure of procedures.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "welding", recordType: "welding_procedure", recordId: procedure.id,
+        title: `Review ${procedure.procedureType.toUpperCase()} ${procedure.number} revision ${procedure.revision}`,
+        state: procedure.state, dueAt: procedure.effectiveFrom, action: "welding.procedure.approve", version: procedure.version, preferredPriority: "high",
+        authorized: permitted("welding.procedure.approve", procedure.id, ["welding_authority"], [procedure.submittedBy], "step-up") });
+      for (const qualification of qualifications.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "welding", recordType: "welder_qualification", recordId: qualification.id,
+        title: `Review welder qualification ${qualification.qualificationNumber}`, state: qualification.state,
+        dueAt: qualification.validTo, action: "welding.qualification.approve", version: qualification.version, preferredPriority: "high",
+        authorized: permitted("welding.qualification.approve", qualification.id, ["welding_authority"], [qualification.submittedBy, qualification.welderUserId], "step-up") });
+      for (const weld of welds.filter((candidate) => candidate.state === "ready_for_release")) addTask({
+        module: "welding", recordType: "weld_joint", recordId: weld.id, title: `Release weld ${weld.number}`,
+        state: weld.state, dueAt: null, action: "welding.release", version: weld.version, preferredPriority: "high",
+        authorized: permitted("welding.release", weld.id, ["welding_release_authority"],
+          weld.events.filter((event) => ["weld_pass", "repair_weld", "visual_examination"].includes(event.eventType)).map((event) => event.performedBy), "step-up") });
+      for (const request of ndeRequests.filter((candidate) => candidate.state === "requested")) addTask({
+        module: "nde", recordType: "nde_request", recordId: request.id, title: `Perform ${request.methodCode} for ${request.number}`,
+        state: request.state, dueAt: request.dueAt, action: "nde.perform", version: request.version, preferredPriority: "high",
+        authorized: permitted("nde.perform", request.id, [request.requiredPersonnelQualification], [], "mfa") });
+      for (const request of ndeRequests) for (const report of transaction.ndeReports(request.id).filter((candidate) => candidate.state === "submitted")) addTask({
+        module: "nde", recordType: "nde_report", recordId: report.id, title: `Review ${request.methodCode} report ${report.revision}`,
+        state: report.state, dueAt: request.dueAt, action: "nde.approve", version: report.version, preferredPriority: "high",
+        authorized: permitted("nde.approve", report.id, ["nde_acceptance_authority"], [report.examinerUserId, report.submittedBy], "step-up") });
+      for (const cycle of pwhtCycles.filter((candidate) => candidate.state === "submitted")) addTask({
+        module: "nde", recordType: "pwht_cycle", recordId: cycle.id, title: `Review PWHT cycle ${cycle.number}`,
+        state: cycle.state, dueAt: cycle.performedAt, action: "pwht.approve", version: cycle.version, preferredPriority: "high",
+        authorized: permitted("pwht.approve", cycle.id, ["pwht_acceptance_authority"], [cycle.performedBy], "step-up") });
+      for (const testPackage of testPackages.filter((candidate) => candidate.state === "submitted")) addTask({
+        module: "testing", recordType: "test_package", recordId: testPackage.id, title: `Review test package ${testPackage.number}`,
+        state: testPackage.state, dueAt: testPackage.performedAt, action: "testing.approve", version: testPackage.version, preferredPriority: "high",
+        authorized: permitted("testing.approve", testPackage.id, ["testing_acceptance_authority"], [testPackage.performedBy ?? testPackage.createdBy], "step-up") });
+
+      const fabricationAssemblies = transaction.fabricationAssemblies(project.id)
+        .filter((record) => permitted("fabrication.read", record.id));
+      const fabricationTravelers = transaction.fabricationTravelers(project.id)
+        .filter((traveler) => fabricationAssemblies.some((assembly) => assembly.id === traveler.assemblyRevisionId));
+      for (const assembly of fabricationAssemblies.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "fabrication", recordType: "fabrication_assembly_revision", recordId: assembly.id,
+        title: `Review fabrication ${assembly.number} revision ${assembly.revision}`, state: assembly.state, dueAt: null,
+        action: "fabrication.approve", version: assembly.version, preferredPriority: "high",
+        authorized: permitted("fabrication.approve", assembly.id, ["fabrication_engineering_authority"],
+          [assembly.createdBy, assembly.submittedBy ?? assembly.createdBy], "step-up") });
+      for (const assembly of fabricationAssemblies.filter((candidate) => candidate.state === "approved")) {
+        const traveler = fabricationTravelers.find((candidate) => candidate.assemblyRevisionId === assembly.id);
+        addTask({ module: "fabrication", recordType: traveler ? "fabrication_traveler" : "fabrication_assembly_revision",
+          recordId: traveler?.id ?? assembly.id,
+          title: traveler ? `Release traveler ${traveler.number} revision ${traveler.revision}` : `Create shop traveler for ${assembly.number}`,
+          state: traveler?.state ?? assembly.state, dueAt: null,
+          action: traveler ? "fabrication.release" : "fabrication.traveler.create", version: traveler?.version ?? assembly.version,
+          preferredPriority: "high",
+          authorized: traveler
+            ? permitted("fabrication.release", assembly.id, ["fabrication_release_authority"],
+              [assembly.createdBy, assembly.submittedBy ?? assembly.createdBy, assembly.reviewedBy ?? "", traveler.createdBy], "step-up")
+            : permitted("fabrication.traveler.create", assembly.id, [], [], "mfa") });
+      }
+      for (const traveler of fabricationTravelers.filter((candidate) => candidate.state === "on_hold")) {
+        const assembly = fabricationAssemblies.find((candidate) => candidate.id === traveler.assemblyRevisionId);
+        const events = transaction.fabricationExecutionEvents(traveler.id);
+        const heldOperation = traveler.operations.find((operation) => {
+          const lastControlEvent = events.filter((event) => event.operationKey === operation.operationKey
+            && ["hold", "release_hold"].includes(event.eventType)).at(-1);
+          return lastControlEvent?.eventType === "hold";
+        });
+        if (!assembly || !heldOperation) continue;
+        const operationActors = events.filter((event) => event.operationKey === heldOperation.operationKey).map((event) => event.performedBy);
+        addTask({ module: "fabrication", recordType: "fabrication_traveler_operation",
+          recordId: `${traveler.id}:${heldOperation.operationKey}`, title: `Release hold on ${traveler.number} · ${heldOperation.operationKey}`,
+          state: traveler.state, dueAt: null, action: "fabrication.hold.release", version: traveler.version, preferredPriority: "critical",
+          authorized: permitted("fabrication.hold.release", traveler.id, ["fabrication_hold_authority"], operationActors, "step-up") });
+      }
+      for (const assembly of fabricationAssemblies.filter((candidate) => candidate.state === "fabrication_complete")) {
+        const traveler = fabricationTravelers.find((candidate) => candidate.assemblyRevisionId === assembly.id);
+        const eventPerformers = traveler ? transaction.fabricationExecutionEvents(traveler.id).map((event) => event.performedBy) : [];
+        addTask({ module: "fabrication", recordType: "fabrication_assembly_revision", recordId: assembly.id,
+          title: `Accept completed fabrication ${assembly.number} revision ${assembly.revision}`, state: assembly.state, dueAt: null,
+          action: "fabrication.accept", version: assembly.version, preferredPriority: "high",
+          authorized: permitted("fabrication.accept", assembly.id, ["fabrication_quality_authority"],
+            [assembly.createdBy, assembly.submittedBy ?? "", assembly.reviewedBy ?? "", assembly.releasedBy ?? "",
+              traveler?.createdBy ?? "", ...eventPerformers], "step-up") });
+      }
+
+      const cncMachineProfiles = transaction.cncMachineProfiles(project.id)
+        .filter((record) => permitted("cnc.read", record.id));
+      const cncPrograms = transaction.cncPrograms(project.id)
+        .filter((record) => permitted("cnc.read", record.id));
+      const cncExecutions = transaction.cncExecutions(project.id)
+        .filter((execution) => cncPrograms.some((program) => program.id === execution.programRevisionId));
+      for (const profile of cncMachineProfiles.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "cnc", recordType: "cnc_machine_profile_revision", recordId: profile.id,
+        title: `Review machine profile ${profile.workCenterCode} revision ${profile.revision}`, state: profile.state, dueAt: profile.effectiveFrom,
+        action: "cnc.profile.approve", version: profile.version, preferredPriority: "high",
+        authorized: permitted("cnc.profile.approve", profile.id, ["cnc_profile_authority"], [profile.createdBy], "step-up") });
+      for (const program of cncPrograms.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "cnc", recordType: "cnc_program_revision", recordId: program.id,
+        title: `Review CNC program ${program.number} revision ${program.revision}`, state: program.state, dueAt: null,
+        action: "cnc.program.approve", version: program.version, preferredPriority: "high",
+        authorized: permitted("cnc.program.approve", program.id, ["cnc_technical_authority"],
+          [program.createdBy, program.submittedBy ?? program.createdBy], "step-up") });
+      for (const program of cncPrograms.filter((candidate) => candidate.state === "approved")) addTask({
+        module: "cnc", recordType: "cnc_program_revision", recordId: program.id,
+        title: `Release machine-neutral job ${program.number} revision ${program.revision}`, state: program.state, dueAt: null,
+        action: "cnc.job.release", version: program.version, preferredPriority: "high",
+        authorized: permitted("cnc.job.release", program.id, ["cnc_release_authority"],
+          [program.createdBy, program.submittedBy ?? "", program.reviewedBy ?? ""], "step-up") });
+      for (const program of cncPrograms.filter((candidate) => candidate.state === "released"
+        && !cncExecutions.some((execution) => execution.programRevisionId === candidate.id))) addTask({
+        module: "cnc", recordType: "cnc_program_revision", recordId: program.id,
+        title: `Execute released job ${program.number} revision ${program.revision}`, state: program.state, dueAt: null,
+        action: "cnc.execute", version: program.version, preferredPriority: "medium",
+        authorized: permitted("cnc.execute", program.id, [`CNC_${program.processType.toUpperCase()}_OPERATOR`], [], "mfa") });
+      for (const execution of cncExecutions.filter((candidate) => candidate.state === "submitted")) {
+        const program = cncPrograms.find((candidate) => candidate.id === execution.programRevisionId);
+        if (!program) continue;
+        addTask({ module: "cnc", recordType: "cnc_execution", recordId: execution.id,
+          title: `Reconcile CNC execution ${program.number} revision ${program.revision}`, state: execution.state, dueAt: execution.completedAt,
+          action: "cnc.execution.reconcile", version: execution.version, preferredPriority: "high",
+          authorized: permitted("cnc.execution.reconcile", execution.id, ["cnc_reconciliation_authority"],
+            [program.createdBy, program.submittedBy ?? "", program.reviewedBy ?? "", program.releasedBy ?? "", execution.operatorUserId], "step-up") });
+      }
+
+      const engineeringItems = transaction.engineeringRegisterItems(project.id)
+        .filter((record) => permitted("engineering.register.read", record.id));
+      for (const item of engineeringItems.filter((candidate) => candidate.state === "under_review")) addTask({
+        module: "engineering", recordType: "engineering_register_item_revision", recordId: item.id,
+        title: `Review ${item.registerType} ${item.tag} revision ${item.revision}`, state: item.state,
+        dueAt: item.forecastIssueDate ?? item.plannedIssueDate, action: "engineering.register.approve", version: item.version,
+        preferredPriority: "high", authorized: permitted("engineering.register.approve", item.id, ["engineering_authority"],
+          [item.createdBy, item.submittedBy ?? item.createdBy], "step-up") });
+
+      const collaborationImports = transaction.collaborationImports(project.id);
+      const collaborationItems = transaction.collaborationItems(project.id).filter((record) => permitted("collaboration.read", record.id));
+      const reconciliationIssues = transaction.collaborationReconciliations(project.id)
+        .filter((record) => permitted("collaboration.read", record.id));
+      for (const item of collaborationItems.filter((candidate) => candidate.state === "submitted")) {
+        const sourceImport = collaborationImports.find((candidate) => candidate.id === item.importId);
+        addTask({ module: "bluebeam", recordType: "collaboration_item", recordId: item.id,
+          title: `Review collaboration evidence: ${item.subject}`, state: item.state, dueAt: null,
+          action: "collaboration.review", version: item.version, preferredPriority: "medium",
+          authorized: permitted("collaboration.review", item.id, ["document_collaboration_authority"],
+            [item.authorUserId, item.createdBy, sourceImport?.previewedBy ?? "", sourceImport?.committedBy ?? ""], "step-up") });
+      }
+      for (const issue of reconciliationIssues.filter((candidate) => candidate.state === "open")) {
+        const sourceImport = collaborationImports.find((candidate) => candidate.id === issue.importId);
+        addTask({ module: "bluebeam", recordType: "collaboration_reconciliation", recordId: issue.id,
+          title: `Resolve collaboration issue: ${issue.code}`, state: issue.state, dueAt: null,
+          action: "collaboration.reconcile", version: issue.version, preferredPriority: "high",
+          authorized: permitted("collaboration.reconcile", issue.id, ["integration_authority"], [issue.createdBy, sourceImport?.previewedBy ?? ""], "step-up") });
+      }
+
+      const turnoverPackages = transaction.turnoverPackagesForProject(project.id)
+        .filter((record) => permitted("turnover.read", record.id));
+      for (const turnoverPackage of turnoverPackages.filter((candidate) => candidate.state === "ready")) addTask({
+        module: "turnover", recordType: "turnover_package", recordId: turnoverPackage.id,
+        title: `Generate turnover package ${turnoverPackage.code}`, state: turnoverPackage.state, dueAt: null,
+        action: "turnover.generate", version: turnoverPackage.version, preferredPriority: "high",
+        authorized: permitted("turnover.generate", turnoverPackage.id, [], [], "step-up") });
+
+      const scheduleProgressPercent = acceptedProgress.length === 0 ? null
+        : Math.round(acceptedProgress.reduce((total, value) => total + value, 0) / acceptedProgress.length);
+      const executionTotal = ndeRequests.length + pwhtCycles.length + testPackages.length;
+      const executionAccepted = ndeRequests.filter((record) => record.state === "accepted").length
+        + pwhtCycles.filter((record) => record.state === "accepted").length
+        + testPackages.filter((record) => record.state === "accepted").length;
+      const openNcrs = ncrs.filter((record) => record.state !== "closed").length;
+      const openPunches = punches.filter((record) => !["closed", "transferred"].includes(record.state)).length;
+      const allOrderedTasks = [...tasks].sort((left, right) => {
+        const rank = { critical: 0, high: 1, medium: 2, normal: 3 } as const;
+        return rank[left.priority] - rank[right.priority]
+          || (left.dueAt?.getTime() ?? Number.MAX_SAFE_INTEGER) - (right.dueAt?.getTime() ?? Number.MAX_SAFE_INTEGER)
+          || left.id.localeCompare(right.id);
+      });
+      const orderedTasks = allOrderedTasks.slice(0, 100);
+
+      const summaries: CommandCenterModuleSummary[] = [];
+      const summary = (module: CommandCenterModule, label: string, total: number, completed: number, attention: number) => summaries.push({
+        module, label, total, completed, attention, open: Math.max(0, total - completed), progressPercent: progressPercent(completed, total),
+      });
+      summary("documents", "Document control", documents.length,
+        documents.filter((record) => record.currentRevisionId !== null).length,
+        documentRevisions.filter(({ revision }) => ["under_review", "rejected"].includes(revision.state)).length);
+      summary("materials", "Material traceability", materials.length,
+        materials.filter((record) => ["released", "issued", "returned", "consumed"].includes(record.state)).length,
+        materials.filter((record) => ["quarantined", "rejected"].includes(record.state)).length);
+      summary("quality", "Quality / NCR / punch", ncrs.length + punches.length,
+        ncrs.filter((record) => record.state === "closed").length + punches.filter((record) => ["closed", "transferred"].includes(record.state)).length,
+        openNcrs + openPunches);
+      summary("estimating", "Estimate handoffs", linkedEstimates.length,
+        linkedEstimates.filter((record) => ["awarded", "closed"].includes(record.state)).length,
+        linkedEstimates.filter((record) => record.state === "under_review").length);
+      const controlRecords = [...baselines, ...changes, ...costEntries, ...progressClaims];
+      summary("controls", "Project controls", controlRecords.length,
+        controlRecords.filter((record) => ["approved", "accepted", "incorporated", "superseded"].includes(record.state)).length,
+        controlRecords.filter((record) => ["under_review", "submitted", "rejected"].includes(record.state)).length);
+      const procurementRecords = [...requisitions, ...bidPackages, ...commitments];
+      summary("procurement", "Procurement", procurementRecords.length,
+        procurementRecords.filter((record) => ["approved", "issued", "awarded", "received", "closed"].includes(record.state)).length,
+        procurementRecords.filter((record) => ["under_review", "recommended", "exception", "rejected"].includes(record.state)).length);
+      summary("scheduling", "Scheduling", scheduleActivities.length, completedScheduleActivities, lateScheduleActivities.length);
+      summary("welding", "Weld management", welds.length, welds.filter((record) => record.state === "released").length,
+        welds.filter((record) => ["repair_required", "pending_examination"].includes(record.state)).length);
+      summary("nde", "NDE / PWHT", ndeRequests.length + pwhtCycles.length,
+        ndeRequests.filter((record) => record.state === "accepted").length + pwhtCycles.filter((record) => record.state === "accepted").length,
+        ndeRequests.filter((record) => ["requested", "rejected"].includes(record.state)).length + pwhtCycles.filter((record) => record.state === "rejected").length);
+      summary("testing", "Testing", testPackages.length, testPackages.filter((record) => record.state === "accepted").length,
+        testPackages.filter((record) => ["draft", "rejected"].includes(record.state)).length);
+      summary("fabrication", "Fabrication & spools", fabricationAssemblies.length,
+        fabricationAssemblies.filter((record) => ["accepted", "superseded"].includes(record.state)).length,
+        fabricationAssemblies.filter((record) => ["under_review", "rejected", "fabrication_complete"].includes(record.state)
+          || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length);
+      summary("cnc", "CNC / waterjet / profiling", cncMachineProfiles.length + cncPrograms.length + cncExecutions.length,
+        cncMachineProfiles.filter((record) => ["approved", "superseded"].includes(record.state)).length
+          + cncPrograms.filter((record) => ["reconciled", "superseded"].includes(record.state)).length
+          + cncExecutions.filter((record) => record.state === "accepted").length,
+        cncMachineProfiles.filter((record) => ["under_review", "rejected"].includes(record.state)).length
+          + cncPrograms.filter((record) => ["draft", "under_review", "rejected", "execution_recorded"].includes(record.state)).length
+          + cncExecutions.filter((record) => ["submitted", "rejected"].includes(record.state)).length);
+      summary("engineering", "Engineering registers", engineeringItems.length,
+        engineeringItems.filter((record) => ["approved", "superseded"].includes(record.state)).length,
+        engineeringItems.filter((record) => ["draft", "under_review", "rejected"].includes(record.state)
+          || record.validationFindings.some((finding) => finding.severity === "error")).length);
+      summary("bluebeam", "Document collaboration", collaborationItems.length + reconciliationIssues.length,
+        collaborationItems.filter((record) => ["accepted", "rejected"].includes(record.state)).length
+          + reconciliationIssues.filter((record) => ["resolved", "waived"].includes(record.state)).length,
+        collaborationItems.filter((record) => record.state === "submitted").length
+          + reconciliationIssues.filter((record) => record.state === "open").length);
+      summary("turnover", "Turnover", turnoverPackages.length,
+        turnoverPackages.filter((record) => ["generated", "accepted", "superseded"].includes(record.state)).length,
+        turnoverPackages.filter((record) => record.state === "draft").length);
+
+      const activityVisible = permitted("audit.read", null, [], [], "mfa");
+      const recentActivity = activityVisible ? transaction.auditForProject(project.id).slice(-30).reverse().map((audit) => ({
+        id: audit.id, occurredAt: audit.occurredAt, actorUserId: audit.actorUserId, action: audit.action,
+        module: moduleForObjectType(audit.objectType), objectType: audit.objectType, objectId: audit.objectId,
+        priorState: audit.priorState, newState: audit.newState,
+      })) : [];
+      return {
+        generatedAt: now,
+        project: { id: project.id, number: project.number, name: project.name, state: project.state },
+        metrics: {
+          documentsCurrent: documents.filter((record) => record.currentRevisionId !== null).length,
+          documentsTotal: documents.length,
+          materialsTracked: materials.length,
+          weldsComplete: welds.filter((record) => record.state === "released").length,
+          weldsTotal: welds.length,
+          executionAccepted,
+          executionTotal,
+          openExceptions: openNcrs + openPunches + commitments.filter((record) => record.state === "exception").length
+            + reconciliationIssues.filter((record) => record.state === "open").length
+            + fabricationAssemblies.filter((record) => record.state === "rejected"
+              || fabricationTravelers.some((traveler) => traveler.assemblyRevisionId === record.id && traveler.state === "on_hold")).length
+            + cncPrograms.filter((record) => record.state === "rejected"
+              || (record.state === "draft" && record.validationFindings.some((finding) => finding.severity === "error"))).length
+            + cncExecutions.filter((record) => record.state === "rejected").length,
+          scheduleProgressPercent,
+          openTasks: allOrderedTasks.length,
+        },
+        tasks: orderedTasks,
+        recentActivity,
+        activityVisible,
+        modules: summaries,
+        schedule: {
+          sourceRevisionIds: currentScheduleRevisions.map(({ revision }) => revision.id),
+          activityCount: scheduleActivities.length,
+          completedActivities: completedScheduleActivities,
+          lateActivities: lateScheduleActivities.length,
+          progressPercent: scheduleProgressPercent,
+        },
+      };
     });
   }
 

@@ -95,12 +95,57 @@ Implemented review surfaces include:
   a record-normalized, migration-gated serializable persistence adapter with indexed
   metadata, optimistic row revisions, restart/rollback/concurrency, 2,000-record, and
   competing-worker lease verification;
+- passwordless Azure PostgreSQL runtime/migration adapters that acquire short-lived
+  Microsoft Entra tokens dynamically, verify TLS, reject embedded passwords, and map
+  distinct API/worker managed identities to separate least-privilege database roles;
 - isolated environment contracts and production/training boundary checks;
 - local filesystem/ClamAV boundaries plus a managed-identity Azure Blob adapter with
   private-container, immutable-write, ETag, hash, bounded-stream, quarantine, and
   crash-recovery contract evidence;
+- an advanced-estimating workspace and service covering organization-scoped
+  opportunities, immutable revisions/deltas, governed assemblies and productivity,
+  independently approved currency authority policies, exact price build-up,
+  released-file-backed quote comparison/selection, hash-verified printable proposal
+  issue/download, audit, and exact same-organization award handoff;
+- an integrated project-controls workspace and service covering exact handoff-based
+  cost/quantity baselines, thresholded change, period actual/accrual/forecast/EAC,
+  separately accepted quantity progress, requisitions, comparative bids,
+  thresholded award/commitments, expediting and controlled receiving linkage,
+  independently approved schedule baselines/updates, look-aheads, and validated
+  idempotent P6/Microsoft Project import drafts;
+- a connected welding/NDE/PWHT/testing workspace and service covering exact approved
+  PQR/WPS and welder-qualification ranges/continuity, structure/material/drawing/weld-
+  map links, append-only weld/visual/repair events, qualified NDE requests and report
+  revisions by repair cycle, PWHT parameters/thermocouples/chart evidence, independent
+  acceptance/release, and completion-boundary pressure/leak/functional test readiness,
+  evidence, deficiencies, restoration, and audit;
+- a code-profile-driven Welding Procedure Builder covering code/application edition,
+  revision basis, joint and metal groups, ordered multi-process/filler/electrical/gas
+  variables, preheat/interpass/PWHT, technique, examinations/tests, applicability,
+  validation, printable preview, exact persistence, and independent review; licensed
+  code tables and the owner-approved project profile remain external controlled inputs;
+- a provider-neutral Bluebeam collaboration workspace and service covering protected
+  export preview, exact document/user/organization/status mapping, markup/comment/
+  reply page-region/source fidelity, idempotent atomic commit, changed-source and
+  unsupported-content reconciliation, independent evidence review, audit, scoped
+  search/export, and an explicit disabled outbound/write boundary;
+- a unified enterprise command center that derives permission-filtered project
+  metrics, exact-revision schedule progress, module health, authorized or explicitly
+  owned work, recent audit activity, quick actions, and authoritative drill-through
+  without creating a competing workflow-state aggregate;
+- governed fabrication/spool revisions with exact BOM/cut/material/weld/inspection
+  scope, independent engineering/shop release, revision-controlled travelers,
+  append-only execution/hold events, and distinct independent quality acceptance;
+- governed CNC/waterjet/profiling handoff with approved machine profiles, exact
+  source/fabrication/material lineage, deterministic machine-neutral packages,
+  independent technical approval/release, exact-hash downloads, execution genealogy,
+  and reconciliation while direct machine control remains prohibited;
+- a multidisciplinary engineering-register workspace and service for revisioned
+  requirements, deliverables, systems, equipment, lines, instruments, components,
+  and tags with exact controlled relationships, deterministic validation/hash,
+  independent approval, immutable supersession, audit, persistence, and command-center projection;
 - a tracked OpenAPI 3.0.3 `/v1` contract with deterministic TypeScript-derived runtime
-  schemas for 112 routes/89 request bodies, drift verification, bearer security,
+  schemas for 219 active `/v1` routes and 173 request bodies, drift verification, bearer security,
   shared safe errors, stable operation IDs, and route-inventory tests;
 - immutable turnover source-byte snapshots and a network-isolated pinned-Chromium
   renderer that emits searchable versioned PDF, exact JSON, CSV, and generation-log
@@ -108,7 +153,12 @@ Implemented review surfaces include:
 - a responsive guided internal workflow covering document control through exact
   project-rule material receipt, PMI, NCR/punch closure, readiness, and turnover;
 - delivery CI/CycloneDX evidence and a production-guarded private Azure Bicep baseline
-  compiled by a pinned toolchain.
+  compiled by a pinned toolchain, with a separate fail-closed runtime-start gate so
+  database migration and identity mapping precede application startup;
+- portable compiled workspace artifacts plus four digest-pinned, rootless OCI build
+  targets for API, job worker, internal web, and partner portal; the browser images
+  validate their runtime API origin, omit source maps, emit security headers, and use
+  separate liveness/readiness endpoints in the Container Apps proposal.
 
 This is not production authorization. Configured PostgreSQL startup requires the
 current migration ledger and uses the verified record-normalized runtime adapter, but
@@ -134,17 +184,56 @@ pnpm run database:verify
 pnpm run test:browser
 pnpm audit --prod --audit-level high
 pnpm run sbom:generate
+pnpm run containers:verify
 ```
 
 `pnpm run verify` runs the production-boundary check, secret-pattern scan,
-traceability, OpenAPI drift, and Bicep checks, strict typechecks, and 73 unit/integration/security/
-acceptance tests. `pnpm run build` builds the two
-web applications, API, worker/contracts, shared packages, and validates the migration
-runner syntax. `pnpm run database:verify` creates a disposable PostgreSQL 18 cluster,
+OpenAPI drift, Bicep/container-definition checks, strict typechecks,
+112 unit/integration/security/acceptance tests, 121-requirement traceability,
+and compiled runtime process smoke tests. `pnpm run build` builds the two web
+applications, API, worker/contracts,
+shared packages, and validates the migration runner syntax. `pnpm run
+containers:build` additionally requires Docker with BuildKit; it builds and smokes
+all four production targets and emits revision-linked image evidence. `pnpm run
+database:verify` creates a disposable PostgreSQL 18 cluster,
 applies fourteen migrations, checks the ledger, 61 representative constraints, runtime
 roles, and repository restart/rollback/concurrency, then removes all database files.
-`pnpm run test:browser` runs five internal/portal workflow cases in a Chromium tablet
+That PostgreSQL path also creates, exactly retries, restarts, and verifies the guarded
+first-application-authority bootstrap; the production operator contract is in
+`docs/06-deployment/DEPLOYMENT_AND_OPERATIONS.md`.
+
+`pnpm run test:browser` runs thirteen internal/portal workflow cases in a Chromium tablet
 profile with axe accessibility checks.
+
+### Controlled local pilot runtime
+
+The repository includes a nonproduction, persistent PostgreSQL pilot supervisor for
+design validation without Azure. It does not seed projects, customers, facilities,
+materials, employees, or production records. An external, SHA-256-pinned manifest
+creates three or more distinct, expiring pilot identities and a separate worker;
+the API resolves development headers only to those persisted active accounts.
+
+Create the first manifest with owner-supplied names and an authorization reference:
+
+```powershell
+pnpm run pilot:manifest -- --organization-id <uuid> --authorization-reference "<approved local pilot reference>" --coordinator-name "<name>" --author-name "<name>" --reviewer-name "<name>"
+```
+
+Use the emitted path and SHA-256 for the first start. Keep this supervisor terminal
+running; it owns PostgreSQL, API, worker, and—when port 3200 is free—the web UI.
+
+```powershell
+pnpm run pilot:run -- --manifest .eiep-pilot/pilot-manifest.json --sha256 <emitted-sha256>
+pnpm run pilot:status
+pnpm run pilot:stop
+```
+
+Later starts use `pnpm run pilot:run` without repeating the manifest arguments. The
+ignored `.eiep-pilot/` directory contains the protected manifest, generated database
+credential, persistent database, file boundary, logs, and status. Preserve that
+directory to preserve pilot records. The UI offers manifest-derived role choices only
+when the supervisor starts it; these profiles remain development-only and do not
+replace Entra/OIDC or production access approval.
 
 Local review servers:
 
@@ -168,6 +257,18 @@ pnpm --filter @eiep/database migrate
 It requires a protected `DATABASE_URL`. The migration has passed the disposable
 PostgreSQL 18 verification path, but it has not been authorized for a persistent or
 hosted environment; see `docs/05-testing/FIRST_RUN_VERIFICATION_REPORT.md`.
+
+After an approved Entra-only Azure database is migrated, an authorized administrator
+maps the exact API and worker managed-identity names/object IDs to their respective
+`eiep_runtime` and `eiep_job_worker` roles with:
+
+```powershell
+pnpm run database:bootstrap-azure
+```
+
+That command requires a passwordless `DATABASE_ADMIN_URL` targeting the `postgres`
+database plus the four `API_DATABASE_PRINCIPAL_*` / `WORKER_DATABASE_PRINCIPAL_*`
+values. It verifies an existing mapping before reuse and refuses identity aliasing.
 
 ## Production blockers
 

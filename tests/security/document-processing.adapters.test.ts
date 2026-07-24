@@ -40,6 +40,27 @@ test("NFR-SEC-005 / AC-03-09-10: filesystem boundaries and byte-derived validati
     await storage.release("project-1/clean.pdf");
     assert.deepEqual(await storage.readReleased("project-1/clean.pdf", 1024), cleanPdf);
 
+    const cleanXml = Buffer.from('<?xml version="1.0"?><Markups><Markup id="BB-1"><Status>Open</Status></Markup></Markups>', "utf8");
+    await storage.putStaged("project-1/markups.xml", cleanXml);
+    const xml = await worker.process({
+      jobId: "job-xml", fileId: "file-xml", storageKey: "project-1/markups.xml",
+      expectedSha256: hash(cleanXml), declaredMediaType: "application/xml", maximumSizeBytes: 1024,
+      correlationId: "correlation-xml",
+    });
+    assert.equal(xml.state, "validated");
+    assert.equal(xml.detectedMediaType, "application/xml");
+    assert.equal(xml.activeContentDetected, false);
+
+    const entityXml = Buffer.from('<!DOCTYPE Markups [<!ENTITY external SYSTEM "file:///etc/passwd">]><Markups>&external;</Markups>', "utf8");
+    await storage.putStaged("project-1/entity.xml", entityXml);
+    const unsafeXml = await worker.process({
+      jobId: "job-unsafe-xml", fileId: "file-unsafe-xml", storageKey: "project-1/entity.xml",
+      expectedSha256: hash(entityXml), declaredMediaType: "application/xml", maximumSizeBytes: 1024,
+      correlationId: "correlation-unsafe-xml",
+    });
+    assert.equal(unsafeXml.state, "rejected");
+    assert.equal(unsafeXml.activeContentDetected, true);
+
     const spoofed = Buffer.from('{"projectId":"project-1"}', "utf8");
     await storage.putStaged("project-1/spoofed.png", spoofed);
     const spoofResult = await worker.process({

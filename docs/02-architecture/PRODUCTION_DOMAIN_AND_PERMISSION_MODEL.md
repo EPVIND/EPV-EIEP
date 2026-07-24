@@ -44,6 +44,10 @@ development, but production use requires accepted ADRs and data/security review.
 | `deficiency` | NCR, containment, disposition, approvals, corrective action, reinspection, punch | Projects, governed objects, documents/files |
 | `subcontract` | Profiles, credential requirements/evidence, lower tiers, mobilization, deliverables | Parties, projects, work packages, files |
 | `turnover` | Completion boundaries, requirements/status, packages/versions/items/manifests | Projects and exact accepted source revisions/files |
+| `estimate` | Opportunity estimates, immutable revisions/lines, assembly, productivity, and authority-policy catalogs, quote comparisons, proposal artifacts/manifests, award handoffs | Parties, facilities, files, projects, WBS/work packages, cost codes, qualifications, audit |
+| `fabrication` | Assembly/spool revisions, exact BOM/cut lists, shop travelers, ordered operations, append-only execution/hold events, engineering/release/quality decisions | Projects, materials, welds, inspections, NCRs, exact document/file revisions, qualifications, completion boundaries, audit |
+| `cnc` | Machine-profile revisions, deterministic machine-neutral program revisions/findings, independent release/download, execution and reconciliation evidence | Projects, fabrication assemblies/travelers, materials/genealogy, exact document/file revisions, NCRs, qualifications, audit |
+| `collaboration` | Protected provider imports, exact mappings, markups/comments/replies/status evidence, reconciliation, independent evidence review, outbound capability boundary | Projects, released document revisions, files, accounts, organizations, audit |
 | `platform` | File metadata, audit, outbox/inbox/jobs, imports/exports, retention/legal hold, code lists | Stable IDs from all modules |
 
 Modules expose application operations and events. A module must not update another
@@ -125,6 +129,77 @@ versions atomically.
 - `material_release` records evaluated rule version, prerequisites, decision, actor,
   and explanation.
 
+### Advanced estimating
+
+- `estimate` owns the organization-scoped commercial opportunity and current
+  controlled revision identity.
+- `estimate_revision` and `estimate_line` preserve exact decimal input components,
+  governed unit/currency, productivity snapshots, calculation version, rounding,
+  totals, submission/review, and immutable parent history.
+- `estimate_assembly_revision` and `estimate_productivity_factor_revision` are
+  independently approved, effective, superseding catalog records; customer rates or
+  productivity are never seeded by the platform.
+- `estimate_authority_policy_revision` is independently approved and superseding by
+  organization/currency. It stores standard monetary limits plus the exact elevated
+  qualification code required above estimate, quote-selection, and proposal limits;
+  owner-approved values and qualification assignments are controlled configuration.
+- `estimate_quote` retains the exact released organization file/hash and normalized
+  scope gaps. Provider content remains source evidence; selection is a distinct EIEP
+  decision.
+- `estimate_proposal` retains deterministic printable artifact content, filename,
+  media type, source/artifact/manifest hashes, and attributable approval/issue
+  history; download verifies the content hash before release. `estimate_handoff`
+  retains the same-organization project mapping and exact reconciliation.
+- The record-normalized PostgreSQL adapter persists these types during the pilot;
+  normalized physical migrations remain required before production promotion.
+
+### Fabrication and spool control
+
+- `fabrication_assembly_revision` owns immutable assembly identity, revision lineage,
+  source/import fingerprint, project-structure and completion-boundary scope, and the
+  exact released drawing, material, weld, and inspection references.
+- `fabrication_bom_line` and `fabrication_cut_line` retain controlled quantities,
+  units, piece marks, cut geometry, and material-item identity; they never replace
+  material genealogy or receiving authority.
+- `fabrication_traveler` and `fabrication_traveler_operation` preserve the exact
+  revision-controlled shop route, sequence, work center, planned hours,
+  qualifications, procedure revision, material/weld scope, instructions, and hold
+  points independently released to shop.
+- `fabrication_execution_event` is append-only and monotonically sequenced per
+  traveler. It retains event type, controlled result meaning, quantity/unit,
+  observations, evidence, event time, and performer. Current traveler/assembly state
+  is a transactionally updated projection and never erases event history.
+- Engineering approval, shop release, hold release, and final quality acceptance are
+  distinct authorities with exact version/state and separation-of-duty checks.
+- The record-normalized PostgreSQL adapter persists these pilot records; dedicated
+  normalized fabrication tables, indexes, volume tests, and rollback evidence remain
+  required before production promotion.
+
+### CNC, waterjet, and profiling control
+
+- `cnc_machine_profile_revision` owns the effective work-center capability envelope:
+  process/stock/operation/feature scope, units, coordinate convention, dimensions,
+  postprocessor identity/version, immutable parent/reason, and independent approval.
+- `cnc_program_revision` binds exact released source file/revision/hash, approved
+  fabrication assembly and traveler operation, material/BOM piece and quantity, and
+  approved machine profile to versioned normalized stock/operations and validation
+  findings. Canonical JSON and SHA-256 make the accepted package deterministic.
+- Technical approval and job release are separate qualified step-up authorities.
+  Release revalidates changing prerequisites and freezes a second artifact hash with
+  an explicit `NO_DIRECT_MACHINE_CONTROL` boundary. Download reauthorizes the exact
+  released revision and appends audit; there is no machine-control command.
+- `cnc_execution` retains the exact downloaded release hash, work center/machine,
+  qualified operator, times, result, actual/scrap quantity, released evidence,
+  exception NCRs, produced items, and remnants. Produced/remnant items must be
+  children of the released source material.
+- Execution reconciliation is an independent qualified decision separated from
+  programmer, submitter, technical reviewer, release authority, and operator. It
+  accepts only conforming execution with closed exceptions.
+- The pilot uses the record-normalized PostgreSQL adapter. Dedicated CNC profile,
+  program, finding, operation, artifact, execution, and genealogy tables/indexes,
+  representative file/machine fixtures, volume tests, and shop-device evidence remain
+  required before production promotion.
+
 ### Inspection and PMI
 
 - `inspection_plan` has versioned `inspection_plan_revision` records; assignments
@@ -164,6 +239,14 @@ versions atomically.
 | NCR | `open -> contained -> disposition_review -> disposition_approved -> reinspection -> closed`; governed reopen | Close without required approval/reinspection; silent replacement of failed evidence |
 | Punch | `open -> assigned -> work_complete -> verification -> closed`; governed transfer/defer | Closure by submitter when independent verification required |
 | Turnover package | `draft -> readiness_review -> approved_for_generation -> generated -> transmitted -> accepted`; new version for regeneration | Include nonaccepted/wrong-recipient/training record; mutate generated version |
+| Estimate revision | `draft -> under_review -> approved/rejected -> superseded`; correction creates a successor | Mutate submitted line; self-approve; approve stale parent; use unapproved assembly/factor |
+| Estimate quote | `normalized -> selected/not_selected`; immutable source file/hash | Select expired/incomplete/cross-scope source or self-select own normalization |
+| Estimate proposal | `draft -> approved -> issued`; rejected draft becomes superseded | Generate from noncurrent/nonapproved revision; self-approve; issue expired/unapproved proposal |
+| Fabrication assembly revision | `draft -> under_review -> approved -> released_to_fabrication -> in_fabrication -> fabrication_complete -> accepted`; governed `rejected/superseded` | Self-review/release/accept; execute from unreleased inputs; supersede executing parent; equate completion with acceptance |
+| Fabrication traveler | `draft -> issued -> in_progress -> on_hold -> in_progress -> complete`; governed `superseded` | Execute out of sequence; skip hold release; use unqualified performer; mutate prior event; release mismatched scope |
+| CNC machine profile revision | `under_review -> approved/rejected -> superseded` | Self-approve; overlap invalid lineage; use ineffective/unapproved capabilities |
+| CNC program revision | `draft/validated -> under_review -> approved/rejected -> released -> execution_recorded -> reconciled`; governed `superseded` | Submit findings; self-approve/release; release changed prerequisite; download wrong state/hash; direct machine control |
+| CNC execution | `submitted -> accepted/rejected` | Wrong release hash/work center/qualification; broken genealogy; inconsistent result/quantity; participant self-reconciliation |
 
 Transitions are commands with preconditions and audit, never arbitrary state-field
 updates.
@@ -182,6 +265,15 @@ recipient-policy-allows`
 Missing or ambiguous context denies. Every protected list/query applies the same
 scope at the data source. File URLs, search suggestions/counts, notifications,
 exports, jobs, and package downloads are resources, not side channels.
+
+The project command center follows the same rule independently for every source
+module; `report.read` is necessary but never sufficient to reveal an underlying
+count. Each queue candidate must additionally pass the exact action check or be an
+explicitly owned action whose ownership permission passes. Policy-thresholded
+approvals are omitted when the complete threshold decision cannot be evaluated by
+the projection. Recent activity is independently empty unless `audit.read` passes,
+and it excludes protected changed-field content. Opening a card never delegates or
+pre-authorizes its command; the authoritative module rechecks all conditions.
 
 ### Required access context
 
@@ -221,6 +313,28 @@ trusted without server lookup and relationship validation.
 | `file.upload` | Underlying object create/update scope | Restricted staging only |
 | `file.download` | Exact underlying record/file scope | Reauthorize at request time; released/recipient rules |
 | `export.create/download` | Underlying record set and recipient scope | Capture/revalidate authorization; audit every result/download |
+| `estimate.catalog.manage/approve` | Organization/catalog or authority-policy revision | Independent estimating authority; exact active supersession; owner-controlled currency limits and qualification codes |
+| `estimate.create/read/edit/submit/revise/approve` | Organization/estimate | State/version/assurance; approval requires estimating authority, separation, and the active policy's elevated qualification above its limit |
+| `estimate.quote.manage/select` | Organization/estimate/quote | Released source file/hash; complete current scope; independent selection and above-limit qualification |
+| `estimate.proposal.generate/approve/issue/download` | Organization/estimate/proposal | Current approved source; commercial authority and separation; above-limit qualification; future validity; artifact-hash verification before download |
+| `estimate.handoff` | Organization/estimate/project | Project-controls authority; same organization; exact reconciliation |
+| `fabrication.plan/submit/read` | Assigned project/assembly | Exact released source scope; current version/state; project structure and completion boundary |
+| `fabrication.approve` | Assigned project/assembly revision | Step-up fabrication engineering authority; independent of creator/submitter; exact lineage and current parent |
+| `fabrication.traveler.create/release` | Assigned project/assembly/traveler | Ordered exact scope; release requires independent fabrication release authority and approved inputs |
+| `fabrication.execute` | Assigned project/traveler/operation | MFA; active issued traveler; required operation qualifications; exact sequence/evidence/result meaning |
+| `fabrication.hold.release` | Assigned project/traveler/operation | Step-up hold authority independent of operation performers; current unresolved hold only |
+| `fabrication.accept` | Assigned project/assembly revision | Step-up fabrication quality authority independent of plan/review/release/execution; all inspection/weld/NCR/traveler prerequisites |
+| `cnc.profile.manage/approve` | Assigned project/profile revision | Manage requires MFA; approval requires independent step-up `cnc_profile_authority`, current lineage, and effective capability scope |
+| `cnc.program.plan/submit/read` | Assigned project/program revision | Exact released source/assembly/traveler/material/profile linkage; deterministic validation; current version/state; MFA for writes |
+| `cnc.program.approve` | Assigned project/program revision | Independent step-up `cnc_technical_authority`; no unresolved errors/warnings; exact normalized package hash |
+| `cnc.job.release/download` | Assigned project/program revision | Release requires independent step-up `cnc_release_authority` and prerequisite revalidation; download requires process operator qualification, exact released hash, and audit |
+| `cnc.execute` | Assigned project/program revision | MFA; process-qualified operator; exact release hash/work center; evidence/result/quantity/exception/genealogy validation |
+| `cnc.execution.reconcile` | Assigned project/execution | Independent step-up `cnc_reconciliation_authority`; separated from all program actors/operator; closed exceptions before acceptance |
+| `collaboration.import.preview` | Assigned project/import source | MFA; released clean source/hash; exact mappings; creates no collaboration item |
+| `collaboration.import.commit` | Assigned project/import | Step-up collaboration-import authority, independent of previewer; current valid preview; atomic commit |
+| `collaboration.read` | Assigned project/item | Search/export/download reauthorize the underlying project and exact source/document scope |
+| `collaboration.review` | Assigned project/item | Step-up document-collaboration authority, version/state check, independent of source author/previewer/committer |
+| `collaboration.reconcile` | Assigned project/issue | Step-up integration authority, independent resolution/waiver with reason; cannot grant EIEP document/quality approval |
 
 Material, inspection, NCR/punch, subcontractor, and turnover permissions follow the
 same pattern and the detailed role baseline in `../01-requirements/USER_ROLES.md`.

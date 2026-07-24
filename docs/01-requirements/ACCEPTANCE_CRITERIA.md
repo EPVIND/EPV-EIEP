@@ -61,7 +61,72 @@
 - The pilot restore meets approved recovery objectives and preserves files, relationships, audit history, and permissions.
 - Representative load, tablet, accessibility, intermittent-connectivity, and large-export tests meet approved budgets or have accepted remediation plans.
 
+## AC-11 Advanced estimating and proposal handoff
+
+- Governed assemblies and independently approved effective productivity factors reproduce exact labor/material/equipment/subcontract/allowance calculations and adjustment rounding.
+- Submitted revisions are immutable and independently reviewed; a successor shows exact added, removed, and changed lines.
+- Quote comparison preserves scope gaps, qualifications, source identity/hash, validity, and independently justified selection rather than implying lowest price is equivalent scope.
+- An independently approved/issued proposal freezes source and artifact hashes; award handoff reconciles exact direct and adjustment categories to a same-scope project without mutating the source.
+
+## AC-12 Project controls, procurement, and scheduling
+
+- An awarded estimate handoff produces an exact, independently approved project cost/quantity baseline; an approved change produces a successor without rewriting either source.
+- Period actuals, accruals, forecast, accepted earned progress, commitments, EAC, variance, contingency, and reserve remain distinct and reproducible, while progress does not imply quality or invoice acceptance.
+- Requisition, comparative offers, independent recommendation, thresholded award, PO revision, expediting, released source evidence, and controlled receiving linkage remain attributable and version checked.
+- An independently approved schedule baseline and at least two updates retain logic, actual/claim/accepted progress, constraints, source identifiers, and baseline variance; look-ahead is derived from the current approved revision.
+- P6 and Microsoft Project fixtures preview duplicate/conflict/mapping failures, commit exact retries idempotently, and cannot bypass independent schedule approval. Live provider credentials and sandbox acceptance remain production gates.
+
+## AC-13 Welding, NDE, PWHT, and testing
+
+- An exact material/component/drawing/WPS-qualified weld progresses through fit-up, preheat/interpass observation, qualified welding, independent visual examination, required NDE/PWHT, repair where applicable, and separately authorized release with immutable event and repair-cycle history.
+- Wrong/inapplicable WPS, expired or out-of-range qualification, held material, stale repair-cycle examination, rejected result, incomplete NDE/PWHT, open NCR, or performer self-release is denied with explicit blockers.
+- NDE preserves exact request/technique/personnel/equipment/media/conditions/indications/report revision and an independent review that distinguishes accepting the report from the report's accept/reject result.
+- PWHT preserves exact weld scope, procedure, parameters, thermocouple tolerances, valid equipment, chart/evidence, interruptions, result, and independent acceptance.
+- Pressure/leak/functional test readiness derives from the exact completion boundary, released welds/documents, valid gauges, prerequisites, safety references, and deficiencies; execution and acceptance remain separate and preserve result evidence plus restoration confirmation.
+
+## AC-14 Bluebeam and provider-neutral document collaboration
+
+- The operator can receive a Bluebeam Markups List CSV or XML through one guided intake, with a browser/server SHA-256 match, private governed-file staging, deterministic row parsing, and visible diagnostics before any import command is enabled.
+- Drawing filenames and numbers are proposed only against authorized current released EIEP revisions; unique matches populate automatically, while ambiguous/unmatched drawings and unverified author identities stay blank and block preview until explicitly resolved.
+- A protected representative Bluebeam export previews and atomically commits exact project/session/source/document-revision/user/organization/status mappings plus markup, comment, reply, page, region, appearance, and timestamps.
+- Exact retries do not duplicate evidence; changed source, unmapped identity/document/status, invalid parent/region/time, unsupported content, unsafe file, and cross-project/direct-identifier access fail closed with safe reconciliation evidence.
+- Provider completion/approval remains evidence-only, while independent step-up EIEP review is version checked, audited, separated from importer/provider author, and cannot rewrite the controlled document revision.
+- The operator workspace exposes import, reconciliation, review, source lineage, and an explicit disabled outbound boundary; a live vendor sandbox and all named provider gates remain required before any write operation exists.
+
+## AC-15 Unified enterprise command center
+
+- A scoped user sees only authorized current source records in dashboard counts and module-health projections; revoking the underlying read scope removes those counts without disclosing their existence.
+- The user work queue contains only explicitly owned or currently authorized actions and preserves exact source identity/version, due/overdue state, and deterministic priority; another user's owned work is never relabeled as “mine.”
+- Schedule progress derives from the exact current approved revision and accepted activity progress, identifies late work, retains the source revision IDs, and returns no percentage when no authorized activities exist.
+- Recent activity requires separate audit-read authority and exposes only safe actor/time/action/object/prior/new-state fields with authoritative module drill-through.
+- The tablet command center supports module and priority filters, module-health drill-through, quick actions, 44-pixel controls, and no serious or critical automated accessibility findings.
+
+## AC-16 Fabrication and spool control
+
+- A pipe-spool revision preserves immutable parent/reason and exact released drawing, material, weld, inspection, project-structure, completion-boundary, BOM, and cut-list lineage; a model import additionally preserves version and SHA-256.
+- Independent engineering approval and shop release enforce exact version/state, required authority, scope, assurance, and separation from creators, submitters, reviewers, and traveler authors; an executing parent cannot be silently superseded.
+- A released traveler preserves ordered operations, qualifications, exact procedure revision, material/weld scope, hours, instructions, and hold points. Qualified execution appends immutable, sequential actor/time/result/quantity/evidence events and blocks out-of-order work.
+- A hold blocks completion until a separate step-up hold authority resolves the current hold; the operation's performer cannot self-release it.
+- Fabrication completion remains distinct from quality acceptance. Acceptance is denied for incomplete traveler, missing/rejected inspection, unreleased weld, open affected NCR, stale version, or quality-authority separation-of-duty failure.
+- The authenticated tablet workspace and command center expose exact source state and currently authorized tasks with no serious or critical automated accessibility findings.
+
+## AC-17 CNC, waterjet, and profiling control
+
+- An independently approved effective machine profile defines the exact work center, process/stock/operation/feature capabilities, dimensional envelope, units, coordinates, and postprocessor identity; its proposer cannot approve it.
+- A representative machine-neutral program binds an exact released source file/revision/hash to an approved fabrication assembly, traveler operation, material item, BOM piece/quantity, and approved profile. Deterministic normalization produces the same package hash from the same accepted input.
+- Unsupported or out-of-bounds process, stock, unit, coordinate, feature, operation, geometry, sequence, source, material, traveler, or assembly conditions remain explicit findings and prevent technical submission or release.
+- Technical approval and job release are separate qualified step-up decisions with current-version/prerequisite revalidation. Authorized download returns the exact released SHA-256 artifact and records an audit event; no API or interface directly controls equipment.
+- Execution rejects a wrong artifact hash, work center, qualification, evidence, quantity/result meaning, exception scope, or produced/remnant genealogy. A distinct qualified authority reconciles the exact release, quantities, evidence, and genealogy; all participating program and operator actors are prohibited from self-reconciliation.
+- Authenticated/scoped API, command-center projection, PostgreSQL typed restart, tablet workflow, accessibility, and audit evidence pass locally. Approved machine fixtures, shop-device validation, physical production tables/volume, owner capability dictionaries, and named technical/release/reconciliation approvals remain production gates.
+
+## AC-18 Multidisciplinary engineering registers
+
+- Representative requirement, system, equipment, and deliverable revisions retain stable tags, immutable parent/reason, discipline, responsible organization, structure scope, controlled attributes, dates, exact released documents, approved related items, validation findings, and canonical SHA-256.
+- Invalid system/area/work-package, inactive organization, unreleased document, unapproved relationship, missing type-specific scope, duplicate identity, or actual issue without released evidence remains explicit and blocks submission.
+- Submission and review enforce project/object scope, exact version, MFA/step-up assurance, `engineering_authority`, and creator/submitter separation of duty; an approved successor supersedes without overwriting its parent.
+- Authenticated API, cross-organization denial, audit, record-normalized PostgreSQL restart, permission-scoped no-data projection, tablet workflow, and accessibility evidence pass locally.
+- Owner discipline dictionaries, representative register volume, governed bulk mappings, customer formats, named authorities, deployed validation, and pilot acceptance remain production gates.
+
 ## Production authorization
 
 MVP acceptance requires documented approval by the product owner, industrial/QC authority, security authority, and designated production owner. Passing tests alone does not authorize live use.
-

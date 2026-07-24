@@ -27,6 +27,22 @@ function uniqueSchemas(schemas: readonly JsonSchema[]): JsonSchema[] {
   return [...byValue.values()];
 }
 
+function propertyOrder(left: ts.Symbol, right: ts.Symbol): number {
+  const location = (property: ts.Symbol) => {
+    const declaration = property.valueDeclaration ?? property.declarations?.[0];
+    if (!declaration) return { file: "", position: Number.MAX_SAFE_INTEGER };
+    return {
+      file: declaration.getSourceFile().fileName.replaceAll("\\", "/").toLowerCase(),
+      position: declaration.getStart(),
+    };
+  };
+  const leftLocation = location(left);
+  const rightLocation = location(right);
+  return leftLocation.file.localeCompare(rightLocation.file)
+    || leftLocation.position - rightLocation.position
+    || left.getName().localeCompare(right.getName());
+}
+
 function schemaFor(type: ts.Type, stack = new Set<ts.Type>()): JsonSchema {
   if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.TypeParameter)) return {};
   if (type.flags & ts.TypeFlags.StringLiteral) return { type: "string", enum: [(type as ts.StringLiteralType).value] };
@@ -54,7 +70,11 @@ function schemaFor(type: ts.Type, stack = new Set<ts.Type>()): JsonSchema {
     if (variants.length === 1) return { ...variants[0], ...(nullable ? { nullable: true } : {}) };
     return { oneOf: variants, ...(nullable ? { nullable: true } : {}) };
   }
-  if (type.isIntersection()) return { allOf: type.types.map((member) => schemaFor(member, new Set(stack))) };
+  // Intersections used by route bodies (for example `Omit<T, "date"> &
+  // { date: string }`) are a single closed JSON object at runtime. Emitting each
+  // member as an `allOf` object with `additionalProperties: false` makes every
+  // member reject the other member's fields. Let the object branch below ask the
+  // TypeScript checker for the intersection's combined property set instead.
 
   const symbolName = type.aliasSymbol?.getName() ?? type.getSymbol()?.getName();
   if (symbolName === "Date") return { type: "string", format: "date-time" };
@@ -76,7 +96,7 @@ function schemaFor(type: ts.Type, stack = new Set<ts.Type>()): JsonSchema {
   if (type.flags & ts.TypeFlags.Object) {
     const properties: Record<string, JsonSchema> = {};
     const required: string[] = [];
-    for (const property of checker.getPropertiesOfType(type)) {
+    for (const property of checker.getPropertiesOfType(type).sort(propertyOrder)) {
       const declaration = property.valueDeclaration ?? property.declarations?.[0] ?? source;
       const propertyType = checker.getTypeOfSymbolAtLocation(property, declaration);
       properties[property.getName()] = schemaFor(propertyType, new Set(stack));

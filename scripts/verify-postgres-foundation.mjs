@@ -57,7 +57,11 @@ try {
   process.stdout.write(status.stdout);
   const verification = await execFileAsync(process.execPath, [foundationVerifier], { env: environment });
   process.stdout.write(verification.stdout);
-  const repositoryVerification = await execFileAsync(process.execPath, [tsxCli, repositoryVerifier], { env: environment });
+  const repositoryVerification = await execFileAsync(
+    process.execPath,
+    [tsxCli, "--conditions=development", repositoryVerifier],
+    { env: environment },
+  );
   process.stdout.write(repositoryVerification.stdout);
 } finally {
   try {

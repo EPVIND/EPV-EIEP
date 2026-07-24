@@ -11,4 +11,10 @@ build
 source-intake
 training-demo
 SETUP_REPORT.txt
-
+artifacts
+docs
+infrastructure
+tests
+playwright-report
+test-results
+*.md

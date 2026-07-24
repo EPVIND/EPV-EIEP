@@ -37,6 +37,60 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 - `MaterialCertification` links MTR/certificate revisions to represented lots/items and approval status.
 - `MaterialHold` prevents issue/use/release and links reason, NCR, affected quantity, and authorized resolution.
 
+## Commercial estimating and award handoff
+
+- `Estimate` is an organization-scoped opportunity identity with customer/facility,
+  inquiry, scope, due date/time zone, currency, owner, basis, and lifecycle state.
+- `EstimateRevision` is the immutable submitted/approved commercial baseline. A
+  successor retains the exact parent and reason; stable line keys support an exact
+  added/removed/changed delta without rewriting the parent.
+- `EstimateLine` maps hierarchical cost code, bid item, alternate, WBS, and work
+  package context to exact quantity/unit and a versioned calculation snapshot.
+- `EstimateAssemblyRevision` freezes controlled labor, material, equipment, and
+  subcontract components; `ProductivityFactorRevision` freezes source,
+  justification, discipline/condition, effective interval, and independent approval.
+- `EstimateAuthorityPolicyRevision` freezes currency-specific standard limits and
+  the separately managed elevated qualifications required above each estimate,
+  quote-selection, and proposal-approval limit. A proposed revision cannot activate
+  without an independent approval and supersedes the prior active policy.
+- `EstimateQuote` links an integrity-matched released organization-scoped
+  `FileObject` to normalized bid-scope lines, validity, currency, inclusions,
+  exclusions, qualifications, freight/tax, gaps, and independent selection.
+- `EstimateProposal` freezes an approved revision, commercial terms, validity,
+  exact source hash, price, artifact filename/media type/content hash, and
+  artifact-manifest hash. Approval, issue, and integrity-checked download are
+  distinct attributable actions.
+- `EstimateHandoff` maps the issued proposal snapshot into a same-organization
+  project by direct/contingency/escalation/markup/tax categories and requires an
+  exact zero-difference reconciliation. The source estimate is never rewritten.
+
+## Project controls, procurement, and scheduling
+
+- `ProjectControlBaseline` freezes the exact awarded handoff, period, currency,
+  management reserve, and mapped cost/quantity lines. An approved change produces a
+  parent-linked successor; approved and superseded revisions remain immutable.
+- `ProjectChangeRequest` preserves origin, released evidence, quotation reference,
+  schedule impact, and exact quantity/amount changes before thresholded independent
+  approval and baseline incorporation.
+- `ProjectCostEntry` is a period/source/hash-attributed actual, accrual, remaining
+  forecast, contingency draw, or reserve movement. `ProjectProgressClaim` records
+  quantity/evidence and earned amount while quality and invoice states remain
+  explicitly outside the claim.
+- `ProjectControlsAuthorityPolicyRevision` holds active currency-specific change and
+  procurement thresholds plus separately assigned elevated qualifications.
+- `ProcurementRequisition` and its items bind exact baseline, governing document
+  revisions, specification, quantity/unit, need date, requirements, budget, cost
+  code, and work package. `ProcurementBidPackage` preserves comparative vendor
+  source files/hashes, gaps, recommendation, and award. `ProcurementCommitment`
+  freezes PO/contract revision and retains append-only expediting events, including
+  exact controlled material-item links at receipt.
+- `ScheduleProgram` owns `ScheduleRevision` history. Revisions freeze stable activity
+  keys, display IDs, calendar, WBS/work package, logic, resources, quantities,
+  constraints, completion boundaries, document/material/inspection prerequisites,
+  field claims, accepted progress, source, and variance. `ScheduleImport` preserves
+  released source file/hash, provider/mapping version, idempotency, preview errors,
+  and committed draft revision.
+
 ## Inspection and equipment
 
 - `InspectionPlan` and `InspectionPlanRevision` define versioned stages, required fields, hold/witness/review points, acceptance references, and roles.
@@ -47,7 +101,41 @@ This is a conceptual model. Physical names and persistence choices require ADR r
 - `CalibrationVerification` identifies calibration or daily/reference verification, evidence, result, and validity window.
 - `PmiRecord` specializes inspection context with required/observed material, method, component location, sampling basis, readings, evidence, notes, and alloy decision.
 
+## Welding, examination, heat treatment, and testing
+
+- `WeldingProcedureRevision` represents a PQR or WPS exact revision with a released governing document, approved supporting PQR revisions, effective interval, process/material/position/joint/consumable applicability, dimensional ranges, preheat/interpass limits, and independent review. Supersession preserves the prior approved revision.
+- `WelderQualification` links a person and employer to an exact released qualification record, process/material/position/dimensional scope, original validity, continuity interval/latest continuity evidence, and independent review state.
+- `WeldJoint` is the stable joint identity linking project structure, component references, controlled material items, released drawing revision, weld-map location, exact WPS revision, examination/PWHT requirements, and completion boundary. Its append-only `WeldExecutionEvent` sequence records fit-up, consumable issue, preheat/interpass, weld passes, visual examination, excavation, repair welds, actor/time/evidence, and repair cycle.
+- `NdeRequest` binds method/extent, exact technique revision, acceptance reference, stage, required personnel qualification, hold/witness context, due state, weld, and current repair cycle. `NdeReportRevision` preserves the qualified examiner/organization, valid method-capable equipment, media, conditions, indications, result, evidence, and independent review; accepting a valid report does not rewrite a reject result.
+- `PwhtCycle` binds exact welds and a released procedure to heating/cooling/soak values, thermocouple locations/ranges/tolerance status, valid equipment, source chart, supporting evidence, interruptions, result, performer, and independent acceptance.
+- `TestPackage` owns an exact active `CompletionBoundary` and its released procedures/drawings, medium/pressure/hold, approved safety/permit and prerequisite references, blind/valve/instrument list, valid gauges, participants/witnesses, evidence, deficiencies/NCRs, restoration confirmation, result, and independent acceptance.
+- Weld and test readiness are computed projections over current controlled material, event repair cycle, accepted NDE/PWHT, open NCR, released boundary weld, exact document, and valid-equipment records. A projection never replaces the underlying acceptance authority.
+
+## Enterprise command center projection
+
+- The command center adds no persisted aggregate or independent state machine. It is
+  an on-demand projection over authorized current source records and returns its
+  generation time plus exact current schedule-revision identifiers.
+- Module totals, completion, attention, accepted schedule progress, exceptions, work
+  cards, and recent activity retain source identities and versions. Missing read or
+  audit authority removes the corresponding source data rather than substituting an
+  unscoped cached count.
+- A work card is navigation and prioritization metadata only. The authoritative
+  module command rechecks record version, state, scope, assurance, qualification,
+  separation of duty, and any configured threshold before mutation.
+- Browser work targets retain only the card's source type, stable source ID, expected
+  version, and requested action. They create no delegation and carry no authorization;
+  a direct/shareable URL is safe only because the destination query and every command
+  independently apply the current identity, project, object scope, and policy state.
+
 ## Work objects
+
+## Provider-neutral document collaboration
+
+- `DocumentCollaborationImport` freezes the protected source-file identity/hash, provider product/project/session/source version, schema/mapping/idempotency versions, exact document/author/status mappings, source items, preview issues, actor/time, and atomic commit result. Exact retries converge; a changed source with the same provider identity becomes a visible conflict.
+- `CollaborationItem` preserves the provider document/item/parent identity, exact EIEP document revision, page/region, markup/comment/reply/status type, mapped user/organization, provider status, evidence-only normalized status, subject/body/appearance, source times/hash, source import, independent review, and supersession history.
+- `CollaborationReconciliation` preserves a safe issue code/object/field/detail plus independent resolution or waiver; it does not log protected markup body content and cannot convert an invalid preview into an approved EIEP record.
+- Provider completion or approval is never a document-release, quality, NCR, work, or turnover transition. No outbound write aggregate or command exists until the ADR-0012 external gates are independently accepted.
 
 Provide a shared `WorkObject` or equivalent stable abstraction with typed extensions:
 
@@ -93,6 +181,17 @@ Do not force discipline-specific attributes into one wide nullable table. Use st
 - Only one current released revision for a defined document/use context.
 - No release when a required hold, inspection, calibration, MTR, or disposition is open.
 - No turnover item pointing to a rejected, superseded, unauthorized, or mutable file.
+- No quote referencing a project-scoped, unreleased, cross-organization, or
+  hash-mismatched file; no submitted estimate-line mutation; no award handoff with a
+  nonzero reconciliation difference; no above-limit estimating decision without the
+  active policy's exact elevated qualification; no proposal download after artifact
+  content/hash divergence; no pending/rejected change altering an approved baseline;
+  no accepted progress above baseline quantity; no procurement receipt without a
+  same-project controlled material item; no cyclic schedule logic, duplicate import
+  external ID, or imported revision bypassing independent approval; no WPS/WPQ use
+  outside its exact effective scope, performer self-release, stale repair-cycle NDE
+  acceptance, PWHT pass with out-of-tolerance thermocouples, boundary test before
+  weld release, failed test acceptance, or result self-acceptance.
 
 The physical review schema currently advances through reversible migration
 `0014_pmi_ncr_execution_detail`, which makes PMI component location/notes and NCR

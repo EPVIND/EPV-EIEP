@@ -42,6 +42,30 @@ test("NFR-SEC-003 / AC-10: API bounds request rate without limiting health probe
   }
 });
 
+test("NFR-MNT-001 / AC-10: liveness is process-only and readiness fails closed without leaking dependency details", async (t) => {
+  const store = new InMemoryFoundationStore();
+  const server = await buildServer({
+    service: new FoundationService(store),
+    operations: new OperationalService(store),
+    store,
+    authenticator: new DevelopmentAuthenticator(),
+    environment: "production",
+    trainingBanner: false,
+    allowedOrigins: ["https://eiep.example.test"],
+    readiness: async () => { throw new Error("database credential and host must not leak"); },
+  });
+  t.after(() => server.close());
+
+  const liveness = await server.inject({ method: "GET", url: "/livez" });
+  assert.equal(liveness.statusCode, 200);
+  assert.deepEqual(liveness.json(), { status: "ok" });
+  const readiness = await server.inject({ method: "GET", url: "/readyz" });
+  assert.equal(readiness.statusCode, 503);
+  assert.deepEqual(readiness.json(), { status: "unavailable" });
+  assert.equal(readiness.body.includes("credential"), false);
+  assert.equal((await server.inject({ method: "GET", url: "/health" })).statusCode, 426);
+});
+
 test("NFR-SEC-003 / AC-10: authentication and oversized payload failures use accurate non-leaking status", async (t) => {
   const server = await createServer(100);
   t.after(() => server.close());

@@ -9,15 +9,47 @@ param apiImage string
 param webImage string
 param portalImage string
 param jobWorkerImage string
-param databaseSecretUri string
-param metricsSecretUri string
+@secure()
+@minLength(32)
+@maxLength(256)
+param metricsToken string
 param oidcIssuer string
 param oidcAudience string
 param corsAllowedOrigins string
+param postgresAdministratorObjectId string
+param postgresAdministratorPrincipalName string
+@allowed(['Group', 'ServicePrincipal', 'User'])
+param postgresAdministratorPrincipalType string
 param workerUserId string
 param workerOrganizationId string
 @minLength(1)
 param malwareScannerHost string
+param actionGroupResourceId string
+@allowed([1, 5, 15, 30, 60])
+param alertEvaluationFrequencyMinutes int
+@allowed([1, 5, 15, 30, 60, 360, 720, 1440])
+param alertAvailabilityWindowMinutes int
+@allowed([1, 5, 15, 30, 60, 360, 720, 1440])
+param alertDegradationWindowMinutes int
+@minValue(1)
+param apiRequestTimeoutCountThreshold int
+@minValue(1)
+param containerRestartCountThreshold int
+@minValue(1)
+@maxValue(99)
+param postgresqlStoragePercentThreshold int
+@minValue(1)
+@maxValue(100)
+param storageAvailabilityPercentThreshold int
+@minValue(0)
+@maxValue(4)
+param pagingAlertSeverity int
+@minValue(0)
+@maxValue(4)
+param ticketAlertSeverity int
+param alertConfigurationReference string = ''
+param runtimeAuthorized bool = false
+param runtimeAuthorizationReference string = ''
 param productionAuthorized bool = false
 param productionAuthorizationReference string = ''
 
@@ -25,11 +57,16 @@ var suffix = take(uniqueString(resourceGroup().id, environmentName), 8)
 var prefix = 'eiep-${environmentName}-${suffix}'
 var imageReferencesAreImmutable = contains(apiImage, '@sha256:') && contains(webImage, '@sha256:') && contains(portalImage, '@sha256:') && contains(jobWorkerImage, '@sha256:')
 var deploymentEnabled = imageReferencesAreImmutable && (environmentName != 'production' || (productionAuthorized && !empty(productionAuthorizationReference)))
+var alertConfigurationPresent = !empty(alertConfigurationReference) && contains(toLower(actionGroupResourceId), '/providers/microsoft.insights/actiongroups/') && alertAvailabilityWindowMinutes >= alertEvaluationFrequencyMinutes && alertDegradationWindowMinutes >= alertEvaluationFrequencyMinutes
+var runtimeEnabled = deploymentEnabled && runtimeAuthorized && !empty(runtimeAuthorizationReference) && alertConfigurationPresent
 var tags = {
   application: 'eiep'
   environment: environmentName
   deploymentStamp: deploymentStamp
   managedBy: 'bicep'
+  runtimeAuthorized: string(runtimeAuthorized)
+  runtimeAuthorizationReference: runtimeAuthorizationReference
+  alertConfigurationReference: alertConfigurationReference
   productionAuthorized: string(productionAuthorized)
   productionAuthorizationReference: productionAuthorizationReference
 }
@@ -98,15 +135,8 @@ module keyVault 'modules/key-vault.bicep' = if (deploymentEnabled) {
     location: location
     tags: tags
     tenantId: tenant().tenantId
-  }
-}
-
-module messaging 'modules/messaging.bicep' = if (deploymentEnabled) {
-  name: '${deployment().name}-messaging'
-  params: {
-    name: '${prefix}-bus'
-    location: location
-    tags: tags
+    apiPrincipalId: apiIdentity!.outputs.principalId
+    metricsToken: metricsToken
   }
 }
 
@@ -117,6 +147,9 @@ module postgresql 'modules/postgresql.bicep' = if (deploymentEnabled) {
     location: location
     tags: tags
     tenantId: tenant().tenantId
+    administratorObjectId: postgresAdministratorObjectId
+    administratorPrincipalName: postgresAdministratorPrincipalName
+    administratorPrincipalType: postgresAdministratorPrincipalType
     delegatedSubnetResourceId: network!.outputs.postgresSubnetId
     privateDnsZoneResourceId: network!.outputs.postgresPrivateDnsZoneId
     backupRetentionDays: 35
@@ -131,22 +164,24 @@ module privateEndpoints 'modules/private-endpoints.bicep' = if (deploymentEnable
     namePrefix: prefix
     subnetId: network!.outputs.privateEndpointSubnetId
     storageAccountId: storage!.outputs.id
-    serviceBusNamespaceId: messaging!.outputs.id
     keyVaultId: keyVault!.outputs.id
     blobPrivateDnsZoneId: network!.outputs.blobPrivateDnsZoneId
-    serviceBusPrivateDnsZoneId: network!.outputs.serviceBusPrivateDnsZoneId
     vaultPrivateDnsZoneId: network!.outputs.vaultPrivateDnsZoneId
   }
 }
 
-module runtime 'modules/app-runtime.bicep' = if (deploymentEnabled) {
+module runtime 'modules/app-runtime.bicep' = if (runtimeEnabled) {
   name: '${deployment().name}-runtime'
+  dependsOn: [
+    privateEndpoints
+  ]
   params: {
     environmentName: environmentName
     location: location
     tags: tags
     managedEnvironmentName: '${prefix}-apps'
     infrastructureSubnetId: network!.outputs.containerAppsSubnetId
+    logAnalyticsWorkspaceId: observability!.outputs.id
     workloadIdentityId: identity!.outputs.id
     apiIdentityId: apiIdentity!.outputs.id
     apiIdentityClientId: apiIdentity!.outputs.clientId
@@ -159,8 +194,9 @@ module runtime 'modules/app-runtime.bicep' = if (deploymentEnabled) {
     webImage: webImage
     portalImage: portalImage
     jobWorkerImage: jobWorkerImage
-    databaseSecretUri: databaseSecretUri
-    metricsSecretUri: metricsSecretUri
+    apiDatabaseUrl: 'postgresql://${uriComponent(apiIdentity!.outputs.name)}@${postgresql!.outputs.fqdn}:5432/eiep'
+    jobWorkerDatabaseUrl: 'postgresql://${uriComponent(jobWorkerIdentity!.outputs.name)}@${postgresql!.outputs.fqdn}:5432/eiep'
+    metricsSecretUri: keyVault!.outputs.metricsSecretUri
     oidcIssuer: oidcIssuer
     oidcAudience: oidcAudience
     corsAllowedOrigins: corsAllowedOrigins
@@ -169,15 +205,48 @@ module runtime 'modules/app-runtime.bicep' = if (deploymentEnabled) {
   }
 }
 
+module alerts 'modules/alerts.bicep' = if (runtimeEnabled) {
+  name: '${deployment().name}-alerts'
+  params: {
+    namePrefix: prefix
+    tags: tags
+    actionGroupResourceId: actionGroupResourceId
+    containerApps: [
+      { code: 'api', id: runtime!.outputs.apiId }
+      { code: 'web', id: runtime!.outputs.webId }
+      { code: 'portal', id: runtime!.outputs.portalId }
+      { code: 'job-worker', id: runtime!.outputs.jobWorkerId }
+    ]
+    apiContainerAppId: runtime!.outputs.apiId
+    postgresqlServerId: postgresql!.outputs.id
+    storageAccountId: storage!.outputs.id
+    evaluationFrequencyMinutes: alertEvaluationFrequencyMinutes
+    availabilityWindowMinutes: alertAvailabilityWindowMinutes
+    degradationWindowMinutes: alertDegradationWindowMinutes
+    apiRequestTimeoutCountThreshold: apiRequestTimeoutCountThreshold
+    containerRestartCountThreshold: containerRestartCountThreshold
+    postgresqlStoragePercentThreshold: postgresqlStoragePercentThreshold
+    storageAvailabilityPercentThreshold: storageAvailabilityPercentThreshold
+    pagingSeverity: pagingAlertSeverity
+    ticketSeverity: ticketAlertSeverity
+  }
+}
+
 output environmentBoundary string = environmentName
 output deploymentEnabled bool = deploymentEnabled
 output imageReferencesAreImmutable bool = imageReferencesAreImmutable
 output workloadIdentityClientId string = deploymentEnabled ? identity!.outputs.clientId : ''
 output apiIdentityClientId string = deploymentEnabled ? apiIdentity!.outputs.clientId : ''
+output apiIdentityName string = deploymentEnabled ? apiIdentity!.outputs.name : ''
+output apiIdentityPrincipalId string = deploymentEnabled ? apiIdentity!.outputs.principalId : ''
 output jobWorkerIdentityClientId string = deploymentEnabled ? jobWorkerIdentity!.outputs.clientId : ''
+output jobWorkerIdentityName string = deploymentEnabled ? jobWorkerIdentity!.outputs.name : ''
+output jobWorkerIdentityPrincipalId string = deploymentEnabled ? jobWorkerIdentity!.outputs.principalId : ''
 output storageAccountName string = deploymentEnabled ? storage!.outputs.name : ''
 output postgresqlFqdn string = deploymentEnabled ? postgresql!.outputs.fqdn : ''
-output apiFqdn string = deploymentEnabled ? runtime!.outputs.apiFqdn : ''
-output webFqdn string = deploymentEnabled ? runtime!.outputs.webFqdn : ''
-output portalFqdn string = deploymentEnabled ? runtime!.outputs.portalFqdn : ''
+output runtimeEnabled bool = runtimeEnabled
+output apiFqdn string = runtimeEnabled ? runtime!.outputs.apiFqdn : ''
+output webFqdn string = runtimeEnabled ? runtime!.outputs.webFqdn : ''
+output portalFqdn string = runtimeEnabled ? runtime!.outputs.portalFqdn : ''
 output privateEndpointIds array = deploymentEnabled ? privateEndpoints!.outputs.privateEndpointIds : []
+output alertRuleCount int = runtimeEnabled ? alerts!.outputs.alertRuleCount : 0

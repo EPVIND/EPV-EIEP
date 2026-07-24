@@ -3,14 +3,23 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsx watch src/main.ts",
+    "bootstrap:application-identities": "node dist/bootstrap-application-administrators.js",
+    "dev": "tsx watch --conditions=development src/main.ts",
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "@azure/identity": "4.13.1",
     "@eiep/document-processing": "workspace:*",
     "@eiep/rules-engine": "workspace:*",
     "@eiep/shared-types": "workspace:*",

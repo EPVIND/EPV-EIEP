@@ -100,6 +100,23 @@ test("FR-INS-001-002 / AC-02-06: approved current plan revision enforces fields,
   assert.equal(accepted.acceptedBy, "quality-acceptor");
   assert.equal(accepted.acceptedAssurance, "step-up");
   assert.match(accepted.acceptanceMeaning!, /approved inspection plan/u);
+  const qualityWorkspace = await operations.qualityExecution(
+    context("quality-queue-reader", "mfa"),
+    [assignment("read-inspection", "quality-queue-reader", ["inspection.read"], scope(project.id, inspection.id))],
+    project.id,
+  );
+  assert.deepEqual(qualityWorkspace.inspections.map((record) => record.id), [inspection.id]);
+  assert.deepEqual(qualityWorkspace.ncrs, []);
+  assert.deepEqual(qualityWorkspace.punches, []);
+  assert.deepEqual(qualityWorkspace.turnoverPackages, []);
+  assert.deepEqual(
+    (await operations.qualityExecution(
+      context("wrong-object-reader", "mfa"),
+      [assignment("wrong-object", "wrong-object-reader", ["inspection.read"], scope(project.id, "different-inspection"))],
+      project.id,
+    )).inspections,
+    [],
+  );
 
   const revisionB = await operations.submitInspectionPlanRevision(
     context("plan-author", "mfa"),

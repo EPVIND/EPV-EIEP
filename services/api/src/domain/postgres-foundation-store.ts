@@ -14,6 +14,7 @@ import type {
   IntegrationWorkClaim,
   IntegrationWorkLease,
 } from "./foundation-store.js";
+import type { PostgresConnectionAuthentication } from "./azure-postgres-authentication.js";
 
 export type RepositoryWireValue =
   | { readonly type: "null" }
@@ -41,7 +42,17 @@ const mapCollections = [
   "inspections", "pmiRecords", "pmiOverrides", "ncrs", "punches", "completionBoundaries",
   "turnoverRequirements", "turnoverPackages", "turnoverVersions", "subcontractorProfiles",
   "subcontractorQualifications", "subcontractorAssignments", "mobilizationRequirements",
-  "subcontractorSubmissions", "managedAccessAssignments", "delegations",
+  "subcontractorSubmissions", "managedAccessAssignments", "delegations", "estimateAssemblies",
+  "estimateProductivityFactors", "estimateAuthorityPolicies", "estimates", "estimateRevisions",
+  "estimateLines", "estimateQuotes", "estimateProposals", "estimateHandoffs",
+  "projectControlsAuthorityPolicies", "projectControlBaselines", "projectChangeRequests",
+  "projectCostEntries", "projectProgressClaims", "procurementRequisitions",
+  "procurementBidPackages", "procurementCommitments", "schedulePrograms", "scheduleRevisions",
+  "scheduleImports",
+  "weldingProcedures", "welderQualifications", "weldJoints", "ndeRequests", "ndeReports",
+  "pwhtCycles", "testPackages", "fabricationAssemblies", "fabricationTravelers", "fabricationExecutionEvents",
+  "cncMachineProfiles", "cncPrograms", "cncExecutions", "engineeringRegisterItems",
+  "collaborationImports", "collaborationItems", "collaborationReconciliations",
 ] as const satisfies readonly (keyof MemoryState)[];
 
 const arrayCollections = ["assignments", "audits"] as const satisfies readonly (keyof MemoryState)[];
@@ -236,10 +247,15 @@ export class PostgresFoundationStore implements FoundationStore {
   public static async connect(
     connectionString: string,
     runtimeRole: "eiep_runtime" | "eiep_job_worker" | null = null,
+    authentication?: PostgresConnectionAuthentication,
   ): Promise<PostgresFoundationStore> {
     if (!connectionString.trim()) throw new Error("A PostgreSQL connection string is required.");
     const pool = new pg.Pool({
       connectionString,
+      ...(authentication ? {
+        password: authentication.password,
+        ssl: { rejectUnauthorized: true },
+      } : {}),
       application_name: runtimeRole === "eiep_job_worker" ? "eiep-job-worker" : "eiep-api",
       ...(runtimeRole ? { options: `-c role=${runtimeRole}` } : {}),
       max: 20,
